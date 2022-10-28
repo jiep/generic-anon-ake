@@ -1,69 +1,117 @@
-use vrf::openssl::{CipherSuite, ECVRF};
 use vrf::VRF;
+use vrf::openssl::{CipherSuite, ECVRF};
+use sha3::{Digest, Sha3_256};
+//use vrf::VRF;
 
-//use rand::RngCore;
+use rand::thread_rng;
+use rand::Rng;
 
-use oqs::*;
+use oqs::{sig, kem};
 
-use aes_gcm::{
-    aead::{Aead, KeyInit, OsRng},
-    Aes256Gcm,
-    Nonce, // Or `Aes128Gcm`
-};
+//use aes_gcm::{
+//    aead::{Aead, KeyInit, OsRng},
+//    Aes256Gcm,
+//    Nonce, // Or `Aes128Gcm`
+//};
+
+fn get_random_key32() ->  Vec<u8>{
+    let mut x = vec![0; 32];
+    thread_rng().try_fill(&mut x[..]).expect("Error while generating random number!");
+    return x;
+}
+
+fn print_hex(arr: Vec<u8>, name: &str) {
+    println!("{:}: 0x{:}", name, hex::encode(&arr));
+}
+
+// Output: commitment and open
+fn comm(x: &mut Vec<u8>) -> (Vec<u8>, Vec<u8>) {
+    let open: Vec<u8> = get_random_key32();
+    let mut to_commit: Vec<u8> = open.clone();
+    to_commit.append(x);
+
+    let mut hasher = Sha3_256::new();
+    hasher.update(to_commit);
+    let commitment: Vec<u8> = hasher.finalize().to_vec();
+    return (commitment, open);
+}
+
+fn xor(x: Vec<u8>, y: Vec<u8>) -> Vec<u8> {
+    let z: Vec<_> = x.iter().zip(y).map(|(a, b)| a ^ b).collect();
+    z 
+}
 
 fn main() {
+    // 0. Registration
+    println!("0. Registration");
+    let users:u16 = 10;
+
+    let mut users_keys:Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
+
+    // Init VRF - Not Post Quantum with this library
     let mut vrf = ECVRF::from_suite(CipherSuite::SECP256K1_SHA256_TAI).unwrap();
-    // Inputs: Secret Key, Public Key (derived) & Message
-    let secret_key =
-        hex::decode("c9afa9d845ba75166b5c215767b1d6934e50c3db36e89b127b8a622b120f6721").unwrap();
-    let public_key = vrf.derive_public_key(&secret_key).unwrap();
-    let message: &[u8] = b"sample";
 
-    // VRF proof and hash output
-    let pi = vrf.prove(&secret_key, message).unwrap();
-    let hash = vrf.proof_to_hash(&pi).unwrap();
-    println!("hash: 0x{:}", hex::encode(&hash));
-
-    // VRF proof verification (returns VRF hash output)
-    let beta = vrf.verify(&public_key, &pi, message).unwrap();
-    println!("beta: 0x{:}", hex::encode(&beta));
-
+    // Init PQ signature scheme 
     let sigalg = sig::Sig::new(sig::Algorithm::Dilithium2).unwrap();
+    let (pk_s, sk_s) = sigalg.keypair().unwrap();
+    print!("[S] ");
+    print_hex(pk_s.into_vec(), "pk_S");
+    print!("[S] ");
+    print_hex(sk_s.into_vec(), "sk_S");
+
+    for i in 0..users {
+        println!("User {:}", i);
+        let ek =  get_random_key32();
+        let vk = vrf.derive_public_key(&ek).unwrap();
+        users_keys.push((ek.clone(), vk.clone()));
+        print_hex(ek, "ek");
+        print_hex(vk, "vk");
+
+        println!("[C <- S] Sent ek_{:} to Client {:}", i, i);
+    }
+
+    // Round 1
+    println!("1. Round 1");
+    print!("[C] ");
+    let mut n_i:Vec<u8> = get_random_key32();
+    print_hex(n_i.clone(), "n_i");
+    let (comm, open) = comm(&mut n_i);
+    print_hex(comm.clone(), "comm");
+    print_hex(open.clone(), "open");
+    println!("[S <- C] Sent m_1=(init, comm) to Server");
+
+    // Round 2
+    println!("2. Round 2");
     let kemalg = kem::Kem::new(kem::Algorithm::Kyber512).unwrap();
-    // A's long-term secrets
-    let (a_sig_pk, a_sig_sk) = sigalg.keypair().unwrap();
-    // B's long-term secrets
-    let (b_sig_pk, b_sig_sk) = sigalg.keypair().unwrap();
+    let (pk, sk) = kemalg.keypair().unwrap();
+    print!("[S] ");
+    print_hex(pk.into_vec(), "pk*");
+    print!("[S] ");
+    print_hex(sk.into_vec(), "sk*");
+    let n_s: Vec<u8> = get_random_key32();
+    let r: Vec<u8> = get_random_key32();
+    print!("[S] ");
+    print_hex(n_s.clone(), "n_S");
+    print!("[S] ");
+    print_hex(r.clone(), "r");
+    for i in 0..users {
+        let (ek, _) = users_keys.get(i as usize).unwrap();
+        let pi = vrf.prove(ek, &r).unwrap();
+        let y = vrf.proof_to_hash(&pi).unwrap();
+        println!("[S] Computing VRF.Eval for client {:}", i);
+        print!("[S] ");
+        print_hex(pi.clone(), "pi");
+        print!("[S] ");
+        print_hex(y.clone(), "y");
+        let c: Vec<u8> = xor(y, n_s.clone()); 
+        println!("[S] Ciphertext for client {:}", i);
+        print!("[S] ");
+        print_hex(c.clone(), "c");
 
-    // assumption: A has (a_sig_sk, a_sig_pk, b_sig_pk)
-    // assumption: B has (b_sig_sk, b_sig_pk, a_sig_pk)
+        // TODO: Sign and send m2 to client
 
-    // A -> B: kem_pk, signature
-    let (kem_pk, kem_sk) = kemalg.keypair().unwrap();
-    let signature = sigalg.sign(kem_pk.as_ref(), &a_sig_sk).unwrap();
+    }
 
-    // B -> A: kem_ct, signature
-    sigalg
-        .verify(kem_pk.as_ref(), &signature, &a_sig_pk)
-        .unwrap();
-    let (kem_ct, b_kem_ss) = kemalg.encapsulate(&kem_pk).unwrap();
-    let signature = sigalg.sign(kem_ct.as_ref(), &b_sig_sk).unwrap();
 
-    // A verifies, decapsulates, now both have kem_ss
-    sigalg
-        .verify(kem_ct.as_ref(), &signature, &b_sig_pk)
-        .unwrap();
-    let a_kem_ss = kemalg.decapsulate(&kem_sk, &kem_ct).unwrap();
-    assert_eq!(a_kem_ss, b_kem_ss);
 
-    let key = Aes256Gcm::generate_key(&mut OsRng);
-    let cipher = Aes256Gcm::new(&key);
-    let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
-    let ciphertext = cipher
-        .encrypt(nonce, b"plaintext message".as_ref())
-        .unwrap();
-    let plaintext = cipher.decrypt(nonce, ciphertext.as_ref()).unwrap();
-    assert_eq!(&plaintext, b"plaintext message");
-
-    //Ok(())
 }
