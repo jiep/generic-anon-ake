@@ -5,10 +5,6 @@ use lb_vrf::VRF;
 use rand::RngCore;
 
 use oqs::*;
-//use aes_gcm::{
-//    aead::{Aead, KeyInit, OsRng},
-//    Aes256Gcm, Nonce // Or `Aes128Gcm`
-//};
 
 fn main() {
     let mut seed = [0u8; 32];
@@ -27,7 +23,7 @@ fn main() {
     let seed = [0u8; 32];
     let proof = <LBVRF as VRF>::prove(message, param, _pk, _sk, seed).unwrap();
     let res = <LBVRF as VRF>::verify(message, param, _pk, proof).unwrap();
-    if !res.is_none() {
+    if res.is_some() {
         println!("Ok!");
     }
 
@@ -58,12 +54,6 @@ fn main() {
         .unwrap();
     let a_kem_ss = kemalg.decapsulate(&kem_sk, &kem_ct).unwrap();
     assert_eq!(a_kem_ss, b_kem_ss);
-
-    //let key = Aes256Gcm::generate_key(&mut OsRng);
-    //let cipher = Aes256Gcm::new(&key);
-    //let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
-    //let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
-    //let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
-    //assert_eq!(&plaintext, b"plaintext message");
+    
     //Ok(())
 }
