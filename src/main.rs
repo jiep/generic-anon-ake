@@ -54,6 +54,6 @@ fn main() {
         .unwrap();
     let a_kem_ss = kemalg.decapsulate(&kem_sk, &kem_ct).unwrap();
     assert_eq!(a_kem_ss, b_kem_ss);
-    
+
     //Ok(())
 }

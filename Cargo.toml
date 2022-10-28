@@ -10,4 +10,5 @@ lb-vrf = { git = "https://github.com/jiep/lb-vrf" }
 rand = "0.8.5"
 hex = "0.4.3"
 oqs = "0.7.2"
+#sha3 = "0.10.6"
 #aes-gcm = "0.10.1"
