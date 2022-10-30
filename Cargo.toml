@@ -13,6 +13,7 @@ hex = "0.4.3"
 #oqs = "0.7.2"
 sha3 = "0.10.6"
 aes-gcm = "0.10.1"
+itertools = "0.10.5"
 
 [dependencies.oqs]
 version = "0.7.2"

@@ -29,4 +29,8 @@ impl Config {
     pub fn get_kem_algorithm(&mut self) -> &mut kem::Kem {
         &mut self.kem
     }
+
+    pub fn get_users_number(&self) -> u8 {
+        self.users_numbers
+    }
 }

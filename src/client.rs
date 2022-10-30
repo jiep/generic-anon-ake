@@ -1,5 +1,10 @@
+use oqs::{kem, sig};
+
+use crate::config::Config;
+use crate::pke::pke_enc;
 use crate::server::Server;
 
+#[derive(Debug)]
 pub struct Client {
     id: u8,
     ek: Vec<u8>,
@@ -7,6 +12,13 @@ pub struct Client {
     vks: Vec<Vec<u8>>,
     //commitment and open
     commitment: (Vec<u8>, Vec<u8>),
+    signature: Option<sig::Signature>,
+    cis: Vec<Vec<u8>>,
+    proofs: Vec<Vec<u8>>,
+    r: Vec<u8>,
+    pk: Option<kem::PublicKey>,
+    pk_s: Option<sig::PublicKey>,
+    k: Vec<u8>,
 }
 
 impl Client {
@@ -17,6 +29,13 @@ impl Client {
             ni: Vec::new(),
             vks: Vec::new(),
             commitment: (Vec::new(), Vec::new()),
+            signature: None,
+            cis: Vec::new(),
+            proofs: Vec::new(),
+            r: Vec::new(),
+            pk: None,
+            pk_s: None,
+            k: Vec::new(),
         }
     }
 
@@ -36,8 +55,37 @@ impl Client {
         self.commitment = commitment;
     }
 
+    pub fn set_pks(&mut self, pk_s: sig::PublicKey) {
+        self.pk_s = Some(pk_s);
+    }
+
+    pub fn set_k(&mut self, k: Vec<u8>) {
+        self.k = k;
+    }
+
     pub fn get_ek(&self) -> Vec<u8> {
         self.ek.clone()
+    }
+
+    pub fn get_pk(&self) -> kem::PublicKey {
+        self.pk.as_ref().unwrap().clone()
+    }
+
+    pub fn get_ni(&self) -> Vec<u8> {
+        self.ni.clone()
+    }
+
+    pub fn get_r(&self) -> Vec<u8> {
+        self.r.clone()
+    }
+
+    pub fn get_cis(&self) -> Vec<Vec<u8>> {
+        self.cis.clone()
+    }
+
+    pub fn get_pks(&self) -> sig::PublicKey {
+        println!("pk: {:?}", self.pk_s);
+        self.pk_s.as_ref().unwrap().clone()
     }
 
     pub fn get_commitment(&self) -> (Vec<u8>, Vec<u8>) {
@@ -55,7 +103,75 @@ impl Client {
         server.receive_m1(m1);
     }
 
+    pub fn send_m3(&self, server: &mut Server, config: &mut Config) {
+        let ni: Vec<u8> = self.get_ni();
+        let kemalg = config.get_kem_algorithm();
+        let pk_s: kem::PublicKey = self.get_pk();
+        let (_, open) = self.get_commitment();
+        let cni = pke_enc(kemalg, &pk_s, &ni);
+        let m3 = (open, cni, self.get_id());
+
+        server.receive_m3(m3);
+    }
+
+    #[allow(clippy::type_complexity)]
+    pub fn receive_m2(
+        &mut self,
+        m2: (
+            sig::Signature,
+            Vec<Vec<u8>>,
+            Vec<Vec<u8>>,
+            Vec<u8>,
+            kem::PublicKey,
+        ),
+    ) {
+        let (signature, cis, proofs, r, pk) = m2;
+        self.signature = Some(signature);
+        self.cis = cis;
+        self.proofs = proofs;
+        self.r = r;
+        self.pk = Some(pk);
+    }
+
+    #[allow(clippy::type_complexity)]
+    pub fn get_m2_info(
+        &self,
+    ) -> (
+        sig::Signature,
+        Vec<Vec<u8>>,
+        Vec<Vec<u8>>,
+        Vec<u8>,
+        kem::PublicKey,
+    ) {
+        (
+            self.signature.as_ref().unwrap().clone(),
+            self.cis.clone(),
+            self.proofs.clone(),
+            self.r.clone(),
+            self.pk.as_ref().unwrap().clone(),
+        )
+    }
+
     //pub fn new(id:u8, ek: Vec<u8>, vks: Vec<Vec<u8>>) -> Self {
     //    Client { id, ek, vks }
     //}
+}
+
+impl Clone for Client {
+    fn clone(&self) -> Client {
+        Client {
+            id: self.id,
+            ek: self.ek.clone(),
+            ni: self.ni.clone(),
+            vks: self.vks.clone(),
+            commitment: self.commitment.clone(),
+            signature: self.signature.clone(),
+            cis: self.cis.clone(),
+            proofs: self.proofs.clone(),
+            r: self.r.clone(),
+            pk: self.pk.clone(),
+            pk_s: self.pk_s.clone(),
+            k: self.k.clone(),
+        }
+    }
 }
