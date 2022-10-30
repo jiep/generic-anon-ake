@@ -1,37 +1,58 @@
+pub mod client;
 pub mod commitment;
+pub mod config;
 pub mod pke;
 pub mod protocol;
+pub mod server;
 pub mod utils;
 
-use crate::commitment::{comm, comm_vfy};
+use oqs::{kem, sig};
+use vrf::openssl::{CipherSuite, ECVRF};
+
+use crate::client::Client;
+use crate::config::Config;
+use crate::protocol::registration;
+use crate::server::Server;
+use crate::utils::print_hex;
+
+/* use crate::commitment::{comm, comm_vfy};
 use crate::pke::{pke_dec, pke_enc};
 use crate::protocol::{concat_message, set_m2, to_verify};
-use crate::utils::{get_random_key32, print_hex, xor};
+use crate::utils::{get_random_key32, print_hex, xor}; */
 
-use oqs::{kem, sig};
+/* use oqs::{kem, sig};
 
 use vrf::openssl::{CipherSuite, ECVRF};
-use vrf::VRF;
+use vrf::VRF; */
 
 fn main() {
     // 0. Registration
     println!("0. Registration");
-    let users: u16 = 10;
-
-    let mut users_keys: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
+    let users: u8 = 10;
 
     // Init VRF - Not Post Quantum with this library
-    let mut vrf = ECVRF::from_suite(CipherSuite::SECP256K1_SHA256_TAI).unwrap();
+    let vrf = ECVRF::from_suite(CipherSuite::SECP256K1_SHA256_TAI).unwrap();
 
     // Init PQ signature scheme
     let sigalg = sig::Sig::new(sig::Algorithm::Dilithium2).unwrap();
-    let (pk_s, sk_s) = sigalg.keypair().unwrap();
-    print!("[S] ");
-    print_hex(&pk_s.clone().into_vec(), "pk_S");
-    print!("[S] ");
-    print_hex(&sk_s.clone().into_vec(), "sk_S");
 
-    for i in 0..users {
+    // Init PQ KEM
+    let kemalg = kem::Kem::new(kem::Algorithm::Kyber512).unwrap();
+
+    let mut config: Config = Config::new(users, vrf, kemalg, sigalg);
+    let mut client: Client = Client::new(1);
+    let mut server: Server = Server::new();
+
+    registration(&mut client, &mut server, &mut config);
+    print_hex(&client.get_ek(), "ek");
+
+    /* let (pk_s, sk_s) = sigalg.keypair().unwrap();
+       print!("[S] ");
+       print_hex(&pk_s.clone().into_vec(), "pk_S");
+       print!("[S] ");
+       print_hex(&sk_s.clone().into_vec(), "sk_S");
+    */
+    /* for i in 0..users {
         println!("User {:}", i);
         let ek = get_random_key32();
         let vk = vrf.derive_public_key(&ek).unwrap();
@@ -169,7 +190,7 @@ fn main() {
         println!("Checking commitment for client {}: {}", i, check);
         print!("K for server with client {}: ", i);
         print_hex(&k_server, "");
-    }
+    } */
 
     //
 }

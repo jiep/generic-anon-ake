@@ -1,4 +1,19 @@
+/* use vrf::VRF; */
 use oqs::sig;
+
+use crate::utils::get_random_key32;
+
+use crate::client::Client;
+use crate::config::Config;
+use crate::server::Server;
+
+pub fn registration(client: &mut Client, server: &mut Server, config: &mut Config) {
+    let ek = get_random_key32();
+    let vk = config.get_vrf().derive_public_key(&ek).unwrap();
+
+    client.set_ek(ek.clone());
+    server.add_key((ek, vk));
+}
 
 pub fn concat_message(
     proofs_and_ciphertexts: &Vec<(Vec<u8>, Vec<u8>, Vec<u8>)>,
