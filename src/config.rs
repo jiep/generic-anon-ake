@@ -12,7 +12,7 @@ impl Config {
     pub fn new(users_numbers: u8, vrf: ECVRF, kem: kem::Kem, sig: sig::Sig) -> Self {
         Config {
             users_numbers,
-            vrf: vrf,
+            vrf,
             kem,
             sig,
         }
@@ -20,5 +20,13 @@ impl Config {
 
     pub fn get_vrf(&mut self) -> &mut ECVRF {
         &mut self.vrf
+    }
+
+    pub fn get_signature_algorithm(&mut self) -> &mut sig::Sig {
+        &mut self.sig
+    }
+
+    pub fn get_kem_algorithm(&mut self) -> &mut kem::Kem {
+        &mut self.kem
     }
 }

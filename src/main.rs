@@ -11,7 +11,7 @@ use vrf::openssl::{CipherSuite, ECVRF};
 
 use crate::client::Client;
 use crate::config::Config;
-use crate::protocol::registration;
+use crate::protocol::{registration, round_1};
 use crate::server::Server;
 use crate::utils::print_hex;
 
@@ -41,10 +41,17 @@ fn main() {
 
     let mut config: Config = Config::new(users, vrf, kemalg, sigalg);
     let mut client: Client = Client::new(1);
-    let mut server: Server = Server::new();
+    let mut server: Server = Server::new(&mut config);
 
     registration(&mut client, &mut server, &mut config);
     print_hex(&client.get_ek(), "ek");
+
+    round_1(&mut client);
+    let (comm, open) = client.get_commitment();
+    print_hex(&comm, "comm");
+    print_hex(&open, "open");
+
+    client.send_m1(&mut server);
 
     /* let (pk_s, sk_s) = sigalg.keypair().unwrap();
        print!("[S] ");

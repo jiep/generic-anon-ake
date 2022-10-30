@@ -1,6 +1,7 @@
 /* use vrf::VRF; */
 use oqs::sig;
 
+use crate::commitment::{comm};
 use crate::utils::get_random_key32;
 
 use crate::client::Client;
@@ -13,6 +14,13 @@ pub fn registration(client: &mut Client, server: &mut Server, config: &mut Confi
 
     client.set_ek(ek.clone());
     server.add_key((ek, vk));
+}
+
+pub fn round_1(client: &mut Client) {
+    let mut ni: Vec<u8> = get_random_key32();
+    let commitment = comm(&mut ni);
+    client.set_ni(ni);
+    client.set_commitment(commitment);
 }
 
 pub fn concat_message(
