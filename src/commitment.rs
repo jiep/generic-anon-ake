@@ -1,5 +1,5 @@
-use sha3::{Digest, Sha3_256};
 use crate::utils::get_random_key32;
+use sha3::{Digest, Sha3_256};
 
 // Output: commitment and open
 pub fn comm(x: &mut Vec<u8>) -> (Vec<u8>, Vec<u8>) {
