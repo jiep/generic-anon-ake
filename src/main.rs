@@ -3,8 +3,9 @@ use vrf::openssl::{CipherSuite, ECVRF};
 use vrf::VRF;
 //use vrf::VRF;
 
-use rand::thread_rng;
-use rand::Rng;
+pub mod utils;
+
+use crate::utils::{get_nonce, get_random_key32, print_hex, xor};
 
 use oqs::{
     kem::{self, Ciphertext},
@@ -19,26 +20,6 @@ use aes_gcm::{
     aead::{Aead, KeyInit},
     Aes256Gcm, Nonce,
 };
-
-fn get_random_key32() -> Vec<u8> {
-    let mut x = vec![0; 32];
-    thread_rng()
-        .try_fill(&mut x[..])
-        .expect("Error while generating random number!");
-    x
-}
-
-fn get_nonce() -> Vec<u8> {
-    let mut x = vec![0; 12];
-    thread_rng()
-        .try_fill(&mut x[..])
-        .expect("Error while generating random number!");
-    x
-}
-
-fn print_hex(arr: &Vec<u8>, name: &str) {
-    println!("{:}: 0x{:}", name, hex::encode(&arr));
-}
 
 // Output: commitment and open
 fn comm(x: &mut Vec<u8>) -> (Vec<u8>, Vec<u8>) {
@@ -63,11 +44,6 @@ fn comm_vfy(comm: &[u8], open: &[u8], x: &mut Vec<u8>) -> bool {
     let are_equal: bool = commitment.iter().zip(comm.iter()).all(|(a, b)| a == b);
 
     are_equal
-}
-
-fn xor(x: &[u8], y: &[u8]) -> Vec<u8> {
-    let z: Vec<_> = x.iter().zip(y).map(|(a, b)| a ^ b).collect();
-    z
 }
 
 fn concat_message(
