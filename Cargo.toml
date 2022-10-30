@@ -10,6 +10,11 @@ edition = "2021"
 vrf = "0.2.4"
 rand = "0.8.5"
 hex = "0.4.3"
-oqs = "0.7.2"
+#oqs = "0.7.2"
 sha3 = "0.10.6"
 aes-gcm = "0.10.1"
+
+[dependencies.oqs]
+version = "0.7.2"
+default-features = false
+features = ["dilithium", "falcon", "sphincs", "kyber"]
