@@ -11,7 +11,7 @@ use oqs::{kem, sig};
 
 use crate::client::Client;
 use crate::config::Config;
-use crate::protocol::{registration, round_1, round_2};
+use crate::protocol::{registration, round_1, round_2, round_3, round_4};
 use crate::server::Server;
 use crate::utils::print_hex;
 use crate::vrf::vrf_gen_seed_param;
@@ -35,16 +35,10 @@ fn main() {
     let mut client2: Client = Client::new(2);
     let mut client3: Client = Client::new(3);
 
-    let mut clients: Vec<&mut Client> = Vec::new();
-    clients.push(&mut client1);
-    clients.push(&mut client2);
-    clients.push(&mut client3);
+    let clients: Vec<&mut Client> = vec![&mut client1, &mut client2, &mut client3];
     let mut server: Server = Server::new(&mut config);
 
     registration(clients, &mut server, &mut config);
-
-    //println!("server: {:?}", server);
-    println!("client1: {:?}", client1);
 
     round_1(&mut client1);
 
@@ -58,9 +52,12 @@ fn main() {
 
     server.send_m2(m2, &mut client1);
 
-    // round_3(&mut client1, &mut config, &server);
+    let m3 = round_3(&mut client1, &mut config);
 
-    // client1.send_m3(&mut server, &mut config);
+    client1.send_m3(m3, &mut server);
 
-    // round_4(&mut server, &mut config, 1);
+    round_4(&mut server, &mut config, 1);
+
+    println!("server: {:#?}", server);
+    println!("client1: {:#?}", client1);
 }

@@ -1,8 +1,13 @@
+use aes_gcm::aes::cipher::generic_array::{
+    typenum::{UInt, UTerm, B0, B1},
+    GenericArray,
+};
 use lb_vrf::keypair::{PublicKey, SecretKey};
-use oqs::{kem, sig};
+use oqs::{
+    kem::{self, Ciphertext},
+    sig,
+};
 
-use crate::config::Config;
-use crate::pke::pke_enc;
 use crate::server::Server;
 
 #[derive(Debug)]
@@ -15,7 +20,7 @@ pub struct Client {
     commitment: (Vec<u8>, Vec<u8>),
     signature: Option<sig::Signature>,
     cis: Vec<Vec<u8>>,
-    proofs: Vec<(Vec<u8>, [Vec<u8>; 9])>,
+    proofs: Vec<([Vec<u8>; 9], Vec<u8>)>,
     r: Vec<u8>,
     pk: Option<kem::PublicKey>,
     pk_s: Option<sig::PublicKey>,
@@ -85,12 +90,15 @@ impl Client {
     }
 
     pub fn get_pks(&self) -> sig::PublicKey {
-        println!("pk: {:?}", self.pk_s);
         self.pk_s.as_ref().unwrap().clone()
     }
 
     pub fn get_commitment(&self) -> (Vec<u8>, Vec<u8>) {
         self.commitment.clone()
+    }
+
+    pub fn get_vks(&self) -> Vec<PublicKey> {
+        self.vks.clone()
     }
 
     pub fn get_id(&self) -> u8 {
@@ -104,15 +112,21 @@ impl Client {
         server.receive_m1(m1);
     }
 
-    pub fn send_m3(&self, server: &mut Server, config: &mut Config) {
-        let ni: Vec<u8> = self.get_ni();
-        let kemalg = config.get_kem_algorithm();
-        let pk_s: kem::PublicKey = self.get_pk();
-        let (_, open) = self.get_commitment();
-        let cni = pke_enc(kemalg, &pk_s, &ni);
-        let m3 = (open, cni, self.get_id());
-
-        server.receive_m3(m3);
+    #[allow(clippy::type_complexity)]
+    pub fn send_m3(
+        &self,
+        m3: (
+            Vec<u8>,
+            (
+                Ciphertext,
+                Vec<u8>,
+                GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
+            ),
+        ),
+        server: &mut Server,
+    ) {
+        let (open, cni) = m3;
+        server.receive_m3((open, cni, self.get_id()));
     }
 
     #[allow(clippy::type_complexity)]
@@ -121,7 +135,7 @@ impl Client {
         m2: (
             sig::Signature,
             Vec<Vec<u8>>,
-            Vec<(Vec<u8>, [Vec<u8>; 9])>,
+            Vec<([Vec<u8>; 9], Vec<u8>)>,
             Vec<u8>,
             kem::PublicKey,
         ),
@@ -140,7 +154,7 @@ impl Client {
     ) -> (
         sig::Signature,
         Vec<Vec<u8>>,
-        Vec<(Vec<u8>, [Vec<u8>; 9])>,
+        Vec<([Vec<u8>; 9], Vec<u8>)>,
         Vec<u8>,
         kem::PublicKey,
     ) {
@@ -162,7 +176,7 @@ impl Clone for Client {
     fn clone(&self) -> Client {
         Client {
             id: self.id,
-            ek: self.ek.clone(),
+            ek: self.ek,
             ni: self.ni.clone(),
             vks: self.vks.clone(),
             commitment: self.commitment.clone(),

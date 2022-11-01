@@ -15,6 +15,7 @@ use crate::client::Client;
 use crate::config::Config;
 
 #[derive(Debug)]
+#[allow(clippy::type_complexity)]
 pub struct Server {
     clients_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)>,
     signature_keys: (sig::PublicKey, sig::SecretKey),
@@ -25,7 +26,6 @@ pub struct Server {
     yis: Vec<Vec<u8>>,
     proofs: Vec<Proof>,
     ns: Vec<u8>,
-    #[allow(clippy::type_complexity)]
     cnis: HashMap<
         u8,
         (
@@ -169,7 +169,7 @@ impl Server {
         m2: (
             sig::Signature,
             Vec<Vec<u8>>,
-            Vec<(Vec<u8>, [Vec<u8>; 9])>,
+            Vec<([Vec<u8>; 9], Vec<u8>)>,
             Vec<u8>,
             kem::PublicKey,
         ),

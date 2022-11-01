@@ -1,10 +1,16 @@
+use aes_gcm::aes::cipher::generic_array::{
+    typenum::{UInt, UTerm, B0, B1},
+    GenericArray,
+};
 use itertools::izip;
 use lb_vrf::lbvrf::{Proof, LBVRF};
+use lb_vrf::poly32::Poly32;
 use lb_vrf::VRF;
+use oqs::kem::Ciphertext;
 use oqs::{kem, sig};
 
 use crate::commitment::{comm, comm_vfy};
-use crate::pke::pke_dec;
+use crate::pke::{pke_dec, pke_enc};
 use crate::utils::{get_random_key32, get_random_key88, xor};
 
 use crate::client::Client;
@@ -24,18 +30,13 @@ pub fn registration(clients: Vec<&mut Client>, server: &mut Server, config: &mut
         keys.push((vk, ek));
     }
 
-    println!("keys: {}", keys.len());
-
-    // Fix: iterate as enumerate and remove i
-    let mut i = 0;
-    for client in clients {
+    for (i, client) in clients.into_iter().enumerate() {
         let (vk, ek) = keys.get(i).unwrap();
-        client.set_ek(ek.clone());
-        server.add_key((vk.clone(), ek.clone()));
+        client.set_ek(*ek);
+        server.add_key((*vk, *ek));
         client.set_pks(pks.clone());
         let vks = keys.iter().map(|x| x.0).collect();
         client.set_vks(vks);
-        i += 1;
     }
 }
 
@@ -53,7 +54,7 @@ pub fn round_2(
 ) -> (
     sig::Signature,
     Vec<Vec<u8>>,
-    Vec<(Vec<u8>, [Vec<u8>; 9])>,
+    Vec<([Vec<u8>; 9], Vec<u8>)>,
     Vec<u8>,
     kem::PublicKey,
 ) {
@@ -98,89 +99,122 @@ pub fn round_2(
         .sign(&to_sign, &sk_s)
         .unwrap();
 
-    let pis: Vec<(Vec<u8>, [Vec<u8>; 9])> = proofs.iter().map(|x| vrf_serialize_pi(x)).collect();
+    let pis: Vec<([Vec<u8>; 9], Vec<u8>)> =
+        proofs.iter().map(|x| vrf_serialize_pi(x.z, x.c)).collect();
     (signature, cis, pis, r, pk)
 }
 
-// pub fn round_3(client: &mut Client, config: &mut Config, server: &Server) {
-//     let (signature, cis, pi, r, pk) = client.get_m2_info();
-//     let to_verify: Vec<u8> = to_verify(&cis, &pi, &r, &pk.into_vec());
+#[allow(clippy::type_complexity)]
+pub fn round_3(
+    client: &mut Client,
+    config: &mut Config,
+) -> (
+    Vec<u8>,
+    (
+        Ciphertext,
+        Vec<u8>,
+        GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
+    ),
+) {
+    let (signature, cis, pis, r, pk) = client.get_m2_info();
+    let kemalg = config.get_kem_algorithm();
+    let ni: Vec<u8> = client.get_ni();
+    let cni = pke_enc(kemalg, &pk, &ni);
+    let to_verify: Vec<u8> = to_verify(&cis, &pis, &r, &pk.into_vec());
+    let users = config.get_users_number();
+    let param = config.get_param();
+    let seed = config.get_seed();
+    let id = client.get_id();
 
-//     let pk__: sig::PublicKey = server.get_sig_pk();
+    let pk_s: sig::PublicKey = client.get_pks();
+    let verification = config
+        .get_signature_algorithm()
+        .verify(&to_verify, &signature, &pk_s)
+        .is_ok();
+    if verification {
+        println!("Verification OK!");
+    } else {
+        println!("Verification failed!");
+    }
 
-//     // TODO: Fix None after get_pks(). Remove server
-//     /* let pk_s: sig::PublicKey = client.get_pks(); */
-//     let verification = config
-//         .get_signature_algorithm()
-//         .verify(&to_verify, &signature, &pk__)
-//         .is_ok();
-//     if verification {
-//         println!("Verification OK!");
-//     } else {
-//         println!("Verification failed!");
-//     }
+    let cis = client.get_cis();
+    let ci: Vec<u8> = cis.get(id as usize).unwrap().to_vec();
+    let eki: lb_vrf::keypair::SecretKey = client.get_ek();
+    let vks: Vec<lb_vrf::keypair::PublicKey> = client.get_vks();
+    let vki: lb_vrf::keypair::PublicKey = *vks.get(id as usize).unwrap();
+    let r: Vec<u8> = client.get_r();
 
-//     let ci: Vec<u8> = client
-//         .get_cis()
-//         .get(client.get_id() as usize)
-//         .unwrap()
-//         .to_vec();
-//     let eki: lb_vrf::keypair::SecretKey = client.get_ek();
-//     let r: Vec<u8> = client.get_r();
-//     let ni: Vec<u8> = client.get_ni();
+    println!("eki: {:?}", eki);
+    println!("r: {:?}", r);
+    println!("ni: {:?}", ni);
 
-//     println!("eki: {:?}", eki);
-//     println!("r: {:?}", r);
-//     println!("ni: {:?}", ni);
+    let proof_client = <LBVRF as VRF>::prove(r.clone(), param, vki, eki, seed).unwrap();
+    let mut y_client: Vec<u8> = Vec::new();
+    lb_vrf::serde::Serdes::serialize(&proof_client.v, &mut y_client).unwrap();
+    let ns = xor(&y_client, &ci);
 
-//     // let pi = config.get_vrf().prove(&eki, &r).unwrap();
-//     // let y = config.get_vrf().proof_to_hash(&pi).unwrap();
-//     // let ns: Vec<u8> = xor(&y, &ci);
+    let k: Vec<u8> = xor(&ns, &ni);
 
-//     // TODO: execute VRF.Verify for all j in C\{i}
+    for j in 0..users {
+        let cj: Vec<u8> = cis.get(j as usize).unwrap().to_vec();
+        let vkj: lb_vrf::keypair::PublicKey = *vks.get(j as usize).unwrap();
+        let yj = xor(&ns, &cj);
 
-//     // let k: Vec<u8> = xor(&ns, &ni);
-//     // client.set_k(k);
-// }
+        let v: Poly32 = lb_vrf::serde::Serdes::deserialize(&mut yj[..].as_ref()).unwrap();
 
-// pub fn round_4(server: &mut Server, config: &mut Config, i: u8) {
-//     let kemalg = config.get_kem_algorithm();
-//     let cnis = server.get_cnis();
-//     let comms = server.get_comms();
-//     let opens = server.get_opens();
-//     let (ct, ciphertext, iv) = cnis.get(&i).unwrap();
-//     let comm = comms.get(&i).unwrap();
-//     let open = opens.get(&i).unwrap();
-//     let (_, sk) = server.get_kem_keypair();
-//     let ns = server.get_ns();
+        let created_proof: Proof = Proof {
+            v,
+            z: proof_client.z,
+            c: proof_client.c,
+        };
 
-//     let mut ni: Vec<u8> = pke_dec(kemalg, sk, ct, ciphertext, iv);
+        let res = <LBVRF as VRF>::verify(r.clone(), param, vkj, created_proof).unwrap();
+        assert!(res.is_some());
+    }
 
-//     let k: Vec<u8> = xor(&ns, &ni);
+    client.set_k(k);
+    let (_, open) = client.get_commitment();
+    (open, cni)
+}
 
-//     comm_vfy(comm, open, &mut ni);
+pub fn round_4(server: &mut Server, config: &mut Config, i: u8) {
+    let kemalg = config.get_kem_algorithm();
+    let cnis = server.get_cnis();
+    let comms = server.get_comms();
+    let opens = server.get_opens();
+    let (ct, ciphertext, iv) = cnis.get(&i).unwrap();
+    let comm = comms.get(&i).unwrap();
+    let open = opens.get(&i).unwrap();
+    let (_, sk) = server.get_kem_keypair();
+    let ns = server.get_ns();
 
-//     server.set_k(k);
-// }
+    let mut ni: Vec<u8> = pke_dec(kemalg, sk, ct, ciphertext, iv);
+
+    let k: Vec<u8> = xor(&ns, &ni);
+
+    comm_vfy(comm, open, &mut ni);
+
+    server.set_k(k);
+}
 
 fn concat_message(cis: &Vec<Vec<u8>>, proofs: &Vec<Proof>, r: &Vec<u8>, pk: &Vec<u8>) -> Vec<u8> {
     let mut c_i: Vec<u8> = Vec::new();
     let mut pi_i: Vec<u8> = Vec::new();
 
     for (proof, ct) in izip!(proofs, cis) {
-        let (z, c) = vrf_serialize_pi(&proof);
+        let (z, c) = vrf_serialize_pi(proof.z, proof.c);
         let mut concat_pi = [
-            z,
-            c.as_ref().get(0).unwrap().to_vec(),
-            c.as_ref().get(1).unwrap().to_vec(),
-            c.as_ref().get(2).unwrap().to_vec(),
-            c.as_ref().get(3).unwrap().to_vec(),
-            c.as_ref().get(4).unwrap().to_vec(),
-            c.as_ref().get(5).unwrap().to_vec(),
-            c.as_ref().get(6).unwrap().to_vec(),
-            c.as_ref().get(7).unwrap().to_vec(),
-            c.as_ref().get(8).unwrap().to_vec(),
-            c.as_ref().get(8).unwrap().to_vec(),
+            z.as_ref().get(0).unwrap().to_vec(),
+            z.as_ref().get(1).unwrap().to_vec(),
+            z.as_ref().get(2).unwrap().to_vec(),
+            z.as_ref().get(3).unwrap().to_vec(),
+            z.as_ref().get(4).unwrap().to_vec(),
+            z.as_ref().get(5).unwrap().to_vec(),
+            z.as_ref().get(6).unwrap().to_vec(),
+            z.as_ref().get(7).unwrap().to_vec(),
+            z.as_ref().get(8).unwrap().to_vec(),
+            z.as_ref().get(8).unwrap().to_vec(),
+            c,
         ]
         .concat();
         pi_i.append(&mut concat_pi);
@@ -193,19 +227,38 @@ fn concat_message(cis: &Vec<Vec<u8>>, proofs: &Vec<Proof>, r: &Vec<u8>, pk: &Vec
     c_i
 }
 
-// fn to_verify(cis: &Vec<Vec<u8>>, proofs: &Vec<Vec<u8>>, r: &Vec<u8>, pk: &Vec<u8>) -> Vec<u8> {
-//     let mut res: Vec<u8> = Vec::new();
-//     let mut c_i: Vec<u8> = Vec::new();
-//     let mut pi_i: Vec<u8> = Vec::new();
+fn to_verify(
+    cis: &Vec<Vec<u8>>,
+    pis: &Vec<([Vec<u8>; 9], Vec<u8>)>,
+    r: &Vec<u8>,
+    pk: &Vec<u8>,
+) -> Vec<u8> {
+    let mut res: Vec<u8> = Vec::new();
+    let mut c_i: Vec<u8> = Vec::new();
+    let mut pi_i: Vec<u8> = Vec::new();
 
-//     for (pi, c) in izip!(proofs, cis) {
-//         pi_i.append(&mut pi.clone());
-//         c_i.append(&mut c.clone());
-//     }
+    for ((z, c), ct) in izip!(pis, cis) {
+        let mut concat_pi = [
+            z.as_ref().get(0).unwrap().to_vec(),
+            z.as_ref().get(1).unwrap().to_vec(),
+            z.as_ref().get(2).unwrap().to_vec(),
+            z.as_ref().get(3).unwrap().to_vec(),
+            z.as_ref().get(4).unwrap().to_vec(),
+            z.as_ref().get(5).unwrap().to_vec(),
+            z.as_ref().get(6).unwrap().to_vec(),
+            z.as_ref().get(7).unwrap().to_vec(),
+            z.as_ref().get(8).unwrap().to_vec(),
+            z.as_ref().get(8).unwrap().to_vec(),
+            c.to_vec(),
+        ]
+        .concat();
+        pi_i.append(&mut concat_pi);
+        c_i.append(&mut ct.clone());
+    }
 
-//     res.append(&mut c_i.to_owned());
-//     res.append(&mut pi_i.to_owned());
-//     res.append(&mut r.to_owned());
-//     res.append(&mut pk.to_owned());
-//     res
-// }
+    res.append(&mut c_i.to_owned());
+    res.append(&mut pi_i.to_owned());
+    res.append(&mut r.to_owned());
+    res.append(&mut pk.to_owned());
+    res
+}
