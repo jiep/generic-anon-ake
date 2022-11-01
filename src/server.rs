@@ -162,7 +162,7 @@ impl Server {
     #[allow(clippy::type_complexity)]
     pub fn send_m2(
         &self,
-        m2: ( 
+        m2: (
             sig::Signature,
             Vec<Vec<u8>>,
             Vec<Vec<u8>>,
