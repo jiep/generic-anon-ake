@@ -2,16 +2,16 @@ pub mod client;
 pub mod commitment;
 pub mod config;
 pub mod pke;
-pub mod vrf;
 pub mod protocol;
 pub mod server;
 pub mod utils;
+pub mod vrf;
 
 use oqs::{kem, sig};
 
 use crate::client::Client;
 use crate::config::Config;
-use crate::protocol::{registration, round_1};
+use crate::protocol::{registration, round_1, round_2};
 use crate::server::Server;
 use crate::utils::print_hex;
 use crate::vrf::vrf_gen_seed_param;
@@ -21,7 +21,6 @@ fn main() {
     println!("0. Registration");
     let users: u8 = 3;
 
-    
     // Generate seed and param for PQ (lattice-based) VRF
     let (seed, param) = vrf_gen_seed_param();
 
@@ -48,22 +47,20 @@ fn main() {
     println!("client1: {:?}", client1);
 
     round_1(&mut client1);
-    
+
     let (comm, open) = client1.get_commitment();
     print_hex(&comm, "comm");
     print_hex(&open, "open");
 
-
     client1.send_m1(&mut server);
-    
-    /*
+
     let m2 = round_2(&mut server, &mut config);
 
     server.send_m2(m2, &mut client1);
 
-    round_3(&mut client1, &mut config, &server);
+    // round_3(&mut client1, &mut config, &server);
 
-    client1.send_m3(&mut server, &mut config);
+    // client1.send_m3(&mut server, &mut config);
 
-    round_4(&mut server, &mut config, 1); */
+    // round_4(&mut server, &mut config, 1);
 }

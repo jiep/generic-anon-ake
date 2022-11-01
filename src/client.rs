@@ -15,7 +15,7 @@ pub struct Client {
     commitment: (Vec<u8>, Vec<u8>),
     signature: Option<sig::Signature>,
     cis: Vec<Vec<u8>>,
-    proofs: Vec<Vec<u8>>,
+    proofs: Vec<(Vec<u8>, [Vec<u8>; 9])>,
     r: Vec<u8>,
     pk: Option<kem::PublicKey>,
     pk_s: Option<sig::PublicKey>,
@@ -121,7 +121,7 @@ impl Client {
         m2: (
             sig::Signature,
             Vec<Vec<u8>>,
-            Vec<Vec<u8>>,
+            Vec<(Vec<u8>, [Vec<u8>; 9])>,
             Vec<u8>,
             kem::PublicKey,
         ),
@@ -140,7 +140,7 @@ impl Client {
     ) -> (
         sig::Signature,
         Vec<Vec<u8>>,
-        Vec<Vec<u8>>,
+        Vec<(Vec<u8>, [Vec<u8>; 9])>,
         Vec<u8>,
         kem::PublicKey,
     ) {

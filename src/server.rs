@@ -104,7 +104,9 @@ impl Server {
         self.clients_keys.push(key);
     }
 
-    pub fn get_clients_keys(&self) -> Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> {
+    pub fn get_clients_keys(
+        &self,
+    ) -> Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> {
         self.clients_keys.clone()
     }
 
@@ -150,7 +152,7 @@ impl Server {
     ) {
         self.cis = cis.to_owned();
         self.yis = yis.to_owned();
-        self.proofs = proofs.to_vec();
+        self.proofs = proofs.to_owned();
     }
 
     pub fn get_proofs(&self) -> Vec<Proof> {
@@ -167,7 +169,7 @@ impl Server {
         m2: (
             sig::Signature,
             Vec<Vec<u8>>,
-            Vec<Vec<u8>>,
+            Vec<(Vec<u8>, [Vec<u8>; 9])>,
             Vec<u8>,
             kem::PublicKey,
         ),

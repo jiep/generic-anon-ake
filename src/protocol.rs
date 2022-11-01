@@ -1,11 +1,11 @@
 use itertools::izip;
-use lb_vrf::VRF;
 use lb_vrf::lbvrf::{Proof, LBVRF};
+use lb_vrf::VRF;
 use oqs::{kem, sig};
 
 use crate::commitment::{comm, comm_vfy};
 use crate::pke::pke_dec;
-use crate::utils::{get_random_key32, xor, get_random_key88};
+use crate::utils::{get_random_key32, get_random_key88, xor};
 
 use crate::client::Client;
 use crate::config::Config;
@@ -25,11 +25,11 @@ pub fn registration(clients: Vec<&mut Client>, server: &mut Server, config: &mut
     }
 
     println!("keys: {}", keys.len());
-    
+
     // Fix: iterate as enumerate and remove i
     let mut i = 0;
     for client in clients {
-        let (vk, ek) = keys.get(i).unwrap(); 
+        let (vk, ek) = keys.get(i).unwrap();
         client.set_ek(ek.clone());
         server.add_key((vk.clone(), ek.clone()));
         client.set_pks(pks.clone());
@@ -45,8 +45,6 @@ pub fn round_1(client: &mut Client) {
     client.set_ni(ni);
     client.set_commitment(commitment);
 }
-
-
 
 #[allow(clippy::type_complexity)]
 pub fn round_2(
@@ -66,9 +64,10 @@ pub fn round_2(
     let param = config.get_param();
     let n_s: Vec<u8> = get_random_key88();
     let r: Vec<u8> = get_random_key32();
-    let client_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> = server.get_clients_keys();
+    let client_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> =
+        server.get_clients_keys();
 
-    let mut proofs: Vec<&Proof> = Vec::new();
+    let mut proofs: Vec<Proof> = Vec::new();
     let mut yis: Vec<Vec<u8>> = Vec::new();
     let mut cis: Vec<Vec<u8>> = Vec::new();
 
@@ -80,7 +79,7 @@ pub fn round_2(
         let y: Vec<u8> = vrf_serialize_y_from_proof(&proof);
         let c = xor(&y, &n_s);
 
-        proofs.push(&proof);
+        proofs.push(proof);
         yis.push(y);
 
         //proof.v.serialize(&mut y).unwrap();
@@ -111,7 +110,6 @@ pub fn round_2(
 
 //     // TODO: Fix None after get_pks(). Remove server
 //     /* let pk_s: sig::PublicKey = client.get_pks(); */
-
 //     let verification = config
 //         .get_signature_algorithm()
 //         .verify(&to_verify, &signature, &pk__)
@@ -165,13 +163,14 @@ pub fn round_2(
 //     server.set_k(k);
 // }
 
-fn concat_message(cis: &Vec<Vec<u8>>, proofs: &Vec<&Proof>, r: &Vec<u8>, pk: &Vec<u8>) -> Vec<u8> {
+fn concat_message(cis: &Vec<Vec<u8>>, proofs: &Vec<Proof>, r: &Vec<u8>, pk: &Vec<u8>) -> Vec<u8> {
     let mut c_i: Vec<u8> = Vec::new();
     let mut pi_i: Vec<u8> = Vec::new();
 
     for (proof, ct) in izip!(proofs, cis) {
         let (z, c) = vrf_serialize_pi(&proof);
-        let mut concat_pi = [z, 
+        let mut concat_pi = [
+            z,
             c.as_ref().get(0).unwrap().to_vec(),
             c.as_ref().get(1).unwrap().to_vec(),
             c.as_ref().get(2).unwrap().to_vec(),
@@ -182,7 +181,8 @@ fn concat_message(cis: &Vec<Vec<u8>>, proofs: &Vec<&Proof>, r: &Vec<u8>, pk: &Ve
             c.as_ref().get(7).unwrap().to_vec(),
             c.as_ref().get(8).unwrap().to_vec(),
             c.as_ref().get(8).unwrap().to_vec(),
-        ].concat();
+        ]
+        .concat();
         pi_i.append(&mut concat_pi);
         c_i.append(&mut ct.clone());
     }
