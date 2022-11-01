@@ -41,9 +41,9 @@ pub fn registration(clients: Vec<&mut Client>, server: &mut Server, config: &mut
 }
 
 pub fn round_1(client: &mut Client) {
-    let mut ni: Vec<u8> = get_random_key88();
-    let commitment = comm(&mut ni);
-    client.set_ni(ni);
+    let ni: Vec<u8> = get_random_key88();
+    client.set_ni(&ni);
+    let commitment = comm(&ni);
     client.set_commitment(commitment);
 }
 
@@ -64,6 +64,7 @@ pub fn round_2(
     let seed = config.get_seed();
     let param = config.get_param();
     let n_s: Vec<u8> = get_random_key88();
+    server.set_ns(n_s.clone());
     let r: Vec<u8> = get_random_key32();
     let client_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> =
         server.get_clients_keys();
@@ -132,9 +133,9 @@ pub fn round_3(
         .verify(&to_verify, &signature, &pk_s)
         .is_ok();
     if verification {
-        println!("Verification OK!");
+        println!("[C] Signature verification -> OK");
     } else {
-        println!("Verification failed!");
+        println!("[C] Signature verification -> FAIL");
     }
 
     let cis = client.get_cis();
@@ -144,9 +145,9 @@ pub fn round_3(
     let vki: lb_vrf::keypair::PublicKey = *vks.get(id as usize).unwrap();
     let r: Vec<u8> = client.get_r();
 
-    println!("eki: {:?}", eki);
-    println!("r: {:?}", r);
-    println!("ni: {:?}", ni);
+    // println!("eki: {:?}", eki);
+    // println!("r: {:?}", r);
+    // println!("ni: {:?}", ni);
 
     let proof_client = <LBVRF as VRF>::prove(r.clone(), param, vki, eki, seed).unwrap();
     let mut y_client: Vec<u8> = Vec::new();
@@ -169,7 +170,11 @@ pub fn round_3(
         };
 
         let res = <LBVRF as VRF>::verify(r.clone(), param, vkj, created_proof).unwrap();
-        assert!(res.is_some());
+        if res.is_some() {
+            println!("[C] VRF verification for j={} -> OK", j);
+        } else {
+            println!("[C] VRF verification for j={} -> FAIL", j);
+        }
     }
 
     client.set_k(k);
@@ -188,13 +193,13 @@ pub fn round_4(server: &mut Server, config: &mut Config, i: u8) {
     let (_, sk) = server.get_kem_keypair();
     let ns = server.get_ns();
 
-    let mut ni: Vec<u8> = pke_dec(kemalg, sk, ct, ciphertext, iv);
+    let ni: Vec<u8> = pke_dec(kemalg, sk, ct, ciphertext, iv);
 
     let k: Vec<u8> = xor(&ns, &ni);
 
-    comm_vfy(comm, open, &mut ni);
+    comm_vfy(comm, open, &ni);
 
-    server.set_k(k);
+    server.set_k(k, i);
 }
 
 fn concat_message(cis: &Vec<Vec<u8>>, proofs: &Vec<Proof>, r: &Vec<u8>, pk: &Vec<u8>) -> Vec<u8> {

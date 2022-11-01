@@ -34,7 +34,7 @@ pub struct Server {
             GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
         ),
     >,
-    k: Vec<u8>,
+    k: HashMap<u8, Vec<u8>>,
 }
 
 impl Server {
@@ -57,7 +57,7 @@ impl Server {
             proofs: Vec::new(),
             ns: Vec::new(),
             cnis: HashMap::new(),
-            k: Vec::new(),
+            k: HashMap::new(),
         }
     }
 
@@ -136,8 +136,12 @@ impl Server {
         self.ns = ns;
     }
 
-    pub fn set_k(&mut self, k: Vec<u8>) {
-        self.k = k;
+    pub fn set_k(&mut self, key: Vec<u8>, index: u8) {
+        self.k.insert(index, key);
+    }
+
+    pub fn get_key(&mut self, index: u8) -> Vec<u8> {
+        self.k.get(&index).unwrap().to_vec()
     }
 
     pub fn get_ns(&self) -> Vec<u8> {

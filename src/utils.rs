@@ -27,7 +27,7 @@ pub fn get_nonce() -> Vec<u8> {
 }
 
 pub fn print_hex(arr: &Vec<u8>, name: &str) {
-    println!("{:}: 0x{:}", name, hex::encode(&arr));
+    println!("{:} 0x{:}", name, hex::encode(&arr));
 }
 
 pub fn xor(x: &[u8], y: &[u8]) -> Vec<u8> {

@@ -53,8 +53,8 @@ impl Client {
         self.vks = vks;
     }
 
-    pub fn set_ni(&mut self, ni: Vec<u8>) {
-        self.ni = ni;
+    pub fn set_ni(&mut self, ni: &[u8]) {
+        self.ni = ni.to_owned();
     }
 
     pub fn set_commitment(&mut self, commitment: (Vec<u8>, Vec<u8>)) {
@@ -71,6 +71,10 @@ impl Client {
 
     pub fn get_ek(&self) -> SecretKey {
         self.ek.unwrap()
+    }
+
+    pub fn get_key(&self) -> Vec<u8> {
+        self.k.clone()
     }
 
     pub fn get_pk(&self) -> kem::PublicKey {
