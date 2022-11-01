@@ -1,3 +1,4 @@
+use lb_vrf::keypair::{PublicKey, SecretKey};
 use oqs::{kem, sig};
 
 use crate::config::Config;
@@ -7,9 +8,9 @@ use crate::server::Server;
 #[derive(Debug)]
 pub struct Client {
     id: u8,
-    ek: Vec<u8>,
+    ek: Option<SecretKey>,
     ni: Vec<u8>,
-    vks: Vec<Vec<u8>>,
+    vks: Vec<PublicKey>,
     //commitment and open
     commitment: (Vec<u8>, Vec<u8>),
     signature: Option<sig::Signature>,
@@ -25,7 +26,7 @@ impl Client {
     pub fn new(id: u8) -> Self {
         Client {
             id,
-            ek: Vec::new(),
+            ek: None,
             ni: Vec::new(),
             vks: Vec::new(),
             commitment: (Vec::new(), Vec::new()),
@@ -39,11 +40,11 @@ impl Client {
         }
     }
 
-    pub fn set_ek(&mut self, ek: Vec<u8>) {
-        self.ek = ek;
+    pub fn set_ek(&mut self, ek: lb_vrf::keypair::SecretKey) {
+        self.ek = Some(ek);
     }
 
-    pub fn set_vks(&mut self, vks: Vec<Vec<u8>>) {
+    pub fn set_vks(&mut self, vks: Vec<lb_vrf::keypair::PublicKey>) {
         self.vks = vks;
     }
 
@@ -63,8 +64,8 @@ impl Client {
         self.k = k;
     }
 
-    pub fn get_ek(&self) -> Vec<u8> {
-        self.ek.clone()
+    pub fn get_ek(&self) -> SecretKey {
+        self.ek.unwrap()
     }
 
     pub fn get_pk(&self) -> kem::PublicKey {

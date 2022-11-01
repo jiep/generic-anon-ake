@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use lb_vrf::lbvrf::Proof;
 use oqs::{
     kem::{self, Ciphertext},
     sig,
@@ -13,15 +14,16 @@ use aes_gcm::aes::cipher::generic_array::{
 use crate::client::Client;
 use crate::config::Config;
 
+#[derive(Debug)]
 pub struct Server {
-    clients_keys: Vec<(Vec<u8>, Vec<u8>)>,
+    clients_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)>,
     signature_keys: (sig::PublicKey, sig::SecretKey),
     kem_keys: (kem::PublicKey, kem::SecretKey),
     comms: HashMap<u8, Vec<u8>>,
     opens: HashMap<u8, Vec<u8>>,
     cis: Vec<Vec<u8>>,
     yis: Vec<Vec<u8>>,
-    proofs: Vec<Vec<u8>>,
+    proofs: Vec<Proof>,
     ns: Vec<u8>,
     #[allow(clippy::type_complexity)]
     cnis: HashMap<
@@ -98,11 +100,11 @@ impl Server {
         self.signature_keys.0.clone()
     }
 
-    pub fn add_key(&mut self, key: (Vec<u8>, Vec<u8>)) {
+    pub fn add_key(&mut self, key: (lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)) {
         self.clients_keys.push(key);
     }
 
-    pub fn get_clients_keys(&self) -> Vec<(Vec<u8>, Vec<u8>)> {
+    pub fn get_clients_keys(&self) -> Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> {
         self.clients_keys.clone()
     }
 
@@ -144,14 +146,14 @@ impl Server {
         &mut self,
         cis: &[Vec<u8>],
         yis: &[Vec<u8>],
-        proofs: &[Vec<u8>],
+        proofs: &Vec<Proof>,
     ) {
         self.cis = cis.to_owned();
         self.yis = yis.to_owned();
-        self.proofs = proofs.to_owned();
+        self.proofs = proofs.to_vec();
     }
 
-    pub fn get_proofs(&self) -> Vec<Vec<u8>> {
+    pub fn get_proofs(&self) -> Vec<Proof> {
         self.proofs.clone()
     }
 
