@@ -1,26 +1,26 @@
 use oqs::{kem, sig};
-use vrf::openssl::ECVRF;
+// use vrf::openssl::ECVRF;
 
 pub struct Config {
     users_numbers: u8,
-    vrf: ECVRF,
+    // vrf: ECVRF,
     kem: kem::Kem,
     sig: sig::Sig,
 }
 
 impl Config {
-    pub fn new(users_numbers: u8, vrf: ECVRF, kem: kem::Kem, sig: sig::Sig) -> Self {
+    pub fn new(users_numbers: u8, /* vrf: ECVRF, */ kem: kem::Kem, sig: sig::Sig) -> Self {
         Config {
             users_numbers,
-            vrf,
+            // vrf,
             kem,
             sig,
         }
     }
 
-    pub fn get_vrf(&mut self) -> &mut ECVRF {
+    /* pub fn get_vrf(&mut self) -> &mut ECVRF {
         &mut self.vrf
-    }
+    } */
 
     pub fn get_signature_algorithm(&mut self) -> &mut sig::Sig {
         &mut self.sig

@@ -7,7 +7,6 @@ pub mod server;
 pub mod utils;
 
 use oqs::{kem, sig};
-use vrf::openssl::{CipherSuite, ECVRF};
 
 use crate::client::Client;
 use crate::config::Config;
@@ -21,7 +20,7 @@ fn main() {
     let users: u8 = 3;
 
     // Init VRF - Not Post Quantum with this library
-    let vrf = ECVRF::from_suite(CipherSuite::SECP256K1_SHA256_TAI).unwrap();
+    // let vrf = ECVRF::from_suite(CipherSuite::SECP256K1_SHA256_TAI).unwrap();
 
     // Init PQ signature scheme
     let sigalg = sig::Sig::new(sig::Algorithm::Dilithium2).unwrap();
@@ -29,7 +28,7 @@ fn main() {
     // Init PQ KEM
     let kemalg = kem::Kem::new(kem::Algorithm::Kyber512).unwrap();
 
-    let mut config: Config = Config::new(users, vrf, kemalg, sigalg);
+    let mut config: Config = Config::new(users, /* vrf, */ kemalg, sigalg);
     let mut client1: Client = Client::new(1);
     let client2: Client = Client::new(2);
     let client3: Client = Client::new(3);

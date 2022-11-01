@@ -1,6 +1,6 @@
 use itertools::izip;
 use oqs::{kem, sig};
-use vrf::VRF;
+// use vrf::VRF;
 
 use crate::commitment::{comm, comm_vfy};
 use crate::pke::pke_dec;
@@ -16,10 +16,10 @@ pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &mut
 
     for client in clients {
         let ek = get_random_key32();
-        let vk = config.get_vrf().derive_public_key(&ek).unwrap();
-        vks.push(vk.clone());
+        // let vk = config.get_vrf().derive_public_key(&ek).unwrap();
+        // vks.push(vk.clone());
         client.set_ek(ek.to_owned());
-        server.add_key((ek, vk));
+        // server.add_key((ek, vk));
         client.set_pks(pks.clone());
         //client.set_vks(vks.clone());
     }
@@ -55,13 +55,13 @@ pub fn round_2(
     let mut cis: Vec<Vec<u8>> = Vec::new();
     for i in 0..users {
         let (ek, _) = client_keys.get(i as usize).unwrap();
-        let pi: Vec<u8> = config.get_vrf().prove(ek, &r).unwrap();
-        let y: Vec<u8> = config.get_vrf().proof_to_hash(&pi).unwrap();
-        let c: Vec<u8> = xor(&y, &n_s);
+        // let pi: Vec<u8> = config.get_vrf().prove(ek, &r).unwrap();
+        // let y: Vec<u8> = config.get_vrf().proof_to_hash(&pi).unwrap();
+        // let c: Vec<u8> = xor(&y, &n_s);
 
-        proofs.push(pi);
-        yis.push(y);
-        cis.push(c);
+        // proofs.push(pi);
+        // yis.push(y);
+        // cis.push(c);
     }
 
     server.add_proofs_and_ciphertexts(&cis, &yis, &proofs);
@@ -108,14 +108,14 @@ pub fn round_3(client: &mut Client, config: &mut Config, server: &Server) {
     println!("r: {:?}", r);
     println!("ni: {:?}", ni);
 
-    let pi = config.get_vrf().prove(&eki, &r).unwrap();
-    let y = config.get_vrf().proof_to_hash(&pi).unwrap();
-    let ns: Vec<u8> = xor(&y, &ci);
+    // let pi = config.get_vrf().prove(&eki, &r).unwrap();
+    // let y = config.get_vrf().proof_to_hash(&pi).unwrap();
+    // let ns: Vec<u8> = xor(&y, &ci);
 
     // TODO: execute VRF.Verify for all j in C\{i}
 
-    let k: Vec<u8> = xor(&ns, &ni);
-    client.set_k(k);
+    // let k: Vec<u8> = xor(&ns, &ni);
+    // client.set_k(k);
 }
 
 pub fn round_4(server: &mut Server, config: &mut Config, i: u8) {
