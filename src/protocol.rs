@@ -218,7 +218,6 @@ fn concat_message(cis: &Vec<Vec<u8>>, proofs: &Vec<Proof>, r: &Vec<u8>, pk: &Vec
             z.as_ref().get(6).unwrap().to_vec(),
             z.as_ref().get(7).unwrap().to_vec(),
             z.as_ref().get(8).unwrap().to_vec(),
-            z.as_ref().get(8).unwrap().to_vec(),
             c,
         ]
         .concat();
@@ -252,7 +251,6 @@ fn to_verify(
             z.as_ref().get(5).unwrap().to_vec(),
             z.as_ref().get(6).unwrap().to_vec(),
             z.as_ref().get(7).unwrap().to_vec(),
-            z.as_ref().get(8).unwrap().to_vec(),
             z.as_ref().get(8).unwrap().to_vec(),
             c.to_vec(),
         ]
