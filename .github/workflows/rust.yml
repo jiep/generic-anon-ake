@@ -60,8 +60,8 @@ jobs:
       - name: Build target
         if: ${{ contains(matrix.target, "darwin") }}
         run: |
---        export CC=o64-clang
---        export CXX=o64-clang++
+          export CC=o64-clang
+          export CXX=o64-clang++
           cargo build --release --target ${{ matrix.target }}
 
       - name: Build target
