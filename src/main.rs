@@ -1,27 +1,17 @@
-pub mod client;
-pub mod commitment;
-pub mod config;
-pub mod pke;
-pub mod protocol;
-pub mod server;
-pub mod supported_algs;
-pub mod utils;
-pub mod vrf;
-
 use std::process;
 use std::time::Instant;
 
 use clap::Parser;
 
-use crate::client::Client;
-use crate::config::Config;
-use crate::protocol::{registration, round_1, round_2, round_3, round_4};
-use crate::server::Server;
-use crate::supported_algs::{
+use anon_sym_ake::client::Client;
+use anon_sym_ake::config::Config;
+use anon_sym_ake::protocol::{registration, round_1, round_2, round_3, round_4};
+use anon_sym_ake::server::Server;
+use anon_sym_ake::supported_algs::{
     get_kem_algorithm, get_signature_algorithm, print_supported_kems, print_supported_signatures,
 };
-use crate::utils::print_hex;
-use crate::vrf::vrf_gen_seed_param;
+use anon_sym_ake::utils::print_hex;
+use anon_sym_ake::vrf::vrf_gen_seed_param;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

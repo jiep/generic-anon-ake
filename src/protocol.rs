@@ -172,6 +172,7 @@ pub fn round_3(
         };
 
         let res = <LBVRF as VRF>::verify(r.clone(), param, vkj, created_proof).unwrap();
+
         if res.is_some() {
             println!("[C] VRF verification for j={} -> OK", j);
         } else {

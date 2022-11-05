@@ -25,6 +25,9 @@ jobs:
       - name: Check Clippy
         run: cargo clippy -- -D warnings
 
+      - name: Run benchmark
+        run: cargo bench
+
   deploy:
     name: Create release cross-compiling binaries
     needs: build_and_test

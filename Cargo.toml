@@ -19,8 +19,23 @@ version = "0.7.2"
 default-features = false
 features = ["dilithium", "falcon", "sphincs", "kyber"]
 
+[dev-dependencies]
+criterion = "0.4.0"
+
 [profile.dev]
 opt-level = 0
 
 [profile.release]
 opt-level = 3
+
+[[bench]]
+name = "performance"
+harness = false
+
+[lib]
+name = "anon_sym_ake"
+path = "src/lib.rs"
+
+[[bin]]
+name = "anon-sym-ake"
+path = "src/main.rs"
