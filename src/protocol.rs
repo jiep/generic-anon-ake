@@ -51,6 +51,7 @@ pub fn round_1(client: &mut Client) {
 pub fn round_2(
     server: &mut Server,
     config: &mut Config,
+    id: u8,
 ) -> (
     sig::Signature,
     Vec<Vec<u8>>,
@@ -58,13 +59,14 @@ pub fn round_2(
     Vec<u8>,
     kem::PublicKey,
 ) {
-    let (pk, _) = server.get_kem_keypair();
+    let (pk, sk) = config.get_kem_algorithm().keypair().unwrap();
+    server.set_kem_keypair((pk.clone(), sk), id);
     let (_, sk_s) = server.get_sig_keypair();
     let users = config.get_users_number();
     let seed = config.get_seed();
     let param = config.get_param();
     let n_s: Vec<u8> = get_random_key88();
-    server.set_ns(n_s.clone());
+    server.set_ns(id, n_s.clone());
     let r: Vec<u8> = get_random_key32();
     let client_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> =
         server.get_clients_keys();
@@ -190,8 +192,8 @@ pub fn round_4(server: &mut Server, config: &mut Config, i: u8) {
     let (ct, ciphertext, iv) = cnis.get(&i).unwrap();
     let comm = comms.get(&i).unwrap();
     let open = opens.get(&i).unwrap();
-    let (_, sk) = server.get_kem_keypair();
-    let ns = server.get_ns();
+    let (_, sk) = server.get_kem_keypair(i);
+    let ns = server.get_ns(i);
 
     let ni: Vec<u8> = pke_dec(kemalg, sk, ct, ciphertext, iv);
 

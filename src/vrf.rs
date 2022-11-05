@@ -60,11 +60,10 @@ mod tests {
 
     use crate::vrf::{vrf_gen_seed_param, vrf_keypair};
 
-
     #[test]
     fn vrf_works() {
         let (seed, param) = vrf_gen_seed_param();
-        let message: Vec<u8> = vec![1,2,3,4,5];
+        let message: Vec<u8> = vec![1, 2, 3, 4, 5];
 
         assert_eq!(seed.len(), 32);
         assert_ne!(seed, [0u8; 32]);
@@ -77,6 +76,5 @@ mod tests {
 
         assert!(res.is_some());
         assert_eq!(res.unwrap(), proof.v);
-
     }
 }

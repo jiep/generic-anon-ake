@@ -41,8 +41,7 @@ pub fn xor(x: &[u8], y: &[u8]) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::{get_random_key32, get_random_key88, get_nonce, xor, to_hex};
-
+    use crate::utils::{get_nonce, get_random_key32, get_random_key88, to_hex, xor};
 
     #[test]
     fn get_random_key32_works() {
@@ -71,7 +70,7 @@ mod tests {
     #[test]
     fn xor_works() {
         let x: Vec<u8> = vec![81, 123, 255, 0, 48, 72];
-        let y: Vec<u8> = vec![70,  18,  15, 6, 91, 48];
+        let y: Vec<u8> = vec![70, 18, 15, 6, 91, 48];
 
         let z: Vec<u8> = xor(&x, &y);
 
@@ -92,6 +91,4 @@ mod tests {
         let res: String = to_hex(&x);
         assert_eq!(res, "517bff003048");
     }
-
-
 }

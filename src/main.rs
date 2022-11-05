@@ -60,7 +60,7 @@ fn main() {
     client0.send_m1(&mut server);
 
     println!("[S] Running Round 2...");
-    let m2 = round_2(&mut server, &mut config);
+    let m2 = round_2(&mut server, &mut config, client0.get_id());
 
     println!("[C <- S] Sending m2 to client0...\n");
     server.send_m2(m2, &mut client0);

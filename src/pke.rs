@@ -49,9 +49,8 @@ pub fn pke_dec(
 
 #[cfg(test)]
 mod tests {
+    use crate::pke::{pke_dec, pke_enc};
     use oqs::kem;
-    use crate::pke::{pke_enc, pke_dec};
-
 
     #[test]
     fn pke_works() {
