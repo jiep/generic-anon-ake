@@ -10,6 +10,7 @@ use aes_gcm::aes::cipher::generic_array::{
     typenum::{UInt, UTerm, B0, B1},
     GenericArray,
 };
+use sha3::{Sha3_256, Digest};
 
 use crate::client::Client;
 use crate::config::Config;
@@ -140,7 +141,10 @@ impl Server {
     }
 
     pub fn set_k(&mut self, key: Vec<u8>, index: u8) {
-        self.k.insert(index, key);
+        let mut hasher = Sha3_256::new();
+        hasher.update(key);
+        let hashed_k: Vec<u8> = hasher.finalize().to_vec();
+        self.k.insert(index, hashed_k);
     }
 
     pub fn get_key(&mut self, index: u8) -> Vec<u8> {

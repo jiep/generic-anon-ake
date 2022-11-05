@@ -7,6 +7,7 @@ use oqs::{
     kem::{self, Ciphertext},
     sig,
 };
+use sha3::{Sha3_256, Digest};
 
 use crate::server::Server;
 
@@ -66,7 +67,10 @@ impl Client {
     }
 
     pub fn set_k(&mut self, k: Vec<u8>) {
-        self.k = k;
+        let mut hasher = Sha3_256::new();
+        hasher.update(k);
+        let hashed_k: Vec<u8> = hasher.finalize().to_vec();
+        self.k = hashed_k;
     }
 
     pub fn get_ek(&self) -> SecretKey {
