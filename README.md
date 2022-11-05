@@ -20,10 +20,12 @@
 
 TODO
 
+```
 sequenceDiagram
-    Client->>Server: Hello John, how are you?
-    Server-->>Client: Great!
-    Client-)Server: See you later!
+Client->>Server: Hello John, how are you?
+Server-->>Client: Great!
+Client-)Server: See you later!
+```
 
 
 ## 🚴 Usage
