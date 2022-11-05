@@ -111,7 +111,7 @@ fn main() {
     registration(clients, &mut server, &mut config);
     let duration = start.elapsed();
     println!(
-        "[!] Time elapsed in registration of {} clients is {:?}",
+        "[!] Time elapsed in registration of {} clients is {:?}\n",
         users, duration
     );
 
@@ -143,7 +143,7 @@ fn main() {
     println!("[C -> S] Sending m3 to server...\n");
     client0.send_m3(m3, &mut server);
 
-    println!("[C] Running Round 4...");
+    println!("[S] Running Round 4...");
     let start = Instant::now();
     round_4(&mut server, &mut config, client0.get_id());
     let duration = start.elapsed();
