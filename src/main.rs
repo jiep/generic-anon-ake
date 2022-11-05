@@ -7,6 +7,9 @@ pub mod server;
 pub mod utils;
 pub mod vrf;
 
+use std::process;
+
+use clap::Parser;
 use oqs::{kem, sig};
 
 use crate::client::Client;
@@ -16,21 +19,69 @@ use crate::server::Server;
 use crate::utils::print_hex;
 use crate::vrf::vrf_gen_seed_param;
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+   #[arg(short, long)]
+   kem: String,
+
+   #[arg(short, long)]
+   sig: String,
+
+   #[arg(short, long, default_value_t = 3)]
+   clients: u8,
+}
+
 fn main() {
+
+    let args = Args::parse();
+
+    println!("{:?}", args);
+
     // Init
-    let users: u8 = 3;
+    let users: u8 = args.clients;
 
     // Generate seed and param for PQ (lattice-based) VRF
     println!("[!] Generating param and seed for PQ VRF...");
     let (seed, param) = vrf_gen_seed_param();
 
     // Init PQ signature scheme
-    println!("[!] Setting Dilithium2 as signature scheme...");
-    let sigalg = sig::Sig::new(sig::Algorithm::Dilithium2).unwrap();
+    println!("[!] Setting {} as signature scheme...", args.sig);
+    let sigalg = match args.sig.as_str() {
+        "dilithium2" => Some(sig::Sig::new(sig::Algorithm::Dilithium2).unwrap()),
+        "dilithium3" => Some(sig::Sig::new(sig::Algorithm::Dilithium3).unwrap()),
+        "dilithium5" => Some(sig::Sig::new(sig::Algorithm::Dilithium5).unwrap()),
+        "falcon512" => Some(sig::Sig::new(sig::Algorithm::Falcon512).unwrap()),
+        "falcon1024" => Some(sig::Sig::new(sig::Algorithm::Falcon1024).unwrap()),
+        "sphincsHaraka128fRobust" => Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128fRobust).unwrap()),
+        "sphincsHaraka128fSimple" => Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128fSimple).unwrap()),
+        "sphincsHaraka128sRobust" => Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128sRobust).unwrap()),
+        "sphincsHaraka128sSimple" => Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128sSimple).unwrap()),
+        _ => None,
+    };
+
+    if sigalg.is_none() {
+        println!("[!] Signature {} is invalid or is not supported!", args.kem);
+        process::exit(1);
+    } 
+
+    let sigalg = sigalg.unwrap();
 
     // Init PQ KEM
-    println!("[!] Setting Kyber512 as KEM...\n");
-    let kemalg = kem::Kem::new(kem::Algorithm::Kyber512).unwrap();
+    println!("[!] Setting {} as KEM...\n", args.kem);
+    let kemalg = match args.kem.as_str() {
+        "kyber512" => Some(kem::Kem::new(kem::Algorithm::Kyber512).unwrap()),
+        "kyber768" => Some(kem::Kem::new(kem::Algorithm::Kyber768).unwrap()),
+        "kyber1024" => Some(kem::Kem::new(kem::Algorithm::Kyber1024).unwrap()),
+        _ => None,
+    };
+
+    if kemalg.is_none() {
+        println!("[!] Kem {} is invalid or is not supported!", args.kem);
+        process::exit(1);
+    } 
+
+    let kemalg = kemalg.unwrap();
 
     let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
 
