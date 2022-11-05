@@ -8,6 +8,7 @@ pub mod utils;
 pub mod vrf;
 
 use std::process;
+use std::time::Instant;
 
 use clap::Parser;
 use oqs::{kem, sig};
@@ -32,19 +33,17 @@ struct Args {
     clients: u8,
 }
 
-fn get_kem_algorithm(kem: &String) -> Option<kem::Kem> {
-    let kemalg = match kem.as_str() {
+fn get_kem_algorithm(kem: &str) -> Option<kem::Kem> {
+    match kem {
         "kyber512" => Some(kem::Kem::new(kem::Algorithm::Kyber512).unwrap()),
         "kyber768" => Some(kem::Kem::new(kem::Algorithm::Kyber768).unwrap()),
         "kyber1024" => Some(kem::Kem::new(kem::Algorithm::Kyber1024).unwrap()),
         _ => None,
-    };
-
-    kemalg
+    }
 }
 
-fn get_signature_algorithm(sig: &String) -> Option<sig::Sig> {
-    let sigalg = match sig.as_str() {
+fn get_signature_algorithm(sig: &str) -> Option<sig::Sig> {
+    match sig {
         "dilithium2" => Some(sig::Sig::new(sig::Algorithm::Dilithium2).unwrap()),
         "dilithium3" => Some(sig::Sig::new(sig::Algorithm::Dilithium3).unwrap()),
         "dilithium5" => Some(sig::Sig::new(sig::Algorithm::Dilithium5).unwrap()),
@@ -63,9 +62,7 @@ fn get_signature_algorithm(sig: &String) -> Option<sig::Sig> {
             Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128sSimple).unwrap())
         }
         _ => None,
-    };
-
-    sigalg
+    }
 }
 
 fn main() {
@@ -110,29 +107,47 @@ fn main() {
     let mut server: Server = Server::new(&mut config);
 
     println!("[R] Creating (ek, vk) for clients 0, 1, and 2...\n");
+    let start = Instant::now();
     registration(clients, &mut server, &mut config);
+    let duration = start.elapsed();
+    println!(
+        "[!] Time elapsed in registration of {} clients is {:?}",
+        users, duration
+    );
 
     println!("[!] Starting protocol with client0 and server...\n");
     println!("[C] Running Round 1...");
+    let start = Instant::now();
     round_1(&mut client0);
+    let duration = start.elapsed();
+    println!("[!] Time elapsed in Round 1 is {:?}", duration);
 
     println!("[C -> S] Sending m1 to server...\n");
     client0.send_m1(&mut server);
 
     println!("[S] Running Round 2...");
+    let start = Instant::now();
     let m2 = round_2(&mut server, &mut config, client0.get_id());
+    let duration = start.elapsed();
+    println!("[!] Time elapsed in Round 2 is {:?}", duration);
 
     println!("[C <- S] Sending m2 to client0...\n");
     server.send_m2(m2, &mut client0);
 
     println!("[C] Running Round 3...");
+    let start = Instant::now();
     let m3 = round_3(&mut client0, &mut config);
+    let duration = start.elapsed();
+    println!("[!] Time elapsed in Round 3 is {:?}", duration);
 
     println!("[C -> S] Sending m3 to server...\n");
     client0.send_m3(m3, &mut server);
 
-    println!("[C] Running Round 4...\n");
+    println!("[C] Running Round 4...");
+    let start = Instant::now();
     round_4(&mut server, &mut config, client0.get_id());
+    let duration = start.elapsed();
+    println!("[!] Time elapsed in Round 4 is {:?}\n", duration);
 
     println!("[!] Printing session keys...");
     print_hex(&client0.get_key(), "[C]");
