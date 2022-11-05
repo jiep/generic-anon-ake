@@ -4,6 +4,7 @@ pub mod config;
 pub mod pke;
 pub mod protocol;
 pub mod server;
+pub mod supported_algs;
 pub mod utils;
 pub mod vrf;
 
@@ -11,12 +12,14 @@ use std::process;
 use std::time::Instant;
 
 use clap::Parser;
-use oqs::{kem, sig};
 
 use crate::client::Client;
 use crate::config::Config;
 use crate::protocol::{registration, round_1, round_2, round_3, round_4};
 use crate::server::Server;
+use crate::supported_algs::{
+    get_kem_algorithm, get_signature_algorithm, print_supported_kems, print_supported_signatures,
+};
 use crate::utils::print_hex;
 use crate::vrf::vrf_gen_seed_param;
 
@@ -33,38 +36,6 @@ struct Args {
     clients: u8,
 }
 
-fn get_kem_algorithm(kem: &str) -> Option<kem::Kem> {
-    match kem {
-        "kyber512" => Some(kem::Kem::new(kem::Algorithm::Kyber512).unwrap()),
-        "kyber768" => Some(kem::Kem::new(kem::Algorithm::Kyber768).unwrap()),
-        "kyber1024" => Some(kem::Kem::new(kem::Algorithm::Kyber1024).unwrap()),
-        _ => None,
-    }
-}
-
-fn get_signature_algorithm(sig: &str) -> Option<sig::Sig> {
-    match sig {
-        "dilithium2" => Some(sig::Sig::new(sig::Algorithm::Dilithium2).unwrap()),
-        "dilithium3" => Some(sig::Sig::new(sig::Algorithm::Dilithium3).unwrap()),
-        "dilithium5" => Some(sig::Sig::new(sig::Algorithm::Dilithium5).unwrap()),
-        "falcon512" => Some(sig::Sig::new(sig::Algorithm::Falcon512).unwrap()),
-        "falcon1024" => Some(sig::Sig::new(sig::Algorithm::Falcon1024).unwrap()),
-        "sphincsHaraka128fRobust" => {
-            Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128fRobust).unwrap())
-        }
-        "sphincsHaraka128fSimple" => {
-            Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128fSimple).unwrap())
-        }
-        "sphincsHaraka128sRobust" => {
-            Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128sRobust).unwrap())
-        }
-        "sphincsHaraka128sSimple" => {
-            Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128sSimple).unwrap())
-        }
-        _ => None,
-    }
-}
-
 fn main() {
     let args = Args::parse();
 
@@ -79,7 +50,11 @@ fn main() {
     println!("[!] Setting {} as signature scheme...", args.sig);
     let sigalg = get_signature_algorithm(&args.sig);
     if sigalg.is_none() {
-        println!("[!] Signature {} is invalid or is not supported!", args.sig);
+        println!(
+            "[!] Signature {} is invalid or is not supported!\n[!] Suppored signature schemes:",
+            args.sig
+        );
+        print_supported_signatures();
         process::exit(1);
     }
     let sigalg = sigalg.unwrap();
@@ -88,7 +63,11 @@ fn main() {
     println!("[!] Setting {} as KEM...\n", args.kem);
     let kemalg = get_kem_algorithm(&args.kem);
     if kemalg.is_none() {
-        println!("[!] Kem {} is invalid or is not supported!", args.kem);
+        println!(
+            "[!] Kem {} is invalid or is not supported!\n[!] Suppored KEMS:",
+            args.kem
+        );
+        print_supported_kems();
         process::exit(1);
     }
 
