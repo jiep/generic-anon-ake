@@ -52,8 +52,8 @@ jobs:
 
       - name: Install dependencies for Mac OS target
         uses: mbround18/setup-osxcross@v1.1
-          with:
-            osx-version: "12.5"
+        with:
+          osx-version: "12.5"
 
       - name: Build target
         run: cargo build --release --target ${{ matrix.target }}
