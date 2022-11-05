@@ -199,7 +199,13 @@ pub fn round_4(server: &mut Server, config: &mut Config, i: u8) {
 
     let k: Vec<u8> = xor(&ns, &ni);
 
-    comm_vfy(comm, open, &ni);
+    let verification = comm_vfy(comm, open, &ni);
+
+    if verification {
+        println!("[S] Commitment verification -> OK");
+    } else {
+        println!("[S] Commitment verification -> FAIL");
+    }
 
     server.set_k(k, i);
 }
