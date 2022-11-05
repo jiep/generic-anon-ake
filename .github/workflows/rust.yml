@@ -47,18 +47,23 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Install dependencies for Windows target
-        # if: ${{ contains(matrix.target, "windows") }}
+        if: ${{ contains(matrix.target, "windows") }}
         run: |
           sudo apt-get install -y gcc-mingw-w64
 
       - name: Install dependencies for Mac OS target
-        # if: ${{ contains(matrix.target, "darwin") }}
+        if: ${{ contains(matrix.target, "darwin") }}
         uses: mbround18/setup-osxcross@v1
         with:
           osx-version: "12.3"
 
       - name: Build target
+        if: ${{ contains(matrix.target, "darwin") }}
         run: |
-          export CC=o64-clang
-          export CXX=o64-clang++
+--        export CC=o64-clang
+--        export CXX=o64-clang++
           cargo build --release --target ${{ matrix.target }}
+
+      - name: Build target
+        if: ${{ !contains(matrix.target, "darwin") }}
+        run: cargo build --release --target ${{ matrix.target }}
