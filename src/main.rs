@@ -107,11 +107,6 @@ fn main() {
     println!("[C] Running Round 1...");
     round_1(&mut client0);
 
-    // Fix: add to m1
-    let _ = client0.get_commitment();
-    // print_hex(&comm, "comm");
-    // print_hex(&open, "open");
-
     println!("[C -> S] Sending m1 to server...\n");
     client0.send_m1(&mut server);
 
