@@ -10,6 +10,11 @@ static SUPPORTED_KEMS: &[&str] = &[
 ];
 
 static SUPPORTED_SIGS: &[&str] = &[
+    "Dilithium2",
+    "Dilithium3",
+    "Dilithium5",
+    "Falcon512",
+    "Falcon1024",
     "SphincsHaraka128fRobust",
     "SphincsHaraka128fSimple",
     "SphincsHaraka128sRobust",

@@ -18,7 +18,7 @@
 
 ## Protocol
 
-```
+```mermaid
 sequenceDiagram
 participant Client i
 participant Server
@@ -39,16 +39,24 @@ Note right of Server: Round 4<br />Assert Comm.Vfy(comm, open) == 1<br />n_i := 
 
 <details>
   <summary>Click to expand supported KEMs!</summary>
+  
     * Kyber512
     * Kyber512_90s
     * Kyber768
     * Kyber768_90s
     * Kyber1024
     * Kyber1024_90s
+    
 </details>
 
 <details>
   <summary>Click to expand supported Signature schemes!</summary>
+  
+    * *Dilithium2 
+    * *Dilithium3
+    * *Dilithium5 
+    * *Falcon512
+    * *Falcon1024
     * SphincsHaraka128fRobust
     * SphincsHaraka128fSimple
     * SphincsHaraka128sRobust
@@ -85,6 +93,7 @@ Note right of Server: Round 4<br />Assert Comm.Vfy(comm, open) == 1<br />n_i := 
     * SphincsShake256256fSimple
     * SphincsShake256256sRobust
     * SphincsShake256256sSimple
+    
 </details>
 
 ## Binaries
