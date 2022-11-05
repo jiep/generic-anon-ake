@@ -35,8 +35,6 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    println!("{:?}", args);
-
     // Init
     let users: u8 = args.clients;
 
@@ -92,7 +90,7 @@ fn main() {
 
     let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
 
-    println!("[!] Creating 3 clients with id 0, 1, and 2...");
+    println!("[!] Creating {} clients...", users);
     let mut client0: Client = Client::new(0);
     let mut client1: Client = Client::new(1);
     let mut client2: Client = Client::new(2);

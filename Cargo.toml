@@ -18,3 +18,9 @@ clap = { version = "4.0.19", features = ["derive"] }
 version = "0.7.2"
 default-features = false
 features = ["dilithium", "falcon", "sphincs", "kyber"]
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
