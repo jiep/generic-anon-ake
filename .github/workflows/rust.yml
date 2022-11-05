@@ -3,32 +3,32 @@ on: [push]
 name: rust
 
 jobs:
-  # build_and_test:
-  #   name: Build binary, test, and check format
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repo
-  #       uses: actions/checkout@v3
+  build_and_test:
+    name: Build binary, test, and check format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
         
-  #     - name: Install Rust
-  #       uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
       
-  #     - name: Check code
-  #       run: cargo check
+      - name: Check code
+        run: cargo check
 
-  #     - name: Check tests
-  #       run: cargo test
+      - name: Check tests
+        run: cargo test
       
-  #     - name: Check format
-  #       run: cargo fmt --all -- --check
+      - name: Check format
+        run: cargo fmt --all -- --check
 
-  #     - name: Check Clippy
-  #       run: cargo clippy -- -D warnings
+      - name: Check Clippy
+        run: cargo clippy -- -D warnings
 
   deploy:
     name: Create release cross-compiling binaries
-    # needs: build_and_test
-    #if: startsWith(github.ref, 'refs/tags/')
+    needs: build_and_test
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     strategy: 
       matrix:
