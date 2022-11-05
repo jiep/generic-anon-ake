@@ -32,19 +32,19 @@ struct Args {
     clients: u8,
 }
 
-fn main() {
-    let args = Args::parse();
+fn get_kem_algorithm(kem: &String) -> Option<kem::Kem> {
+    let kemalg = match kem.as_str() {
+        "kyber512" => Some(kem::Kem::new(kem::Algorithm::Kyber512).unwrap()),
+        "kyber768" => Some(kem::Kem::new(kem::Algorithm::Kyber768).unwrap()),
+        "kyber1024" => Some(kem::Kem::new(kem::Algorithm::Kyber1024).unwrap()),
+        _ => None,
+    };
 
-    // Init
-    let users: u8 = args.clients;
+    kemalg
+}
 
-    // Generate seed and param for PQ (lattice-based) VRF
-    println!("[!] Generating param and seed for PQ VRF...");
-    let (seed, param) = vrf_gen_seed_param();
-
-    // Init PQ signature scheme
-    println!("[!] Setting {} as signature scheme...", args.sig);
-    let sigalg = match args.sig.as_str() {
+fn get_signature_algorithm(sig: &String) -> Option<sig::Sig> {
+    let sigalg = match sig.as_str() {
         "dilithium2" => Some(sig::Sig::new(sig::Algorithm::Dilithium2).unwrap()),
         "dilithium3" => Some(sig::Sig::new(sig::Algorithm::Dilithium3).unwrap()),
         "dilithium5" => Some(sig::Sig::new(sig::Algorithm::Dilithium5).unwrap()),
@@ -65,22 +65,31 @@ fn main() {
         _ => None,
     };
 
+    sigalg
+}
+
+fn main() {
+    let args = Args::parse();
+
+    // Init
+    let users: u8 = args.clients;
+
+    // Generate seed and param for PQ (lattice-based) VRF
+    println!("[!] Generating param and seed for PQ VRF...");
+    let (seed, param) = vrf_gen_seed_param();
+
+    // Init PQ signature scheme
+    println!("[!] Setting {} as signature scheme...", args.sig);
+    let sigalg = get_signature_algorithm(&args.sig);
     if sigalg.is_none() {
-        println!("[!] Signature {} is invalid or is not supported!", args.kem);
+        println!("[!] Signature {} is invalid or is not supported!", args.sig);
         process::exit(1);
     }
-
     let sigalg = sigalg.unwrap();
 
-    // Init PQ KEM
+    // Init PQ KEM scheme
     println!("[!] Setting {} as KEM...\n", args.kem);
-    let kemalg = match args.kem.as_str() {
-        "kyber512" => Some(kem::Kem::new(kem::Algorithm::Kyber512).unwrap()),
-        "kyber768" => Some(kem::Kem::new(kem::Algorithm::Kyber768).unwrap()),
-        "kyber1024" => Some(kem::Kem::new(kem::Algorithm::Kyber1024).unwrap()),
-        _ => None,
-    };
-
+    let kemalg = get_kem_algorithm(&args.kem);
     if kemalg.is_none() {
         println!("[!] Kem {} is invalid or is not supported!", args.kem);
         process::exit(1);
