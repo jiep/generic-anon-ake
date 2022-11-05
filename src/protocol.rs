@@ -18,7 +18,7 @@ use crate::config::Config;
 use crate::server::Server;
 use crate::vrf::{vrf_keypair, vrf_serialize_pi, vrf_serialize_y_from_proof};
 
-pub fn registration(clients: Vec<&mut Client>, server: &mut Server, config: &mut Config) {
+pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &mut Config) {
     let mut keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> = Vec::new();
     let seed = config.get_seed();
     let param = config.get_param();
@@ -30,7 +30,7 @@ pub fn registration(clients: Vec<&mut Client>, server: &mut Server, config: &mut
         keys.push((vk, ek));
     }
 
-    for (i, client) in clients.into_iter().enumerate() {
+    for (i, client) in clients.iter_mut().enumerate() {
         let (vk, ek) = keys.get(i).unwrap();
         client.set_ek(*ek);
         server.add_key((*vk, *ek));

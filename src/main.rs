@@ -32,7 +32,7 @@ struct Args {
     #[arg(short, long)]
     sig: String,
 
-    #[arg(short, long, default_value_t = 3)]
+    #[arg(short, long)]
     clients: u8,
 }
 
@@ -75,24 +75,23 @@ fn main() {
 
     let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
 
-    println!("[!] Creating {} clients...", users);
-    let mut client0: Client = Client::new(0);
-    let mut client1: Client = Client::new(1);
-    let mut client2: Client = Client::new(2);
+    println!("[!] Creating {} clients...", users);    
 
-    let clients: Vec<&mut Client> = vec![&mut client0, &mut client1, &mut client2];
-
+    let mut clients: Vec<Client> = (0..users).map(Client::new).collect();
+    
     println!("[!] Creating server...\n");
     let mut server: Server = Server::new(&mut config);
 
     println!("[R] Creating (ek, vk) for clients 0, 1, and 2...\n");
     let start = Instant::now();
-    registration(clients, &mut server, &mut config);
+    registration(&mut clients, &mut server, &mut config);
     let duration = start.elapsed();
     println!(
         "[!] Time elapsed in registration of {} clients is {:?}\n",
         users, duration
     );
+
+    let mut client0 = clients[0].clone();
 
     println!("[!] Starting protocol with client0 and server...\n");
     println!("[C] Running Round 1...");
