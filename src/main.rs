@@ -75,10 +75,10 @@ fn main() {
 
     let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
 
-    println!("[!] Creating {} clients...", users);    
+    println!("[!] Creating {} clients...", users);
 
     let mut clients: Vec<Client> = (0..users).map(Client::new).collect();
-    
+
     println!("[!] Creating server...\n");
     let mut server: Server = Server::new(&mut config);
 
