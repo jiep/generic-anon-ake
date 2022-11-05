@@ -65,5 +65,5 @@ jobs:
           cargo build --release --target ${{ matrix.target }}
 
       - name: Build target
-        if: ${{ !contains(matrix.target, "darwin") }}
+        if: ${{ !contains(matrix.target, 'darwin') }}
         run: cargo build --release --target ${{ matrix.target }}
