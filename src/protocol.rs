@@ -79,17 +79,11 @@ pub fn round_2(
         let (ek, vk) = client_keys.get(i as usize).unwrap();
         let proof = <LBVRF as VRF>::prove(r.clone(), param, *ek, *vk, seed).unwrap();
 
-        // println!("y: v={:?}", proof.v);
         let y: Vec<u8> = vrf_serialize_y_from_proof(&proof);
         let c = xor(&y, &n_s);
 
         proofs.push(proof);
         yis.push(y);
-
-        //proof.v.serialize(&mut y).unwrap();
-
-        //println!("y: {:?}", y);
-        // println!("pi: (z={:?}, c={:?}); ", proof.z, proof.c);
         cis.push(c);
     }
 
@@ -111,6 +105,7 @@ pub fn round_2(
 pub fn round_3(
     client: &mut Client,
     config: &mut Config,
+    verbose: bool,
 ) -> (
     Vec<u8>,
     (
@@ -135,8 +130,10 @@ pub fn round_3(
         .verify(&to_verify, &signature, &pk_s)
         .is_ok();
     if verification {
-        println!("[C] Signature verification -> OK");
-    } else {
+        if verbose {
+            println!("[C] Signature verification -> OK");
+        }
+    } else if verbose {
         println!("[C] Signature verification -> FAIL");
     }
 
@@ -146,10 +143,6 @@ pub fn round_3(
     let vks: Vec<lb_vrf::keypair::PublicKey> = client.get_vks();
     let vki: lb_vrf::keypair::PublicKey = *vks.get(id as usize).unwrap();
     let r: Vec<u8> = client.get_r();
-
-    // println!("eki: {:?}", eki);
-    // println!("r: {:?}", r);
-    // println!("ni: {:?}", ni);
 
     let proof_client = <LBVRF as VRF>::prove(r.clone(), param, vki, eki, seed).unwrap();
     let mut y_client: Vec<u8> = Vec::new();
@@ -174,8 +167,10 @@ pub fn round_3(
         let res = <LBVRF as VRF>::verify(r.clone(), param, vkj, created_proof).unwrap();
 
         if res.is_some() {
-            println!("[C] VRF verification for j={} -> OK", j);
-        } else {
+            if verbose {
+                println!("[C] VRF verification for j={} -> OK", j);
+            }
+        } else if verbose {
             println!("[C] VRF verification for j={} -> FAIL", j);
         }
     }
@@ -185,7 +180,7 @@ pub fn round_3(
     (open, cni)
 }
 
-pub fn round_4(server: &mut Server, config: &mut Config, i: u8) {
+pub fn round_4(server: &mut Server, config: &mut Config, i: u8, verbose: bool) {
     let kemalg = config.get_kem_algorithm();
     let cnis = server.get_cnis();
     let comms = server.get_comms();
@@ -203,8 +198,10 @@ pub fn round_4(server: &mut Server, config: &mut Config, i: u8) {
     let verification = comm_vfy(comm, open, &ni);
 
     if verification {
-        println!("[S] Commitment verification -> OK");
-    } else {
+        if verbose {
+            println!("[S] Commitment verification -> OK");
+        }
+    } else if verbose {
         println!("[S] Commitment verification -> FAIL");
     }
 

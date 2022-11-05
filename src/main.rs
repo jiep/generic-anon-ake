@@ -104,7 +104,7 @@ fn main() {
 
     println!("[C] Running Round 3...");
     let start = Instant::now();
-    let m3 = round_3(&mut client0, &mut config);
+    let m3 = round_3(&mut client0, &mut config, true);
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 3 is {:?}", duration);
 
@@ -113,7 +113,7 @@ fn main() {
 
     println!("[S] Running Round 4...");
     let start = Instant::now();
-    round_4(&mut server, &mut config, client0.get_id());
+    round_4(&mut server, &mut config, client0.get_id(), true);
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 4 is {:?}\n", duration);
 

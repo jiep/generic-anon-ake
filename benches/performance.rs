@@ -78,7 +78,7 @@ fn benchmark_round3_kyber1024_dilithium_5(c: &mut Criterion) {
 
     c.bench_function(
         "Bench the round3 function with Kyber1024, Dilithium5, and 5 clients",
-        |b| b.iter(|| round_3(&mut client0, &mut config)),
+        |b| b.iter(|| round_3(&mut client0, &mut config, false)),
     );
 }
 
@@ -98,12 +98,12 @@ fn benchmark_round4_kyber1024_dilithium_5(c: &mut Criterion) {
     client0.send_m1(&mut server);
     let m2 = round_2(&mut server, &mut config, client0.get_id());
     server.send_m2(m2, &mut client0);
-    let m3 = round_3(&mut client0, &mut config);
+    let m3 = round_3(&mut client0, &mut config, false);
     client0.send_m3(m3, &mut server);
-    round_4(&mut server, &mut config, client0.get_id());
+    round_4(&mut server, &mut config, client0.get_id(), false);
     c.bench_function(
         "Bench the round4 function with Kyber1024, Dilithium5, and 5 clients",
-        |b| b.iter(|| round_4(&mut server, &mut config, client0.get_id())),
+        |b| b.iter(|| round_4(&mut server, &mut config, client0.get_id(), false)),
     );
 }
 
