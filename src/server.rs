@@ -10,7 +10,7 @@ use aes_gcm::aes::cipher::generic_array::{
     typenum::{UInt, UTerm, B0, B1},
     GenericArray,
 };
-use sha3::{Sha3_256, Digest};
+use sha3::{Digest, Sha3_256};
 
 use crate::client::Client;
 use crate::config::Config;

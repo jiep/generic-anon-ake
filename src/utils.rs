@@ -27,7 +27,7 @@ pub fn get_nonce() -> Vec<u8> {
 }
 
 pub fn to_hex(arr: &Vec<u8>) -> String {
-    hex::encode(&arr)
+    hex::encode(arr)
 }
 
 pub fn print_hex(arr: &Vec<u8>, name: &str) {

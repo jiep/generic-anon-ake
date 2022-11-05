@@ -22,18 +22,17 @@ use crate::vrf::vrf_gen_seed_param;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-   #[arg(short, long)]
-   kem: String,
+    #[arg(short, long)]
+    kem: String,
 
-   #[arg(short, long)]
-   sig: String,
+    #[arg(short, long)]
+    sig: String,
 
-   #[arg(short, long, default_value_t = 3)]
-   clients: u8,
+    #[arg(short, long, default_value_t = 3)]
+    clients: u8,
 }
 
 fn main() {
-
     let args = Args::parse();
 
     println!("{:?}", args);
@@ -53,17 +52,25 @@ fn main() {
         "dilithium5" => Some(sig::Sig::new(sig::Algorithm::Dilithium5).unwrap()),
         "falcon512" => Some(sig::Sig::new(sig::Algorithm::Falcon512).unwrap()),
         "falcon1024" => Some(sig::Sig::new(sig::Algorithm::Falcon1024).unwrap()),
-        "sphincsHaraka128fRobust" => Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128fRobust).unwrap()),
-        "sphincsHaraka128fSimple" => Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128fSimple).unwrap()),
-        "sphincsHaraka128sRobust" => Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128sRobust).unwrap()),
-        "sphincsHaraka128sSimple" => Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128sSimple).unwrap()),
+        "sphincsHaraka128fRobust" => {
+            Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128fRobust).unwrap())
+        }
+        "sphincsHaraka128fSimple" => {
+            Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128fSimple).unwrap())
+        }
+        "sphincsHaraka128sRobust" => {
+            Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128sRobust).unwrap())
+        }
+        "sphincsHaraka128sSimple" => {
+            Some(sig::Sig::new(sig::Algorithm::SphincsHaraka128sSimple).unwrap())
+        }
         _ => None,
     };
 
     if sigalg.is_none() {
         println!("[!] Signature {} is invalid or is not supported!", args.kem);
         process::exit(1);
-    } 
+    }
 
     let sigalg = sigalg.unwrap();
 
@@ -79,7 +86,7 @@ fn main() {
     if kemalg.is_none() {
         println!("[!] Kem {} is invalid or is not supported!", args.kem);
         process::exit(1);
-    } 
+    }
 
     let kemalg = kemalg.unwrap();
 

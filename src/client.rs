@@ -7,7 +7,7 @@ use oqs::{
     kem::{self, Ciphertext},
     sig,
 };
-use sha3::{Sha3_256, Digest};
+use sha3::{Digest, Sha3_256};
 
 use crate::server::Server;
 
