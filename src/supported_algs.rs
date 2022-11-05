@@ -1,6 +1,6 @@
 use oqs::{kem, sig};
 
-static SUPPORTED_KEMS: &[&str] = &[
+pub static SUPPORTED_KEMS: &[&str] = &[
     "Kyber512",
     "Kyber512_90s",
     "Kyber768",
@@ -9,7 +9,7 @@ static SUPPORTED_KEMS: &[&str] = &[
     "Kyber1024_90s",
 ];
 
-static SUPPORTED_SIGS: &[&str] = &[
+pub static SUPPORTED_SIGS: &[&str] = &[
     "Dilithium2",
     "Dilithium3",
     "Dilithium5",
