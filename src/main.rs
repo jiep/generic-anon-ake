@@ -82,7 +82,7 @@ fn main() {
     println!("[!] Creating server...\n");
     let mut server: Server = Server::new(&mut config);
 
-    println!("[R] Creating (ek, vk) for clients 0, 1, and 2...\n");
+    println!("[R] Creating (ek, vk) for {} clients...\n", users);
     let start = Instant::now();
     registration(&mut clients, &mut server, &mut config);
     let duration = start.elapsed();
