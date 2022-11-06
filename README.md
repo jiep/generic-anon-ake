@@ -29,7 +29,7 @@ Server ->> Client i: ek_i
 Note left of Client i: Round 1<br />n_i <-$ R<br />(comm, open) <- COMM.Comm(n_i)
 Client i -->> Server: m_1 := ("init", comm)
 Note right of Server: Round 2<br />(pk*, sk*) <- PKE.Gen(λ)<br />n_S, r <-$ R<br />Do for all i ∈ C := {1,...,l}:<br />(y_i, π_i) <- VRF.Eval(ek_i, r)<br />c_i := y_i ⊕ n_S <br />End Do<br />m := (c_1, ..., c_l, π_1, ..., π_l, r, pk*)<br/>σ := SIG.Sign(sk_S, m)
-Server ->> Client i: m2 := (σ, m)
+Server ->> Client i: m_2 := (σ, m)
 Note left of Client i: Round 3<br />Assert SIG.Vfy(pk_S, σ, m_2) == 1<br />n_S := VRF.Eval(ek_i, r) ⊕ c_i<br/>Do for all j in C\{i}<br/>Assert VRF.Vry(vk_j, r, n_S) ⊕ c_j, π_j) == 1<br/>End Do<br/> K := n_S ⊕ n_i<br/>cn_i := PKE.Enc(pk*, n_i) 
 Client i -->> Server: m_3 := (open, cn_i)
 Note right of Server: Round 4<br />Assert Comm.Vfy(comm, open) == 1<br />n_i := PKE.Dec(sk*, cn_i)<br/>Do for all j in C\{i}<br/>Assert VRF.Vry(vk_j, r, n_S) ⊕ c_j, π_j) == 1<br/> K := n_S ⊕ n_i<br/>cn_i := PKE.Enc(pk*, n_i)<br/>K := n_S ⊕ n_i
