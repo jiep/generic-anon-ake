@@ -62,14 +62,6 @@ fn bench_1(c: &mut Criterion) {
                     &_x2,
                     |b, (_, _)| b.iter(|| round_2(&mut server, &mut config, client0.get_id())),
                 );
-
-                // let _x3 = (0, 0);
-                // group.bench_with_input(BenchmarkId::new("Round 3", parameter_string.clone()), &_x3,
-                //     |b, (_, _) | b.iter(|| round_3(&mut client0, &mut config, false)));
-
-                // let _x4 = (0, 0);
-                // group.bench_with_input(BenchmarkId::new("Round 4", parameter_string.clone()), &_x4,
-                //     |b, (_, _) | b.iter(|| round_4(&mut server, &mut config, client0.get_id(), false)));
             }
         }
     }
@@ -107,17 +99,6 @@ fn bench_2(c: &mut Criterion) {
                 round_4(&mut server, &mut config, client0.get_id(), false);
 
                 let parameter_string = format!("{}-{}-{}", kemalg_str, sigalg_str, users);
-                // let _x0 = (0, 0);
-                // group.bench_with_input(BenchmarkId::new("Registration", parameter_string.clone()), &_x0,
-                //     |b, _| b.iter(|| registration(&mut clients, &mut server, &mut config)));
-
-                // let _x1 = (0, 0);
-                // group.bench_with_input(BenchmarkId::new("Round 1", parameter_string.clone()), &_x1,
-                //     |b, (_, _) | b.iter(|| round_1(&mut client0)));
-
-                // let _x2 = (0, 0);
-                // group.bench_with_input(BenchmarkId::new("Round 2", parameter_string.clone()), &_x2,
-                //     |b, (_, _) | b.iter(|| round_2(&mut server, &mut config, client0.get_id())));
 
                 let _x3 = (0, 0);
                 group.bench_with_input(
@@ -140,12 +121,5 @@ fn bench_2(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(
-    benches, bench_1,
-    bench_2 // benchmark_registration_kyber1024_dilithium_5,
-            // benchmark_round1_kyber1024_dilithium_5,
-            // benchmark_round2_kyber1024_dilithium_5,
-            // benchmark_round3_kyber1024_dilithium_5,
-            // benchmark_round4_kyber1024_dilithium_5
-);
+criterion_group!(benches, bench_1, bench_2);
 criterion_main!(benches);

@@ -39,10 +39,6 @@ pub struct Server {
 }
 
 impl Server {
-    /* pub fn new(clients_keys: Vec<(Vec<u8>, Vec<u8>)>) -> Self {
-        Server { clients_keys }
-    } */
-
     pub fn new(config: &mut Config) -> Self {
         let (pk_sig, sk_sig) = config.get_signature_algorithm().keypair().unwrap();
 

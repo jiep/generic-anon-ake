@@ -174,10 +174,6 @@ impl Client {
             self.pk.as_ref().unwrap().clone(),
         )
     }
-
-    //pub fn new(id:u8, ek: Vec<u8>, vks: Vec<Vec<u8>>) -> Self {
-    //    Client { id, ek, vks }
-    //}
 }
 
 impl Clone for Client {
