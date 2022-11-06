@@ -1,4 +1,4 @@
-use crate::utils::get_random_key32;
+use crate::protocol::utils::get_random_key32;
 use sha3::{Digest, Sha3_256};
 
 // Output: commitment and open
@@ -26,7 +26,7 @@ pub fn comm_vfy(comm: &[u8], open: &[u8], x: &[u8]) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::commitment::{comm, comm_vfy};
+    use crate::protocol::commitment::{comm, comm_vfy};
 
     #[test]
     fn commitment_works() {

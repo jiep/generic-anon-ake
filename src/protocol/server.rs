@@ -12,8 +12,8 @@ use aes_gcm::aes::cipher::generic_array::{
 };
 use sha3::{Digest, Sha3_256};
 
-use crate::client::Client;
-use crate::config::Config;
+use crate::protocol::client::Client;
+use crate::protocol::config::Config;
 
 #[derive(Debug)]
 #[allow(clippy::type_complexity)]

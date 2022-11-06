@@ -41,7 +41,7 @@ pub fn xor(x: &[u8], y: &[u8]) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::{get_nonce, get_random_key32, get_random_key88, to_hex, xor};
+    use crate::protocol::utils::{get_nonce, get_random_key32, get_random_key88, to_hex, xor};
 
     #[test]
     fn get_random_key32_works() {

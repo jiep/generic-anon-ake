@@ -3,12 +3,12 @@ use std::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
 use anon_sym_ake::{
-    client::Client,
-    config::Config,
-    protocol::{registration, round_1, round_2, round_3, round_4},
-    server::Server,
-    supported_algs::{get_kem_algorithm, get_signature_algorithm},
-    vrf::vrf_gen_seed_param,
+    protocol::client::Client,
+    protocol::config::Config,
+    protocol::protocol::{registration, round_1, round_2, round_3, round_4},
+    protocol::server::Server,
+    protocol::supported_algs::{get_kem_algorithm, get_signature_algorithm},
+    protocol::vrf::vrf_gen_seed_param,
 };
 
 // fn benchmark_registration_kyber1024_dilithium_5(c: &mut Criterion) {

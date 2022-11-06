@@ -9,14 +9,14 @@ use lb_vrf::VRF;
 use oqs::kem::Ciphertext;
 use oqs::{kem, sig};
 
-use crate::commitment::{comm, comm_vfy};
-use crate::pke::{pke_dec, pke_enc};
-use crate::utils::{get_random_key32, get_random_key88, xor};
+use crate::protocol::commitment::{comm, comm_vfy};
+use crate::protocol::pke::{pke_dec, pke_enc};
+use crate::protocol::utils::{get_random_key32, get_random_key88, xor};
 
-use crate::client::Client;
-use crate::config::Config;
-use crate::server::Server;
-use crate::vrf::{vrf_keypair, vrf_serialize_pi, vrf_serialize_y_from_proof};
+use crate::protocol::client::Client;
+use crate::protocol::config::Config;
+use crate::protocol::server::Server;
+use crate::protocol::vrf::{vrf_keypair, vrf_serialize_pi, vrf_serialize_y_from_proof};
 
 pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &mut Config) {
     let mut keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> = Vec::new();

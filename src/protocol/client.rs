@@ -9,7 +9,7 @@ use oqs::{
 };
 use sha3::{Digest, Sha3_256};
 
-use crate::server::Server;
+use crate::protocol::server::Server;
 
 #[derive(Debug)]
 pub struct Client {

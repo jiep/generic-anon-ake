@@ -58,7 +58,7 @@ pub fn vrf_serialize_pi(z: [Poly256; 9], c: Poly256) -> ([Vec<u8>; 9], Vec<u8>) 
 mod tests {
     use lb_vrf::{lbvrf::LBVRF, VRF};
 
-    use crate::vrf::{vrf_gen_seed_param, vrf_keypair};
+    use crate::protocol::vrf::{vrf_gen_seed_param, vrf_keypair};
 
     #[test]
     fn vrf_works() {
