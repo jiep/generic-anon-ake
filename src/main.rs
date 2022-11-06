@@ -24,16 +24,22 @@ struct Args {
 
     #[arg(short, long)]
     clients: u8,
+
+    #[arg(short, long, default_value_t=false)]
+    verbose: bool,
 }
 
 fn main() {
     let args = Args::parse();
+    let verbose = args.verbose;
 
     // Init
     let users: u8 = args.clients;
 
     // Generate seed and param for PQ (lattice-based) VRF
-    println!("[!] Generating param and seed for PQ VRF...");
+    if verbose {
+        println!("[!] Generating param and seed for PQ VRF...");
+    }
     let (seed, param) = vrf_gen_seed_param();
 
     // Init PQ signature scheme
@@ -65,14 +71,20 @@ fn main() {
 
     let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
 
-    println!("[!] Creating {} clients...", users);
+    if verbose {
+        println!("[!] Creating {} clients...", users);
+    }
 
     let mut clients: Vec<Client> = (0..users).map(Client::new).collect();
 
-    println!("[!] Creating server...\n");
+    if verbose {
+        println!("[!] Creating server...\n");
+    }
     let mut server: Server = Server::new(&mut config);
 
-    println!("[R] Creating (ek, vk) for {} clients...\n", users);
+    if verbose {
+        println!("[R] Creating (ek, vk) for {} clients...\n", users);
+    }
     let start = Instant::now();
     registration(&mut clients, &mut server, &mut config);
     let duration = start.elapsed();
@@ -83,37 +95,50 @@ fn main() {
 
     let mut client0 = clients[0].clone();
 
-    println!("[!] Starting protocol with client0 and server...\n");
-    println!("[C] Running Round 1...");
+    if verbose {
+        println!("[!] Starting protocol with client0 and server...\n");
+        println!("[C] Running Round 1...");
+    }
     let start = Instant::now();
     round_1(&mut client0);
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 1 is {:?}", duration);
 
-    println!("[C -> S] Sending m1 to server...\n");
+    if verbose {
+        println!("[C -> S] Sending m1 to server...\n");
+    }
     client0.send_m1(&mut server);
 
-    println!("[S] Running Round 2...");
+    if verbose {
+        println!("[S] Running Round 2...");
+    }
     let start = Instant::now();
     let m2 = round_2(&mut server, &mut config, client0.get_id());
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 2 is {:?}", duration);
 
-    println!("[C <- S] Sending m2 to client0...\n");
+    if verbose {
+        println!("[C <- S] Sending m2 to client0...\n");
+    }
     server.send_m2(m2, &mut client0);
 
-    println!("[C] Running Round 3...");
+    if verbose {
+        println!("[C] Running Round 3...");
+    }
     let start = Instant::now();
-    let m3 = round_3(&mut client0, &mut config, true);
+    let m3 = round_3(&mut client0, &mut config, verbose);
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 3 is {:?}", duration);
-
-    println!("[C -> S] Sending m3 to server...\n");
+    if verbose {
+        println!("[C -> S] Sending m3 to server...\n");
+    }
     client0.send_m3(m3, &mut server);
 
-    println!("[S] Running Round 4...");
+    if verbose {
+        println!("[S] Running Round 4...");
+    }
     let start = Instant::now();
-    round_4(&mut server, &mut config, client0.get_id(), true);
+    round_4(&mut server, &mut config, client0.get_id(), verbose);
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 4 is {:?}\n", duration);
 
