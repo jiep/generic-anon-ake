@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lb-vrf = { git = "https://github.com/jiep/lb-vrf", branch="type-annotations-needed" }
+lb-vrf = { git = "https://github.com/jiep/lb-vrf" }
 rand = "0.8.5"
 hex = "0.4.3"
 sha3 = "0.10.6"
