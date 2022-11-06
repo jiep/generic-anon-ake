@@ -78,12 +78,13 @@ jobs:
           sudo apt install -y zip
           BIN=anon-sym-ake
           BIN_NAME=$BIN
-          strip target/${{ matrix.target }}/release/${BIN}
-          if [[ ${{ matrix.target }} == *"windows"* ]]; then
+          TARGET=${{ matrix.target }}
+          strip target/${TARGET}/release/${BIN}
+          if [[ ${TARGET} == *"windows"* ]]; then
             BIN_NAME=${BIN}.exe
           fi
-          cd target/${{ matrix.target }}/release          
-          tar czvf ../../../${BIN}-${{ matrix.target }}.tar.gz ${BIN_NAME}
+          cd target/${TARGET}/release          
+          tar czvf ../../../${BIN}-${TARGET}.tar.gz ${BIN_NAME}
           cd -
       - name: Add to Releases
         if: startsWith(github.ref, 'refs/tags/')
