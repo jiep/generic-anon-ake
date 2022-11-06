@@ -89,9 +89,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
             files: '*.zip'
+            generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        generate_release_notes: true
 
   benchmark: 
     name: Run benchmark
