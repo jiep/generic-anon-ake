@@ -103,7 +103,7 @@ jobs:
 
       - name: Run benchmark
         run: cargo bench
-
+        
       - name: Package results
         shell: bash
         run: |
