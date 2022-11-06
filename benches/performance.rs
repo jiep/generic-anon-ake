@@ -16,9 +16,9 @@ fn bench_1(c: &mut Criterion) {
 
     group.measurement_time(Duration::from_secs(1));
 
-    for users in [255, 128, 64] {
-        for kemalg_str in ["Kyber1024", "Kyber768", "Kyber512"] {
-            for sigalg_str in ["Dilithium5", "Dilithium3", "Dilithium2"] {
+    for users in [255] {
+        for kemalg_str in ["Kyber1024"] {
+            for sigalg_str in ["Dilithium5"] {
                 let kemalg = get_kem_algorithm(kemalg_str).unwrap();
                 let sigalg = get_signature_algorithm(sigalg_str).unwrap();
                 let (seed, param) = vrf_gen_seed_param();
@@ -81,9 +81,9 @@ fn bench_2(c: &mut Criterion) {
 
     group.measurement_time(Duration::from_secs(1));
 
-    for users in [255, 128, 64] {
-        for kemalg_str in ["Kyber1024", "Kyber768", "Kyber512"] {
-            for sigalg_str in ["Dilithium5", "Dilithium3", "Dilithium2"] {
+    for users in [255] {
+        for kemalg_str in ["Kyber1024"] {
+            for sigalg_str in ["Dilithium5"] {
                 let kemalg = get_kem_algorithm(kemalg_str).unwrap();
                 let sigalg = get_signature_algorithm(sigalg_str).unwrap();
                 let (seed, param) = vrf_gen_seed_param();
