@@ -79,12 +79,12 @@ jobs:
           BIN=anon-sym-ake
           BIN_NAME=$BIN
           TARGET=${{ matrix.target }}
-          strip target/${TARGET}/release/${BIN}
           if [[ ${TARGET} == *"windows"* ]]; then
             BIN_NAME=${BIN}.exe
           fi
+          strip target/${TARGET}/release/${BIN_NAME}
           cd target/${TARGET}/release          
-          zip ../../../${BIN}-${TARGET}.tar.gz ${BIN_NAME}
+          zip ../../../${BIN}-${TARGET}.zip ${BIN_NAME}
           cd -
       - name: Add to Releases
         if: startsWith(github.ref, 'refs/tags/')
