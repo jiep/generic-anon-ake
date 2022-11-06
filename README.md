@@ -136,12 +136,13 @@ cargo run
 
 ```
 ./target/debug/anon-sym-ake --help
-Usage: anon-sym-ake --kem <KEM> --sig <SIG> --clients <CLIENTS>
+Usage: anon-sym-ake [OPTIONS] --kem <KEM> --sig <SIG> --clients <CLIENTS>
 
 Options:
   -k, --kem <KEM>          
   -s, --sig <SIG>          
   -c, --clients <CLIENTS>  
+  -v, --verbose            
   -h, --help               Print help information
   -V, --version            Print version information
 ```
