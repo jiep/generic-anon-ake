@@ -25,9 +25,6 @@ jobs:
       - name: Check Clippy
         run: cargo clippy -- -D warnings
 
-      # - name: Run benchmark
-      #   run: cargo bench
-
   deploy:
     name: Create release cross-compiling binaries
     needs: build_and_test
@@ -83,8 +80,9 @@ jobs:
             BIN_NAME=${BIN}.exe
           fi
           strip target/${TARGET}/release/${BIN_NAME}
-          cd target/${TARGET}/release          
-          zip ../../../${BIN}-${TARGET}.zip ${BIN_NAME}
+          cd target/${TARGET}/release
+          sha256sum ${BIN_NAME} | cut -f 1 -d " " > digest.sha256
+          zip ../../../${BIN}-${TARGET}.zip ${BIN_NAME} digest.sha256
           cd -
       - name: Add to Releases
         if: startsWith(github.ref, 'refs/tags/')
@@ -92,4 +90,31 @@ jobs:
         with:
             files: '*.zip'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  benchmark: 
+    name: Run benchmark
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Run benchmark
+        run: cargo bench
+
+      - name: Package results
+        shell: bash
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          sudo apt install -y zip
+          BIN=anon-sym-ake
+          zip -r benchmark-linux.zip target/release/criterion/*
+
+        - name: Add to Releases
+          uses: softprops/action-gh-release@v1
+          with:
+              files: '*.zip'
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

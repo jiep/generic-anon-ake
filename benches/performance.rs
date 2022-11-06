@@ -11,131 +11,12 @@ use anon_sym_ake::{
     protocol::vrf::vrf_gen_seed_param,
 };
 
-// fn benchmark_registration_kyber1024_dilithium_5(c: &mut Criterion) {
-//     let users: u8 = 5;
-
-//     let kemalg: Kem = kem::Kem::new(kem::Algorithm::Kyber1024).unwrap();
-//     let sigalg: Sig = sig::Sig::new(sig::Algorithm::Dilithium5).unwrap();
-//     let (seed, param) = vrf_gen_seed_param();
-//     let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
-//     let mut clients: Vec<Client> = (0..users).map(Client::new).collect();
-//     let mut server: Server = Server::new(&mut config);
-
-//     registration(&mut clients, &mut server, &mut config);
-
-//     c.bench_function(
-//         "Bench the registration function with Kyber1024, Dilithium5, and 5 clients",
-//         |b| b.iter(|| registration(&mut clients, &mut server, &mut config)),
-//     );
-// }
-
-// fn benchmark_round1_kyber1024_dilithium_5(c: &mut Criterion) {
-//     let users: u8 = 5;
-
-//     let kemalg: Kem = kem::Kem::new(kem::Algorithm::Kyber1024).unwrap();
-//     let sigalg: Sig = sig::Sig::new(sig::Algorithm::Dilithium5).unwrap();
-//     let (seed, param) = vrf_gen_seed_param();
-//     let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
-//     let mut clients: Vec<Client> = (0..users).map(Client::new).collect();
-//     let mut server: Server = Server::new(&mut config);
-
-//     registration(&mut clients, &mut server, &mut config);
-
-//     let mut client0 = clients[0].clone();
-
-//     round_1(&mut client0);
-
-//     client0.send_m1(&mut server);
-
-//     c.bench_function(
-//         "Bench the round1 function with Kyber1024, Dilithium5, and 5 clients",
-//         |b| b.iter(|| round_1(&mut client0)),
-//     );
-// }
-
-// fn benchmark_round2_kyber1024_dilithium_5(c: &mut Criterion) {
-//     let users: u8 = 5;
-
-//     let kemalg: Kem = kem::Kem::new(kem::Algorithm::Kyber1024).unwrap();
-//     let sigalg: Sig = sig::Sig::new(sig::Algorithm::Dilithium5).unwrap();
-//     let (seed, param) = vrf_gen_seed_param();
-//     let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
-//     let mut clients: Vec<Client> = (0..users).map(Client::new).collect();
-//     let mut server: Server = Server::new(&mut config);
-
-//     registration(&mut clients, &mut server, &mut config);
-
-//     let mut client0 = clients[0].clone();
-
-//     round_1(&mut client0);
-
-//     client0.send_m1(&mut server);
-
-//     c.bench_function(
-//         "Bench the round2 function with Kyber1024, Dilithium5, and 5 clients",
-//         |b| b.iter(|| round_2(&mut server, &mut config, client0.get_id())),
-//     );
-// }
-
-// fn benchmark_round3_kyber1024_dilithium_5(c: &mut Criterion) {
-//     let users: u8 = 5;
-
-//     let kemalg: Kem = kem::Kem::new(kem::Algorithm::Kyber1024).unwrap();
-//     let sigalg: Sig = sig::Sig::new(sig::Algorithm::Dilithium5).unwrap();
-//     let (seed, param) = vrf_gen_seed_param();
-//     let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
-//     let mut clients: Vec<Client> = (0..users).map(Client::new).collect();
-//     let mut server: Server = Server::new(&mut config);
-
-//     registration(&mut clients, &mut server, &mut config);
-
-//     let mut client0 = clients[0].clone();
-
-//     round_1(&mut client0);
-
-//     client0.send_m1(&mut server);
-
-//     let m2 = round_2(&mut server, &mut config, client0.get_id());
-
-//     server.send_m2(m2, &mut client0);
-
-//     c.bench_function(
-//         "Bench the round3 function with Kyber1024, Dilithium5, and 5 clients",
-//         |b| b.iter(|| round_3(&mut client0, &mut config, false)),
-//     );
-// }
-
-// fn benchmark_round4_kyber1024_dilithium_5(c: &mut Criterion) {
-//     let users: u8 = 5;
-
-//     let kemalg: Kem = kem::Kem::new(kem::Algorithm::Kyber1024).unwrap();
-//     let sigalg: Sig = sig::Sig::new(sig::Algorithm::Dilithium5).unwrap();
-//     let (seed, param) = vrf_gen_seed_param();
-//     let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
-//     let mut clients: Vec<Client> = (0..users).map(Client::new).collect();
-//     let mut server: Server = Server::new(&mut config);
-
-//     registration(&mut clients, &mut server, &mut config);
-//     let mut client0 = clients[0].clone();
-//     round_1(&mut client0);
-//     client0.send_m1(&mut server);
-//     let m2 = round_2(&mut server, &mut config, client0.get_id());
-//     server.send_m2(m2, &mut client0);
-//     let m3 = round_3(&mut client0, &mut config, false);
-//     client0.send_m3(m3, &mut server);
-//     round_4(&mut server, &mut config, client0.get_id(), false);
-//     c.bench_function(
-//         "Bench the round4 function with Kyber1024, Dilithium5, and 5 clients",
-//         |b| b.iter(|| round_4(&mut server, &mut config, client0.get_id(), false)),
-//     );
-// }
-
 fn bench_1(c: &mut Criterion) {
     let mut group = c.benchmark_group("Protocol");
 
     group.measurement_time(Duration::from_secs(1));
 
-    for users in [255, 128, 64, 32, 16, 8, 4] {
+    for users in [255, 128, 64] {
         for kemalg_str in ["Kyber1024", "Kyber768", "Kyber512"] {
             for sigalg_str in ["Dilithium5", "Dilithium3", "Dilithium2"] {
                 let kemalg = get_kem_algorithm(kemalg_str).unwrap();
@@ -200,7 +81,7 @@ fn bench_2(c: &mut Criterion) {
 
     group.measurement_time(Duration::from_secs(1));
 
-    for users in [255, 128, 64, 32, 16, 8, 4] {
+    for users in [255, 128, 64] {
         for kemalg_str in ["Kyber1024", "Kyber768", "Kyber512"] {
             for sigalg_str in ["Dilithium5", "Dilithium3", "Dilithium2"] {
                 let kemalg = get_kem_algorithm(kemalg_str).unwrap();
