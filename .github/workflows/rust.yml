@@ -105,6 +105,7 @@ jobs:
       - name: Install dependencies
         run: |
           cargo install cargo-criterion
+          cargo install criterion-table
 
       - name: Run benchmark
         run: | 
