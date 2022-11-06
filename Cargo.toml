@@ -21,6 +21,8 @@ features = ["dilithium", "falcon", "sphincs", "kyber"]
 
 [dev-dependencies]
 criterion = "0.4.0"
+criterion-table = "0.4.2"
+cargo-criterion = "1.1.0"
 
 [profile.dev]
 opt-level = 0
