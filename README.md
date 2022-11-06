@@ -152,7 +152,7 @@ Options:
 10 clients (the protocol is executed with just one!) with Kyber1024 as KEM and Dilithium5 as Signature scheme
 
 ```
-./target/release/anon-sym-ake --kem Kyber1024 --sig Dilithium5 --clients 10
+./target/release/anon-sym-ake --kem Kyber1024 --sig Dilithium5 --clients 10 --verbose
 [!] Generating param and seed for PQ VRF...
 [!] Setting Dilithium5 as signature scheme...
 [!] Setting Kyber1024 as KEM...
@@ -162,16 +162,16 @@ Options:
 
 [R] Creating (ek, vk) for 10 clients...
 
-[!] Time elapsed in registration of 10 clients is 5.891277ms
+[!] Time elapsed in registration of 10 clients is 6.150324ms
 
 [!] Starting protocol with client0 and server...
 
 [C] Running Round 1...
-[!] Time elapsed in Round 1 is 5.6µs
+[!] Time elapsed in Round 1 is 5.3µs
 [C -> S] Sending m1 to server...
 
 [S] Running Round 2...
-[!] Time elapsed in Round 2 is 58.332262ms
+[!] Time elapsed in Round 2 is 85.251021ms
 [C <- S] Sending m2 to client0...
 
 [C] Running Round 3...
@@ -186,14 +186,14 @@ Options:
 [C] VRF verification for j=7 -> OK
 [C] VRF verification for j=8 -> OK
 [C] VRF verification for j=9 -> OK
-[!] Time elapsed in Round 3 is 23.114302ms
+[!] Time elapsed in Round 3 is 24.515595ms
 [C -> S] Sending m3 to server...
 
 [S] Running Round 4...
 [S] Commitment verification -> OK
-[!] Time elapsed in Round 4 is 58.701µs
+[!] Time elapsed in Round 4 is 77.602µs
 
 [!] Printing session keys...
-[C] 0x217f6b62a0a54caa65449074b1e2cb11505980129223896e01ff26b318b84d2d
-[S] 0x217f6b62a0a54caa65449074b1e2cb11505980129223896e01ff26b318b84d2d
+[C] 0xa4857c5fd9baf50f23d83eea39cec440ca9d19078e22d261d7dba835ac009c54
+[S] 0xa4857c5fd9baf50f23d83eea39cec440ca9d19078e22d261d7dba835ac009c54
 ```
