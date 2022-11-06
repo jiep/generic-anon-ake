@@ -25,7 +25,7 @@ struct Args {
     #[arg(short, long)]
     clients: u8,
 
-    #[arg(short, long, default_value_t=false)]
+    #[arg(short, long, default_value_t = false)]
     verbose: bool,
 }
 
