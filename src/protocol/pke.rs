@@ -10,7 +10,7 @@ use aes_gcm::{
 
 use oqs::kem::{self, Ciphertext};
 
-use crate::utils::get_nonce;
+use crate::protocol::utils::get_nonce;
 
 #[allow(clippy::type_complexity)]
 pub fn pke_enc(

@@ -1,25 +1,37 @@
+use lb_vrf::param::Param;
 use oqs::{kem, sig};
-use vrf::openssl::ECVRF;
 
 pub struct Config {
     users_numbers: u8,
-    vrf: ECVRF,
+    seed: [u8; 32],
+    param: Param,
     kem: kem::Kem,
     sig: sig::Sig,
 }
 
 impl Config {
-    pub fn new(users_numbers: u8, vrf: ECVRF, kem: kem::Kem, sig: sig::Sig) -> Self {
+    pub fn new(
+        users_numbers: u8,
+        seed: [u8; 32],
+        param: Param,
+        kem: kem::Kem,
+        sig: sig::Sig,
+    ) -> Self {
         Config {
             users_numbers,
-            vrf,
+            seed,
+            param,
             kem,
             sig,
         }
     }
 
-    pub fn get_vrf(&mut self) -> &mut ECVRF {
-        &mut self.vrf
+    pub fn get_seed(&self) -> [u8; 32] {
+        self.seed
+    }
+
+    pub fn get_param(&self) -> Param {
+        self.param
     }
 
     pub fn get_signature_algorithm(&mut self) -> &mut sig::Sig {

@@ -1,58 +1,148 @@
-pub mod client;
-pub mod commitment;
-pub mod config;
-pub mod pke;
-pub mod protocol;
-pub mod server;
-pub mod utils;
+use std::process;
+use std::time::Instant;
 
-use oqs::{kem, sig};
-use vrf::openssl::{CipherSuite, ECVRF};
+use clap::Parser;
 
-use crate::client::Client;
-use crate::config::Config;
-use crate::protocol::{registration, round_1, round_2, round_3, round_4};
-use crate::server::Server;
-use crate::utils::print_hex;
+use anon_sym_ake::protocol::client::Client;
+use anon_sym_ake::protocol::config::Config;
+use anon_sym_ake::protocol::protocol::{registration, round_1, round_2, round_3, round_4};
+use anon_sym_ake::protocol::server::Server;
+use anon_sym_ake::protocol::supported_algs::{
+    get_kem_algorithm, get_signature_algorithm, print_supported_kems, print_supported_signatures,
+};
+use anon_sym_ake::protocol::utils::print_hex;
+use anon_sym_ake::protocol::vrf::vrf_gen_seed_param;
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long)]
+    kem: String,
+
+    #[arg(short, long)]
+    sig: String,
+
+    #[arg(short, long)]
+    clients: u8,
+
+    #[arg(short, long, default_value_t = false)]
+    verbose: bool,
+}
 
 fn main() {
-    // 0. Registration
-    println!("0. Registration");
-    let users: u8 = 3;
+    let args = Args::parse();
+    let verbose = args.verbose;
 
-    // Init VRF - Not Post Quantum with this library
-    let vrf = ECVRF::from_suite(CipherSuite::SECP256K1_SHA256_TAI).unwrap();
+    // Init
+    let users: u8 = args.clients;
+
+    // Generate seed and param for PQ (lattice-based) VRF
+    if verbose {
+        println!("[!] Generating param and seed for PQ VRF...");
+    }
+    let (seed, param) = vrf_gen_seed_param();
 
     // Init PQ signature scheme
-    let sigalg = sig::Sig::new(sig::Algorithm::Dilithium2).unwrap();
+    println!("[!] Setting {} as signature scheme...", args.sig);
+    let sigalg = get_signature_algorithm(&args.sig);
+    if sigalg.is_none() {
+        println!(
+            "[!] Signature {} is invalid or is not supported!\n[!] Suppored signature schemes:",
+            args.sig
+        );
+        print_supported_signatures();
+        process::exit(1);
+    }
+    let sigalg = sigalg.unwrap();
 
-    // Init PQ KEM
-    let kemalg = kem::Kem::new(kem::Algorithm::Kyber512).unwrap();
+    // Init PQ KEM scheme
+    println!("[!] Setting {} as KEM...\n", args.kem);
+    let kemalg = get_kem_algorithm(&args.kem);
+    if kemalg.is_none() {
+        println!(
+            "[!] Kem {} is invalid or is not supported!\n[!] Suppored KEMS:",
+            args.kem
+        );
+        print_supported_kems();
+        process::exit(1);
+    }
 
-    let mut config: Config = Config::new(users, vrf, kemalg, sigalg);
-    let mut client1: Client = Client::new(1);
-    let client2: Client = Client::new(2);
-    let client3: Client = Client::new(3);
+    let kemalg = kemalg.unwrap();
 
-    let mut clients: Vec<Client> = vec![client1.clone(), client2, client3];
+    let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
+
+    if verbose {
+        println!("[!] Creating {} clients...", users);
+    }
+
+    let mut clients: Vec<Client> = (0..users).map(Client::new).collect();
+
+    if verbose {
+        println!("[!] Creating server...\n");
+    }
     let mut server: Server = Server::new(&mut config);
 
+    if verbose {
+        println!("[R] Creating (ek, vk) for {} clients...\n", users);
+    }
+    let start = Instant::now();
     registration(&mut clients, &mut server, &mut config);
+    let duration = start.elapsed();
+    println!(
+        "[!] Time elapsed in registration of {} clients is {:?}\n",
+        users, duration
+    );
 
-    round_1(&mut client1);
-    let (comm, open) = client1.get_commitment();
-    print_hex(&comm, "comm");
-    print_hex(&open, "open");
+    let mut client0 = clients[0].clone();
 
-    client1.send_m1(&mut server);
+    if verbose {
+        println!("[!] Starting protocol with client0 and server...\n");
+        println!("[C] Running Round 1...");
+    }
+    let start = Instant::now();
+    round_1(&mut client0);
+    let duration = start.elapsed();
+    println!("[!] Time elapsed in Round 1 is {:?}", duration);
 
-    let m2 = round_2(&mut server, &mut config);
+    if verbose {
+        println!("[C -> S] Sending m1 to server...\n");
+    }
+    client0.send_m1(&mut server);
 
-    server.send_m2(m2, &mut client1);
+    if verbose {
+        println!("[S] Running Round 2...");
+    }
+    let start = Instant::now();
+    let m2 = round_2(&mut server, &mut config, client0.get_id());
+    let duration = start.elapsed();
+    println!("[!] Time elapsed in Round 2 is {:?}", duration);
 
-    round_3(&mut client1, &mut config, &server);
+    if verbose {
+        println!("[C <- S] Sending m2 to client0...\n");
+    }
+    server.send_m2(m2, &mut client0);
 
-    client1.send_m3(&mut server, &mut config);
+    if verbose {
+        println!("[C] Running Round 3...");
+    }
+    let start = Instant::now();
+    let m3 = round_3(&mut client0, &mut config, verbose);
+    let duration = start.elapsed();
+    println!("[!] Time elapsed in Round 3 is {:?}", duration);
+    if verbose {
+        println!("[C -> S] Sending m3 to server...\n");
+    }
+    client0.send_m3(m3, &mut server);
 
-    round_4(&mut server, &mut config, 1);
+    if verbose {
+        println!("[S] Running Round 4...");
+    }
+    let start = Instant::now();
+    round_4(&mut server, &mut config, client0.get_id(), verbose);
+    let duration = start.elapsed();
+    println!("[!] Time elapsed in Round 4 is {:?}\n", duration);
+
+    println!("[!] Printing session keys...");
+    print_hex(&client0.get_key(), "[C]");
+    print_hex(&server.get_key(0), "[S]");
 }

@@ -6,16 +6,36 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#lb-vrf = { git = "https://github.com/jiep/lb-vrf" }
-vrf = "0.2.4"
+lb-vrf = { git = "https://github.com/jiep/lb-vrf" }
 rand = "0.8.5"
 hex = "0.4.3"
-#oqs = "0.7.2"
 sha3 = "0.10.6"
 aes-gcm = "0.10.1"
 itertools = "0.10.5"
+clap = { version = "4.0.19", features = ["derive"] }
 
 [dependencies.oqs]
 version = "0.7.2"
 default-features = false
 features = ["dilithium", "falcon", "sphincs", "kyber"]
+
+[dev-dependencies]
+criterion = "0.4.0"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+
+[[bench]]
+name = "performance"
+harness = false
+
+[lib]
+name = "anon_sym_ake"
+path = "src/lib.rs"
+
+[[bin]]
+name = "anon-sym-ake"
+path = "src/main.rs"
