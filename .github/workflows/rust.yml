@@ -84,7 +84,7 @@ jobs:
             BIN_NAME=${BIN}.exe
           fi
           cd target/${TARGET}/release          
-          tar czvf ../../../${BIN}-${TARGET}.tar.gz ${BIN_NAME}
+          zip ../../../${BIN}-${TARGET}.tar.gz ${BIN_NAME}
           cd -
       - name: Add to Releases
         if: startsWith(github.ref, 'refs/tags/')

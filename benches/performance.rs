@@ -7,7 +7,7 @@ use anon_sym_ake::{
     config::Config,
     protocol::{registration, round_1, round_2, round_3, round_4},
     server::Server,
-    supported_algs::{get_kem_algorithm, get_signature_algorithm, SUPPORTED_KEMS, SUPPORTED_SIGS},
+    supported_algs::{get_kem_algorithm, get_signature_algorithm},
     vrf::vrf_gen_seed_param,
 };
 
@@ -201,8 +201,8 @@ fn bench_2(c: &mut Criterion) {
     group.measurement_time(Duration::from_secs(1));
 
     for users in [255, 128, 64, 32, 16, 8, 4] {
-        for kemalg_str in SUPPORTED_KEMS {
-            for sigalg_str in SUPPORTED_SIGS {
+        for kemalg_str in ["Kyber1024", "Kyber768", "Kyber512"] {
+            for sigalg_str in ["Dilithium5", "Dilithium3", "Dilithium2"] {
                 let kemalg = get_kem_algorithm(kemalg_str).unwrap();
                 let sigalg = get_signature_algorithm(sigalg_str).unwrap();
                 let (seed, param) = vrf_gen_seed_param();
