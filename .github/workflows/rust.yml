@@ -103,7 +103,7 @@ jobs:
 
       - name: Run benchmark
         run: cargo bench
-        
+
       - name: Package results
         shell: bash
         run: |
@@ -111,9 +111,9 @@ jobs:
           BIN=anon-sym-ake
           zip -r benchmark-linux.zip target/release/criterion/*
 
-        - name: Add to Releases
-          uses: softprops/action-gh-release@v1
-          with:
-              files: '*.zip'
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Add to Releases
+        uses: softprops/action-gh-release@v1
+        with:
+            files: '*.zip'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
