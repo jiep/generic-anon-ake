@@ -86,12 +86,12 @@ jobs:
           cd -
       - name: Add to Releases
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1
         with:
-            files: '*.zip'
-            generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "*.zip"
+          generateReleaseNotes: true
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   benchmark: 
     name: Run benchmark
@@ -120,8 +120,8 @@ jobs:
           zip -r benchmark-linux.zip target/criterion/*
 
       - name: Add to Releases
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1
         with:
-            files: '*.zip'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "*.zip"
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
