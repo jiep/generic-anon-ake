@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 lb-vrf = { git = "https://github.com/jiep/lb-vrf" }
+qrllib = { git = "https://github.com/theQRL/qrllib" }
 rand = "0.8.5"
 hex = "0.4.3"
 sha3 = "0.10.6"
