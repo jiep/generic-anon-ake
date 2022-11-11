@@ -23,6 +23,7 @@ struct Args {
     sig: String,
 
     #[arg(short, long)]
+    #[arg(value_parser = clap::value_parser!(u8).range(1..))]
     clients: u8,
 
     #[arg(short, long, default_value_t = false)]
