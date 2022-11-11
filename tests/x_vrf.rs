@@ -3,11 +3,11 @@ use qrllib::rust_wrapper::qrl::xmss_fast::XMSSFast;
 
 #[test]
 fn x_vrf_works() {
-    let mut seed: Vec<u8> = (0..48).collect();
+    let seed: Vec<u8> = (0..48).collect();
 
-    let XMSS_HEIGHT: u8 = 8;
+    let xmss_height: u8 = 8;
 
-    let mut xmss = XMSSFast::new(seed.clone(), XMSS_HEIGHT, None, None, None).unwrap();
+    let mut xmss = XMSSFast::new(seed.clone(), xmss_height, None, None, None).unwrap();
 
     let x: Vec<u8> = vec![1, 2, 3, 4];
 
