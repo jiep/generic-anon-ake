@@ -1,7 +1,5 @@
 use lb_vrf::keypair::{PublicKey, SecretKey};
-use oqs::{
-    kem,
-};
+use oqs::kem;
 use sha3::{Digest, Sha3_256};
 
 use crate::protocol::server::Server;
@@ -39,7 +37,7 @@ impl Client {
             r: Vec::new(),
             pk: None,
             k: Vec::new(),
-            ns: Vec::new()        
+            ns: Vec::new(),
         }
     }
 
@@ -122,51 +120,30 @@ impl Client {
         self.id
     }
 
-    pub fn send_m1(&self, m1: (Vec<u8>, u8), server: &mut Server, ) {
+    pub fn send_m1(&self, m1: (Vec<u8>, u8), server: &mut Server) {
         server.receive_m1(m1);
     }
 
-    pub fn send_m3(
-        &self,
-        m3: (Vec<u8>, u8),
-        server: &mut Server,
-    ) {
+    pub fn send_m3(&self, m3: (Vec<u8>, u8), server: &mut Server) {
         let (comm_s, _) = m3;
 
         server.receive_m3((comm_s, self.get_id()));
     }
 
-    pub fn send_m5(
-        &self,
-        m5: (CiphertextType, (Vec<u8>, Vec<u8>)),
-        server: &mut Server,
-    ) {
+    pub fn send_m5(&self, m5: (CiphertextType, (Vec<u8>, Vec<u8>)), server: &mut Server) {
         let (ctxi, open_s) = m5;
 
         server.receive_m5((ctxi, open_s, self.get_id()));
     }
 
-    pub fn receive_m2(
-        &mut self,
-        m2: (
-            Vec<Vec<u8>>,
-            Vec<u8>,
-            kem::PublicKey,
-        ),
-    ) {
+    pub fn receive_m2(&mut self, m2: (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey)) {
         let (cis, r, pk) = m2;
         self.cis = cis;
         self.r = r;
         self.pk = Some(pk);
     }
 
-    pub fn get_m2_info(
-        &self,
-    ) -> (
-        Vec<Vec<u8>>,
-        Vec<u8>,
-        kem::PublicKey,
-    ) {
+    pub fn get_m2_info(&self) -> (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey) {
         (
             self.cis.clone(),
             self.r.clone(),
@@ -174,10 +151,7 @@ impl Client {
         )
     }
 
-    pub fn receive_m4(
-        &mut self,
-        m4: Vec<([Vec<u8>; 9], Vec<u8>)> 
-    ) {
+    pub fn receive_m4(&mut self, m4: Vec<([Vec<u8>; 9], Vec<u8>)>) {
         let proofs = m4;
         self.proofs = proofs;
     }

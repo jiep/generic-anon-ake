@@ -5,11 +5,11 @@ use clap::Parser;
 
 use anon_sym_ake::protocol::client::Client;
 use anon_sym_ake::protocol::config::Config;
-use anon_sym_ake::protocol::protocol::{registration, round_1, round_2, round_3, round_4, round_5, round_6};
-use anon_sym_ake::protocol::server::Server;
-use anon_sym_ake::protocol::supported_algs::{
-    get_kem_algorithm, print_supported_kems,
+use anon_sym_ake::protocol::protocol::{
+    registration, round_1, round_2, round_3, round_4, round_5, round_6,
 };
+use anon_sym_ake::protocol::server::Server;
+use anon_sym_ake::protocol::supported_algs::{get_kem_algorithm, print_supported_kems};
 use anon_sym_ake::protocol::utils::print_hex;
 use anon_sym_ake::protocol::vrf::vrf_gen_seed_param;
 
@@ -131,7 +131,6 @@ fn main() {
     }
     server.send_m4(m4, &mut client0);
 
-
     if verbose {
         println!("[C] Running Round 5...");
     }
@@ -143,7 +142,6 @@ fn main() {
         println!("[C -> S] Sending m5 to server...\n");
     }
     client0.send_m5(m5, &mut server);
-
 
     if verbose {
         println!("[S] Running Round 6...");

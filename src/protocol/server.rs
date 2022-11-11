@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
 use lb_vrf::lbvrf::Proof;
-use oqs::{
-    kem::{self, Ciphertext},
-};
+use oqs::kem::{self, Ciphertext};
 
 use sha3::{Digest, Sha3_256};
 
@@ -23,7 +21,7 @@ pub struct Server {
     proofs: Vec<Proof>,
     ns: HashMap<u8, Vec<u8>>,
     k: HashMap<u8, Vec<u8>>,
-    ctxis: HashMap<u8, CiphertextType>
+    ctxis: HashMap<u8, CiphertextType>,
 }
 
 impl Default for Server {
@@ -45,7 +43,7 @@ impl Server {
             proofs: Vec::new(),
             ns: HashMap::new(),
             k: HashMap::new(),
-            ctxis: HashMap::new()
+            ctxis: HashMap::new(),
         }
     }
 
@@ -85,16 +83,7 @@ impl Server {
         self.clients_keys.clone()
     }
 
-    pub fn get_ctxis(
-        &self,
-    ) -> HashMap<
-        u8,
-        (
-            Ciphertext,
-            Vec<u8>,
-            TagType,
-        ),
-    > {
+    pub fn get_ctxis(&self) -> HashMap<u8, (Ciphertext, Vec<u8>, TagType)> {
         self.ctxis.clone()
     }
 
@@ -152,38 +141,20 @@ impl Server {
         self.cis.clone()
     }
 
-    pub fn send_m2(
-        &self,
-        m2: (
-            Vec<Vec<u8>>,
-            Vec<u8>,
-            kem::PublicKey,
-        ),
-        client: &mut Client,
-    ) {
+    pub fn send_m2(&self, m2: (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey), client: &mut Client) {
         client.receive_m2(m2);
     }
 
-    pub fn receive_m3(
-        &mut self,
-        m3: (Vec<u8>, u8)
-    ) {
+    pub fn receive_m3(&mut self, m3: (Vec<u8>, u8)) {
         let (comm_s, id) = m3;
         self.add_commitment_server(comm_s, id);
     }
 
-    pub fn send_m4(
-        &self,
-        m4: Vec<([Vec<u8>; 9], Vec<u8>)>,
-        client: &mut Client,
-    ) {
+    pub fn send_m4(&self, m4: Vec<([Vec<u8>; 9], Vec<u8>)>, client: &mut Client) {
         client.receive_m4(m4);
     }
 
-    pub fn receive_m5(
-        &mut self,
-        m5: (CiphertextType, (Vec<u8>, Vec<u8>), u8)
-    ) {
+    pub fn receive_m5(&mut self, m5: (CiphertextType, (Vec<u8>, Vec<u8>), u8)) {
         let (ctxi, open_s, id) = m5;
         self.add_open_server(open_s, id);
         self.set_ctxi(ctxi, id);

@@ -9,12 +9,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(
-        users_numbers: u8,
-        seed: [u8; 32],
-        param: Param,
-        kem: kem::Kem,
-    ) -> Self {
+    pub fn new(users_numbers: u8, seed: [u8; 32], param: Param, kem: kem::Kem) -> Self {
         Config {
             users_numbers,
             seed,

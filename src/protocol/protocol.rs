@@ -8,7 +8,7 @@ use lb_vrf::poly32::Poly32;
 use lb_vrf::VRF;
 use oqs::kem;
 
-use crate::protocol::{commitment::{comm, comm_vfy}};
+use crate::protocol::commitment::{comm, comm_vfy};
 use crate::protocol::pke::{pke_dec, pke_enc};
 use crate::protocol::utils::{get_random_key32, get_random_key88, xor};
 
@@ -52,11 +52,7 @@ pub fn round_2(
     server: &mut Server,
     config: &Config,
     id: u8,
-) -> (
-    Vec<Vec<u8>>,
-    Vec<u8>,
-    kem::PublicKey,
-) {
+) -> (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey) {
     let (pk, sk) = config.get_kem_algorithm().keypair().unwrap();
     server.set_kem_keypair((pk.clone(), sk), id);
     let users = config.get_users_number();
@@ -89,12 +85,7 @@ pub fn round_2(
     (cis, r, pk)
 }
 
-pub fn round_3(
-    client: &mut Client,
-    config: &Config
-) ->
-    (Vec<u8>, u8)
- {
+pub fn round_3(client: &mut Client, config: &Config) -> (Vec<u8>, u8) {
     let (cis, r, pk) = client.get_m2_info();
     let id = client.get_id();
     let param = config.get_param();
@@ -103,7 +94,7 @@ pub fn round_3(
 
     let ci: Vec<u8> = cis.get(id as usize).unwrap().to_vec();
     let eki: lb_vrf::keypair::SecretKey = client.get_ek();
-    
+
     let vks: Vec<lb_vrf::keypair::PublicKey> = client.get_vks();
     let vki: lb_vrf::keypair::PublicKey = *vks.get(id as usize).unwrap();
 
@@ -121,7 +112,6 @@ pub fn round_3(
 }
 
 pub fn round_4(server: &mut Server) -> Vec<([Vec<u8>; 9], Vec<u8>)> {
-
     let proofs = server.get_proofs();
 
     let pis: Vec<([Vec<u8>; 9], Vec<u8>)> =
@@ -133,9 +123,8 @@ pub fn round_4(server: &mut Server) -> Vec<([Vec<u8>; 9], Vec<u8>)> {
 pub fn round_5(
     client: &mut Client,
     config: &Config,
-    verbose: bool
-) -> (CiphertextType, (Vec<u8>, Vec<u8>))
-{
+    verbose: bool,
+) -> (CiphertextType, (Vec<u8>, Vec<u8>)) {
     let kemalg = config.get_kem_algorithm();
     let users = config.get_users_number();
     let param = config.get_param();
@@ -156,7 +145,6 @@ pub fn round_5(
     let pk = client.get_pk();
 
     let k: Vec<u8> = xor(&ns, &ni);
-
 
     for j in 0..users {
         let cj: Vec<u8> = cis.get(j as usize).unwrap().to_vec();
@@ -192,9 +180,7 @@ pub fn round_5(
     (ctxi, open_s)
 }
 
-
 pub fn round_6(server: &mut Server, config: &Config, i: u8, verbose: bool) {
-
     let kemalg = config.get_kem_algorithm();
     let comms = server.get_comms();
     let comms_server = server.get_comms_server();
@@ -218,7 +204,7 @@ pub fn round_6(server: &mut Server, config: &Config, i: u8, verbose: bool) {
     let verification1 = comm_vfy(comm_i, &(ni, ri));
     let verification2 = comm_vfy(comm_s, open_s);
 
-    if verification1 && verification2  {
+    if verification1 && verification2 {
         if verbose {
             println!("[S] Commitment verification -> OK");
         }
