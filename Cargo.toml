@@ -29,6 +29,10 @@ opt-level = 0
 [profile.release]
 opt-level = 3
 
+[profile.release-lto]
+inherits = "release"
+lto = "fat"
+
 [[bench]]
 name = "performance"
 harness = false
