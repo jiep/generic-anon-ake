@@ -123,7 +123,7 @@ cargo test
 
 > Note: for release target, add --release
 
-1. Run binary
+5. Run binary
 
 ```
 cargo run
