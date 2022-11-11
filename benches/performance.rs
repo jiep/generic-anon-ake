@@ -30,8 +30,8 @@ fn bench_1(c: &mut Criterion) {
 
                 let mut client0 = clients[0].clone();
 
-                round_1(&mut client0);
-                client0.send_m1(&mut server);
+                let m1 = round_1(&mut client0);
+                client0.send_m1(m1, &mut server);
 
                 let m2 = round_2(&mut server, &mut config, client0.get_id());
                 server.send_m2(m2, &mut client0);
@@ -87,8 +87,8 @@ fn bench_2(c: &mut Criterion) {
 
                 let mut client0 = clients[0].clone();
 
-                round_1(&mut client0);
-                client0.send_m1(&mut server);
+                let m1 = round_1(&mut client0);
+                client0.send_m1(m1, &mut server);
 
                 let m2 = round_2(&mut server, &mut config, client0.get_id());
                 server.send_m2(m2, &mut client0);
