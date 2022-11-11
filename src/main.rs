@@ -5,10 +5,10 @@ use clap::Parser;
 
 use anon_sym_ake::protocol::client::Client;
 use anon_sym_ake::protocol::config::Config;
-use anon_sym_ake::protocol::protocol::{registration, round_1, round_2, round_3, round_4};
+use anon_sym_ake::protocol::protocol::{registration, round_1, round_2, round_3, round_4, round_5, round_6};
 use anon_sym_ake::protocol::server::Server;
 use anon_sym_ake::protocol::supported_algs::{
-    get_kem_algorithm, get_signature_algorithm, print_supported_kems, print_supported_signatures,
+    get_kem_algorithm, print_supported_kems,
 };
 use anon_sym_ake::protocol::utils::print_hex;
 use anon_sym_ake::protocol::vrf::vrf_gen_seed_param;
@@ -18,9 +18,6 @@ use anon_sym_ake::protocol::vrf::vrf_gen_seed_param;
 struct Args {
     #[arg(short, long)]
     kem: String,
-
-    #[arg(short, long)]
-    sig: String,
 
     #[arg(short, long)]
     #[arg(value_parser = clap::value_parser!(u8).range(1..))]
@@ -43,19 +40,6 @@ fn main() {
     }
     let (seed, param) = vrf_gen_seed_param();
 
-    // Init PQ signature scheme
-    println!("[!] Setting {} as signature scheme...", args.sig);
-    let sigalg = get_signature_algorithm(&args.sig);
-    if sigalg.is_none() {
-        println!(
-            "[!] Signature {} is invalid or is not supported!\n[!] Suppored signature schemes:",
-            args.sig
-        );
-        print_supported_signatures();
-        process::exit(1);
-    }
-    let sigalg = sigalg.unwrap();
-
     // Init PQ KEM scheme
     println!("[!] Setting {} as KEM...\n", args.kem);
     let kemalg = get_kem_algorithm(&args.kem);
@@ -70,7 +54,7 @@ fn main() {
 
     let kemalg = kemalg.unwrap();
 
-    let mut config: Config = Config::new(users, seed, param, kemalg, sigalg);
+    let config: Config = Config::new(users, seed, param, kemalg);
 
     if verbose {
         println!("[!] Creating {} clients...", users);
@@ -81,13 +65,13 @@ fn main() {
     if verbose {
         println!("[!] Creating server...\n");
     }
-    let mut server: Server = Server::new(&mut config);
+    let mut server: Server = Server::new();
 
     if verbose {
         println!("[R] Creating (ek, vk) for {} clients...\n", users);
     }
     let start = Instant::now();
-    registration(&mut clients, &mut server, &mut config);
+    registration(&mut clients, &mut server, &config);
     let duration = start.elapsed();
     println!(
         "[!] Time elapsed in registration of {} clients is {:?}\n",
@@ -114,7 +98,7 @@ fn main() {
         println!("[S] Running Round 2...");
     }
     let start = Instant::now();
-    let m2 = round_2(&mut server, &mut config, client0.get_id());
+    let m2 = round_2(&mut server, &config, client0.get_id());
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 2 is {:?}", duration);
 
@@ -127,7 +111,7 @@ fn main() {
         println!("[C] Running Round 3...");
     }
     let start = Instant::now();
-    let m3 = round_3(&mut client0, &mut config, verbose);
+    let m3 = round_3(&mut client0, &config);
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 3 is {:?}", duration);
     if verbose {
@@ -139,9 +123,35 @@ fn main() {
         println!("[S] Running Round 4...");
     }
     let start = Instant::now();
-    round_4(&mut server, &mut config, client0.get_id(), verbose);
+    let m4 = round_4(&mut server);
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 4 is {:?}\n", duration);
+    if verbose {
+        println!("[C <- S] Sending m4 to client...\n");
+    }
+    server.send_m4(m4, &mut client0);
+
+
+    if verbose {
+        println!("[C] Running Round 5...");
+    }
+    let start = Instant::now();
+    let m5 = round_5(&mut client0, &config, verbose);
+    let duration = start.elapsed();
+    println!("[!] Time elapsed in Round 5 is {:?}\n", duration);
+    if verbose {
+        println!("[C -> S] Sending m5 to server...\n");
+    }
+    client0.send_m5(m5, &mut server);
+
+
+    if verbose {
+        println!("[S] Running Round 6...");
+    }
+    let start = Instant::now();
+    round_6(&mut server, &config, client0.get_id(), verbose);
+    let duration = start.elapsed();
+    println!("[!] Time elapsed in Round 6 is {:?}\n", duration);
 
     println!("[!] Printing session keys...");
     print_hex(&client0.get_key(), "[C]");

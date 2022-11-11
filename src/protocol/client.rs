@@ -1,15 +1,12 @@
-use aes_gcm::aes::cipher::generic_array::{
-    typenum::{UInt, UTerm, B0, B1},
-    GenericArray,
-};
 use lb_vrf::keypair::{PublicKey, SecretKey};
 use oqs::{
-    kem::{self, Ciphertext},
-    sig,
+    kem,
 };
 use sha3::{Digest, Sha3_256};
 
 use crate::protocol::server::Server;
+
+use super::protocol::CiphertextType;
 
 #[derive(Debug)]
 pub struct Client {
@@ -18,14 +15,14 @@ pub struct Client {
     ni: Vec<u8>,
     vks: Vec<PublicKey>,
     //commitment and open
-    commitment: (Vec<u8>, Vec<u8>),
-    signature: Option<sig::Signature>,
+    commitment: (Vec<u8>, (Vec<u8>, Vec<u8>)),
+    commitment_server: (Vec<u8>, (Vec<u8>, Vec<u8>)),
     cis: Vec<Vec<u8>>,
     proofs: Vec<([Vec<u8>; 9], Vec<u8>)>,
     r: Vec<u8>,
     pk: Option<kem::PublicKey>,
-    pk_s: Option<sig::PublicKey>,
     k: Vec<u8>,
+    ns: Vec<u8>,
 }
 
 impl Client {
@@ -35,14 +32,14 @@ impl Client {
             ek: None,
             ni: Vec::new(),
             vks: Vec::new(),
-            commitment: (Vec::new(), Vec::new()),
-            signature: None,
+            commitment: (Vec::new(), (Vec::new(), Vec::new())),
+            commitment_server: (Vec::new(), (Vec::new(), Vec::new())),
             cis: Vec::new(),
             proofs: Vec::new(),
             r: Vec::new(),
             pk: None,
-            pk_s: None,
             k: Vec::new(),
+            ns: Vec::new()        
         }
     }
 
@@ -58,12 +55,16 @@ impl Client {
         self.ni = ni.to_owned();
     }
 
-    pub fn set_commitment(&mut self, commitment: (Vec<u8>, Vec<u8>)) {
+    pub fn set_ns(&mut self, ns: &[u8]) {
+        self.ns = ns.to_owned();
+    }
+
+    pub fn set_commitment(&mut self, commitment: (Vec<u8>, (Vec<u8>, Vec<u8>))) {
         self.commitment = commitment;
     }
 
-    pub fn set_pks(&mut self, pk_s: sig::PublicKey) {
-        self.pk_s = Some(pk_s);
+    pub fn set_commitment_server(&mut self, commitment: (Vec<u8>, (Vec<u8>, Vec<u8>))) {
+        self.commitment_server = commitment;
     }
 
     pub fn set_k(&mut self, k: Vec<u8>) {
@@ -85,8 +86,16 @@ impl Client {
         self.pk.as_ref().unwrap().clone()
     }
 
+    pub fn set_pk(&mut self, pk: kem::PublicKey) {
+        self.pk = Some(pk);
+    }
+
     pub fn get_ni(&self) -> Vec<u8> {
         self.ni.clone()
+    }
+
+    pub fn get_ns(&self) -> Vec<u8> {
+        self.ns.clone()
     }
 
     pub fn get_r(&self) -> Vec<u8> {
@@ -97,12 +106,12 @@ impl Client {
         self.cis.clone()
     }
 
-    pub fn get_pks(&self) -> sig::PublicKey {
-        self.pk_s.as_ref().unwrap().clone()
+    pub fn get_commitment(&self) -> (Vec<u8>, (Vec<u8>, Vec<u8>)) {
+        self.commitment.clone()
     }
 
-    pub fn get_commitment(&self) -> (Vec<u8>, Vec<u8>) {
-        self.commitment.clone()
+    pub fn get_commitment_server(&self) -> (Vec<u8>, (Vec<u8>, Vec<u8>)) {
+        self.commitment_server.clone()
     }
 
     pub fn get_vks(&self) -> Vec<PublicKey> {
@@ -117,59 +126,60 @@ impl Client {
         server.receive_m1(m1);
     }
 
-    #[allow(clippy::type_complexity)]
     pub fn send_m3(
         &self,
-        m3: (
-            Vec<u8>,
-            (
-                Ciphertext,
-                Vec<u8>,
-                GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
-            ),
-        ),
+        m3: (Vec<u8>, u8),
         server: &mut Server,
     ) {
-        let (open, cni) = m3;
-        server.receive_m3((open, cni, self.get_id()));
+        let (comm_s, _) = m3;
+
+        server.receive_m3((comm_s, self.get_id()));
     }
 
-    #[allow(clippy::type_complexity)]
+    pub fn send_m5(
+        &self,
+        m5: (CiphertextType, (Vec<u8>, Vec<u8>)),
+        server: &mut Server,
+    ) {
+        let (ctxi, open_s) = m5;
+
+        server.receive_m5((ctxi, open_s, self.get_id()));
+    }
+
     pub fn receive_m2(
         &mut self,
         m2: (
-            sig::Signature,
             Vec<Vec<u8>>,
-            Vec<([Vec<u8>; 9], Vec<u8>)>,
             Vec<u8>,
             kem::PublicKey,
         ),
     ) {
-        let (signature, cis, proofs, r, pk) = m2;
-        self.signature = Some(signature);
+        let (cis, r, pk) = m2;
         self.cis = cis;
-        self.proofs = proofs;
         self.r = r;
         self.pk = Some(pk);
     }
 
-    #[allow(clippy::type_complexity)]
     pub fn get_m2_info(
         &self,
     ) -> (
-        sig::Signature,
         Vec<Vec<u8>>,
-        Vec<([Vec<u8>; 9], Vec<u8>)>,
         Vec<u8>,
         kem::PublicKey,
     ) {
         (
-            self.signature.as_ref().unwrap().clone(),
             self.cis.clone(),
-            self.proofs.clone(),
             self.r.clone(),
             self.pk.as_ref().unwrap().clone(),
         )
+    }
+
+    pub fn receive_m4(
+        &mut self,
+        m4: Vec<([Vec<u8>; 9], Vec<u8>)> 
+    ) {
+        let proofs = m4;
+        self.proofs = proofs;
     }
 }
 
@@ -181,13 +191,13 @@ impl Clone for Client {
             ni: self.ni.clone(),
             vks: self.vks.clone(),
             commitment: self.commitment.clone(),
-            signature: self.signature.clone(),
+            commitment_server: self.commitment_server.clone(),
             cis: self.cis.clone(),
             proofs: self.proofs.clone(),
             r: self.r.clone(),
             pk: self.pk.clone(),
-            pk_s: self.pk_s.clone(),
             k: self.k.clone(),
+            ns: self.ni.clone(),
         }
     }
 }
