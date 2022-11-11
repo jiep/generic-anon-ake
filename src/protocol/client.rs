@@ -113,10 +113,7 @@ impl Client {
         self.id
     }
 
-    pub fn send_m1(&self, server: &mut Server) {
-        let (comm, _) = self.get_commitment();
-        let m1 = ("init", comm, self.get_id());
-
+    pub fn send_m1(&self, m1: (Vec<u8>, u8), server: &mut Server, ) {
         server.receive_m1(m1);
     }
 

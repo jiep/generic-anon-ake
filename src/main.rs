@@ -101,14 +101,14 @@ fn main() {
         println!("[C] Running Round 1...");
     }
     let start = Instant::now();
-    round_1(&mut client0);
+    let m1 = round_1(&mut client0);
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 1 is {:?}", duration);
 
     if verbose {
         println!("[C -> S] Sending m1 to server...\n");
     }
-    client0.send_m1(&mut server);
+    client0.send_m1(m1, &mut server);
 
     if verbose {
         println!("[S] Running Round 2...");

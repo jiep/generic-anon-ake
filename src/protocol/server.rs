@@ -57,8 +57,8 @@ impl Server {
         }
     }
 
-    pub fn receive_m1(&mut self, m1: (&str, Vec<u8>, u8)) {
-        let (_, comm, id) = m1;
+    pub fn receive_m1(&mut self, m1: (Vec<u8>, u8)) {
+        let (comm, id) = m1;
 
         self.add_commitment(comm, id);
     }

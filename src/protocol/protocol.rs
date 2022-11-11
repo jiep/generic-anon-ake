@@ -40,11 +40,13 @@ pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &mut
     }
 }
 
-pub fn round_1(client: &mut Client) {
+pub fn round_1(client: &mut Client) -> (Vec<u8>, u8) {
     let ni: Vec<u8> = get_random_key88();
     client.set_ni(&ni);
-    let commitment = comm(&ni);
-    client.set_commitment(commitment);
+    let (comm, open) = comm(&ni);
+    client.set_commitment((comm.clone(), open));
+
+    (comm, client.get_id())
 }
 
 #[allow(clippy::type_complexity)]
