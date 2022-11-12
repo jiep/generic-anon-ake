@@ -36,7 +36,7 @@ fn x_vrf_works() {
 
     let mut params = XMSSParams::new(32, h.into(), 16, 2).unwrap();
 
-    let x: Vec<u8> = vec![1, 2, 3, 4];
+    let x: Vec<u8> = (0..32).collect();
 
     let (vk, mut ek) = x_vrf_gen(&mut params, &mut state, &mut seed);
 

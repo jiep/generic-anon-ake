@@ -33,7 +33,6 @@ pub fn x_vrf_eval(
     state: &mut BDSState,
 ) -> (Vec<u8>, Vec<u8>) {
     let mut pi: [u8; 10000] = [0; 10000];
-
     let _x = xmss_fast_sign_msg(
         &HashFunction::Shake128,
         params,

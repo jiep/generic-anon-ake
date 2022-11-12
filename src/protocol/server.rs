@@ -11,14 +11,14 @@ use super::protocol::{CiphertextType, TagType};
 
 #[derive(Debug)]
 pub struct Server {
-    clients_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)>,
+    clients_keys: Vec<(Vec<u8>, Vec<u8>)>,
     kem_keys: HashMap<u32, (kem::PublicKey, kem::SecretKey)>,
     comms: HashMap<u32, Vec<u8>>,
     comms_server: HashMap<u32, Vec<u8>>,
     opens_server: HashMap<u32, (Vec<u8>, Vec<u8>)>,
     cis: Vec<Vec<u8>>,
     yis: Vec<Vec<u8>>,
-    proofs: Vec<Proof>,
+    proofs: Vec<Vec<u8>>,
     ns: HashMap<u32, Vec<u8>>,
     k: HashMap<u32, Vec<u8>>,
     ctxis: HashMap<u32, CiphertextType>,
@@ -73,13 +73,13 @@ impl Server {
         self.kem_keys.insert(index, keys);
     }
 
-    pub fn add_key(&mut self, key: (lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)) {
+    pub fn add_key(&mut self, key: (Vec<u8>, Vec<u8>)) {
         self.clients_keys.push(key);
     }
 
     pub fn get_clients_keys(
         &self,
-    ) -> Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> {
+    ) -> Vec<(Vec<u8>, Vec<u8>)> {
         self.clients_keys.clone()
     }
 
@@ -126,14 +126,14 @@ impl Server {
         &mut self,
         cis: &[Vec<u8>],
         yis: &[Vec<u8>],
-        proofs: &Vec<Proof>,
+        proofs: &[Vec<u8>],
     ) {
         self.cis = cis.to_owned();
         self.yis = yis.to_owned();
         self.proofs = proofs.to_owned();
     }
 
-    pub fn get_proofs(&self) -> Vec<Proof> {
+    pub fn get_proofs(&self) -> Vec<Vec<u8>> {
         self.proofs.clone()
     }
 

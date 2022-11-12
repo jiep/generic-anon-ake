@@ -9,9 +9,9 @@ use super::protocol::CiphertextType;
 #[derive(Debug)]
 pub struct Client {
     id: u32,
-    ek: Option<SecretKey>,
+    ek: Vec<u8>,
     ni: Vec<u8>,
-    vks: Vec<PublicKey>,
+    vks: Vec<Vec<u8>>,
     //commitment and open
     commitment: (Vec<u8>, (Vec<u8>, Vec<u8>)),
     commitment_server: (Vec<u8>, (Vec<u8>, Vec<u8>)),
@@ -27,7 +27,7 @@ impl Client {
     pub fn new(id: u32) -> Self {
         Client {
             id,
-            ek: None,
+            ek: Vec::new(),
             ni: Vec::new(),
             vks: Vec::new(),
             commitment: (Vec::new(), (Vec::new(), Vec::new())),
@@ -41,11 +41,11 @@ impl Client {
         }
     }
 
-    pub fn set_ek(&mut self, ek: lb_vrf::keypair::SecretKey) {
-        self.ek = Some(ek);
+    pub fn set_ek(&mut self, ek: Vec<u8>) {
+        self.ek = ek;
     }
 
-    pub fn set_vks(&mut self, vks: Vec<lb_vrf::keypair::PublicKey>) {
+    pub fn set_vks(&mut self, vks: Vec<Vec<u8>>) {
         self.vks = vks;
     }
 
@@ -72,8 +72,8 @@ impl Client {
         self.k = hashed_k;
     }
 
-    pub fn get_ek(&self) -> SecretKey {
-        self.ek.unwrap()
+    pub fn get_ek(&self) -> Vec<u8> {
+        self.ek.clone()
     }
 
     pub fn get_key(&self) -> Vec<u8> {
@@ -112,7 +112,7 @@ impl Client {
         self.commitment_server.clone()
     }
 
-    pub fn get_vks(&self) -> Vec<PublicKey> {
+    pub fn get_vks(&self) -> Vec<Vec<u8>> {
         self.vks.clone()
     }
 
@@ -161,7 +161,7 @@ impl Clone for Client {
     fn clone(&self) -> Client {
         Client {
             id: self.id,
-            ek: self.ek,
+            ek: self.ek.clone(),
             ni: self.ni.clone(),
             vks: self.vks.clone(),
             commitment: self.commitment.clone(),
