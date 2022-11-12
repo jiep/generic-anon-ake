@@ -1,103 +1,76 @@
 use std::collections::HashMap;
 
 use lb_vrf::lbvrf::Proof;
-use oqs::{
-    kem::{self, Ciphertext},
-    sig,
-};
+use oqs::kem::{self, Ciphertext};
 
-use aes_gcm::aes::cipher::generic_array::{
-    typenum::{UInt, UTerm, B0, B1},
-    GenericArray,
-};
 use sha3::{Digest, Sha3_256};
 
 use crate::protocol::client::Client;
-use crate::protocol::config::Config;
+
+use super::protocol::{CiphertextType, TagType};
 
 #[derive(Debug)]
-#[allow(clippy::type_complexity)]
 pub struct Server {
     clients_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)>,
-    signature_keys: (sig::PublicKey, sig::SecretKey),
-    kem_keys: HashMap<u8, (kem::PublicKey, kem::SecretKey)>,
-    comms: HashMap<u8, Vec<u8>>,
-    opens: HashMap<u8, Vec<u8>>,
+    kem_keys: HashMap<u32, (kem::PublicKey, kem::SecretKey)>,
+    comms: HashMap<u32, Vec<u8>>,
+    comms_server: HashMap<u32, Vec<u8>>,
+    opens_server: HashMap<u32, (Vec<u8>, Vec<u8>)>,
     cis: Vec<Vec<u8>>,
     yis: Vec<Vec<u8>>,
     proofs: Vec<Proof>,
-    ns: HashMap<u8, Vec<u8>>,
-    cnis: HashMap<
-        u8,
-        (
-            Ciphertext,
-            Vec<u8>,
-            GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
-        ),
-    >,
-    k: HashMap<u8, Vec<u8>>,
+    ns: HashMap<u32, Vec<u8>>,
+    k: HashMap<u32, Vec<u8>>,
+    ctxis: HashMap<u32, CiphertextType>,
+}
+
+impl Default for Server {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Server {
-    pub fn new(config: &mut Config) -> Self {
-        let (pk_sig, sk_sig) = config.get_signature_algorithm().keypair().unwrap();
-
+    pub fn new() -> Self {
         Server {
             clients_keys: Vec::new(),
-            signature_keys: (pk_sig, sk_sig),
             kem_keys: HashMap::new(),
             comms: HashMap::new(),
-            opens: HashMap::new(),
+            comms_server: HashMap::new(),
+            opens_server: HashMap::new(),
             cis: Vec::new(),
             yis: Vec::new(),
             proofs: Vec::new(),
             ns: HashMap::new(),
-            cnis: HashMap::new(),
             k: HashMap::new(),
+            ctxis: HashMap::new(),
         }
     }
 
-    pub fn receive_m1(&mut self, m1: (&str, Vec<u8>, u8)) {
-        let (_, comm, id) = m1;
+    pub fn receive_m1(&mut self, m1: (Vec<u8>, u32)) {
+        let (comm, id) = m1;
 
         self.add_commitment(comm, id);
     }
 
-    fn add_commitment(&mut self, comm: Vec<u8>, id: u8) {
+    fn add_commitment(&mut self, comm: Vec<u8>, id: u32) {
         self.comms.insert(id, comm);
     }
 
-    fn add_open(&mut self, open: Vec<u8>, id: u8) {
-        self.opens.insert(id, open);
+    fn add_commitment_server(&mut self, comm: Vec<u8>, id: u32) {
+        self.comms_server.insert(id, comm);
     }
 
-    #[allow(clippy::type_complexity)]
-    fn add_cni(
-        &mut self,
-        cni: (
-            Ciphertext,
-            Vec<u8>,
-            GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
-        ),
-        id: u8,
-    ) {
-        self.cnis.insert(id, cni);
+    fn add_open_server(&mut self, open: (Vec<u8>, Vec<u8>), id: u32) {
+        self.opens_server.insert(id, open);
     }
 
-    pub fn get_kem_keypair(&self, index: u8) -> (kem::PublicKey, kem::SecretKey) {
+    pub fn get_kem_keypair(&self, index: u32) -> (kem::PublicKey, kem::SecretKey) {
         self.kem_keys.get(&index).unwrap().clone()
     }
 
-    pub fn set_kem_keypair(&mut self, keys: (kem::PublicKey, kem::SecretKey), index: u8) {
+    pub fn set_kem_keypair(&mut self, keys: (kem::PublicKey, kem::SecretKey), index: u32) {
         self.kem_keys.insert(index, keys);
-    }
-
-    pub fn get_sig_keypair(&self) -> (sig::PublicKey, sig::SecretKey) {
-        self.signature_keys.clone()
-    }
-
-    pub fn get_sig_pk(&self) -> sig::PublicKey {
-        self.signature_keys.0.clone()
     }
 
     pub fn add_key(&mut self, key: (lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)) {
@@ -110,44 +83,42 @@ impl Server {
         self.clients_keys.clone()
     }
 
-    #[allow(clippy::type_complexity)]
-    pub fn get_cnis(
-        &self,
-    ) -> HashMap<
-        u8,
-        (
-            Ciphertext,
-            Vec<u8>,
-            GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
-        ),
-    > {
-        self.cnis.clone()
+    pub fn get_ctxis(&self) -> HashMap<u32, (Ciphertext, Vec<u8>, TagType)> {
+        self.ctxis.clone()
     }
 
-    pub fn get_comms(&self) -> HashMap<u8, Vec<u8>> {
+    pub fn get_comms(&self) -> HashMap<u32, Vec<u8>> {
         self.comms.clone()
     }
 
-    pub fn get_opens(&self) -> HashMap<u8, Vec<u8>> {
-        self.opens.clone()
+    pub fn get_comms_server(&self) -> HashMap<u32, Vec<u8>> {
+        self.comms_server.clone()
     }
 
-    pub fn set_ns(&mut self, index: u8, ns: Vec<u8>) {
+    pub fn get_opens_server(&self) -> HashMap<u32, (Vec<u8>, Vec<u8>)> {
+        self.opens_server.clone()
+    }
+
+    pub fn set_ns(&mut self, index: u32, ns: Vec<u8>) {
         self.ns.insert(index, ns);
     }
 
-    pub fn set_k(&mut self, key: Vec<u8>, index: u8) {
+    fn set_ctxi(&mut self, ctxi: CiphertextType, id: u32) {
+        self.ctxis.insert(id, ctxi);
+    }
+
+    pub fn set_k(&mut self, key: Vec<u8>, index: u32) {
         let mut hasher = Sha3_256::new();
         hasher.update(key);
         let hashed_k: Vec<u8> = hasher.finalize().to_vec();
         self.k.insert(index, hashed_k);
     }
 
-    pub fn get_key(&mut self, index: u8) -> Vec<u8> {
+    pub fn get_key(&mut self, index: u32) -> Vec<u8> {
         self.k.get(&index).unwrap().to_vec()
     }
 
-    pub fn get_ns(&self, index: u8) -> Vec<u8> {
+    pub fn get_ns(&self, index: u32) -> Vec<u8> {
         self.ns.get(&index).unwrap().clone()
     }
 
@@ -170,36 +141,22 @@ impl Server {
         self.cis.clone()
     }
 
-    #[allow(clippy::type_complexity)]
-    pub fn send_m2(
-        &self,
-        m2: (
-            sig::Signature,
-            Vec<Vec<u8>>,
-            Vec<([Vec<u8>; 9], Vec<u8>)>,
-            Vec<u8>,
-            kem::PublicKey,
-        ),
-        client: &mut Client,
-    ) {
+    pub fn send_m2(&self, m2: (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey), client: &mut Client) {
         client.receive_m2(m2);
     }
 
-    #[allow(clippy::type_complexity)]
-    pub fn receive_m3(
-        &mut self,
-        m3: (
-            Vec<u8>,
-            (
-                Ciphertext,
-                Vec<u8>,
-                GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
-            ),
-            u8,
-        ),
-    ) {
-        let (open, cni, id) = m3;
-        self.add_open(open, id);
-        self.add_cni(cni, id);
+    pub fn receive_m3(&mut self, m3: (Vec<u8>, u32)) {
+        let (comm_s, id) = m3;
+        self.add_commitment_server(comm_s, id);
+    }
+
+    pub fn send_m4(&self, m4: Vec<([Vec<u8>; 9], Vec<u8>)>, client: &mut Client) {
+        client.receive_m4(m4);
+    }
+
+    pub fn receive_m5(&mut self, m5: (CiphertextType, (Vec<u8>, Vec<u8>), u32)) {
+        let (ctxi, open_s, id) = m5;
+        self.add_open_server(open_s, id);
+        self.set_ctxi(ctxi, id);
     }
 }
