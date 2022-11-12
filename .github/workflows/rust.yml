@@ -84,15 +84,10 @@ jobs:
         if: ${{ contains(matrix.config.target, 'windows') }}
         run: |
           BIN=anon-sym-ake
-          BIN_NAME=$BIN
+          BIN_NAME=${BIN}.exe
           TARGET=${{ matrix.config.target }}
-          if [[ ${TARGET} == *"windows"* ]]; then
-            BIN_NAME=${BIN}.exe
-          fi
           cd target/${TARGET}/release
-          if [[ ${TARGET} == *"windows"* ]]; then
-            certUtil -hashfile ${BIN_NAME} SHA256 > digest.sha256
-          fi
+          certUtil -hashfile ${BIN_NAME} SHA256 > digest.sha256
           powershell Compress-Archive ${BIN_NAME} digest.sha256 ../../../${BIN}-${TARGET}.zip
           cd -
       - name: Add to Releases
