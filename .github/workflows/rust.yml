@@ -87,7 +87,7 @@ jobs:
           SET BIN_NAME=%BIN%.exe
           SET TARGET=${{ matrix.config.target }}
           cd target/%TARGET%/release
-          certUtil -hashfile ${BIN_NAME} SHA256 > digest.sha256
+          certUtil -hashfile %BIN_NAME% SHA256 > digest.sha256
           powershell Compress-Archive ${BIN_NAME} digest.sha256 ../../../%BIN%-%TARGET%.zip
           cd ../../..
       - name: Add to Releases
