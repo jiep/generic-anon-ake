@@ -41,7 +41,7 @@ pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &Con
     }
 }
 
-pub fn round_1(client: &mut Client) -> (Vec<u8>, u8) {
+pub fn round_1(client: &mut Client) -> (Vec<u8>, u32) {
     let ni: Vec<u8> = get_random_key88();
     client.set_ni(&ni);
     let (comm, open) = comm(&ni);
@@ -53,7 +53,7 @@ pub fn round_1(client: &mut Client) -> (Vec<u8>, u8) {
 pub fn round_2(
     server: &mut Server,
     config: &Config,
-    id: u8,
+    id: u32,
 ) -> (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey) {
     let (pk, sk) = config.get_kem_algorithm().keypair().unwrap();
     server.set_kem_keypair((pk.clone(), sk), id);
@@ -87,7 +87,7 @@ pub fn round_2(
     (cis, r, pk)
 }
 
-pub fn round_3(client: &mut Client, config: &Config) -> (Vec<u8>, u8) {
+pub fn round_3(client: &mut Client, config: &Config) -> (Vec<u8>, u32) {
     let (cis, r, pk) = client.get_m2_info();
     let id = client.get_id();
     let param = config.get_param();
@@ -182,7 +182,7 @@ pub fn round_5(
     (ctxi, open_s)
 }
 
-pub fn round_6(server: &mut Server, config: &Config, i: u8, verbose: bool) {
+pub fn round_6(server: &mut Server, config: &Config, i: u32, verbose: bool) {
     let kemalg = config.get_kem_algorithm();
     let comms = server.get_comms();
     let comms_server = server.get_comms_server();
@@ -217,7 +217,7 @@ pub fn round_6(server: &mut Server, config: &Config, i: u8, verbose: bool) {
     server.set_k(k, i);
 }
 
-pub fn get_m1_length(m1: &(Vec<u8>, u8)) -> usize {
+pub fn get_m1_length(m1: &(Vec<u8>, u32)) -> usize {
     m1.0.len()
 }
 
@@ -225,7 +225,7 @@ pub fn get_m2_length(m2: &(Vec<Vec<u8>>, Vec<u8>, kem::PublicKey)) -> usize {
     m2.0.len() * m2.0[0].len() + m2.1.len() + m2.2.len()
 }
 
-pub fn get_m3_length(m3: &(Vec<u8>, u8)) -> usize {
+pub fn get_m3_length(m3: &(Vec<u8>, u32)) -> usize {
     get_m1_length(m3)
 }
 
@@ -237,7 +237,7 @@ pub fn get_m5_length(m5: &(CiphertextType, (Vec<u8>, Vec<u8>))) -> usize {
     m5.0 .0.len() + m5.0 .1.len() + m5.0 .2.len() + m5.1 .0.len() + m5.1 .1.len()
 }
 
-pub fn show_diagram(times: &[Duration], lengths: &[usize], clients: u8) {
+pub fn show_diagram(times: &[Duration], lengths: &[usize], clients: u32) {
     let diagram = format!(
         r#"
                  Client i                     Server

@@ -21,8 +21,8 @@ struct Args {
     kem: String,
 
     #[arg(short, long)]
-    #[arg(value_parser = clap::value_parser!(u8).range(1..))]
-    clients: u8,
+    #[arg(value_parser = clap::value_parser!(u32).range(1..))]
+    clients: u32,
 
     #[arg(short, long, default_value_t = false)]
     verbose: bool,
@@ -33,7 +33,7 @@ fn main() {
     let verbose = args.verbose;
 
     // Init
-    let users: u8 = args.clients;
+    let users: u32 = args.clients;
 
     let mut times: Vec<Duration> = Vec::new();
     let mut lengths: Vec<usize> = Vec::new();

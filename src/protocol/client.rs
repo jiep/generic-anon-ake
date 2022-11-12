@@ -8,7 +8,7 @@ use super::protocol::CiphertextType;
 
 #[derive(Debug)]
 pub struct Client {
-    id: u8,
+    id: u32,
     ek: Option<SecretKey>,
     ni: Vec<u8>,
     vks: Vec<PublicKey>,
@@ -24,7 +24,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(id: u8) -> Self {
+    pub fn new(id: u32) -> Self {
         Client {
             id,
             ek: None,
@@ -116,15 +116,15 @@ impl Client {
         self.vks.clone()
     }
 
-    pub fn get_id(&self) -> u8 {
+    pub fn get_id(&self) -> u32 {
         self.id
     }
 
-    pub fn send_m1(&self, m1: (Vec<u8>, u8), server: &mut Server) {
+    pub fn send_m1(&self, m1: (Vec<u8>, u32), server: &mut Server) {
         server.receive_m1(m1);
     }
 
-    pub fn send_m3(&self, m3: (Vec<u8>, u8), server: &mut Server) {
+    pub fn send_m3(&self, m3: (Vec<u8>, u32), server: &mut Server) {
         let (comm_s, _) = m3;
 
         server.receive_m3((comm_s, self.get_id()));

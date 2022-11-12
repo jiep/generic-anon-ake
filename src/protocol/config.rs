@@ -2,14 +2,14 @@ use lb_vrf::param::Param;
 use oqs::kem;
 
 pub struct Config {
-    users_numbers: u8,
+    users_numbers: u32,
     seed: [u8; 32],
     param: Param,
     kem: kem::Kem,
 }
 
 impl Config {
-    pub fn new(users_numbers: u8, seed: [u8; 32], param: Param, kem: kem::Kem) -> Self {
+    pub fn new(users_numbers: u32, seed: [u8; 32], param: Param, kem: kem::Kem) -> Self {
         Config {
             users_numbers,
             seed,
@@ -30,7 +30,7 @@ impl Config {
         &self.kem
     }
 
-    pub fn get_users_number(&self) -> u8 {
+    pub fn get_users_number(&self) -> u32 {
         self.users_numbers
     }
 }
