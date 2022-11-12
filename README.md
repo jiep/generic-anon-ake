@@ -49,7 +49,7 @@ Note right of Server: Round 6<br />open_i := PKE.Dec(sk*, ctx_i)<br/>Assert Comm
 
 Download the latest version from [Releases](https://github.com/jiep/anon-sym-ake/releases).
 
-## How to compile on Ubuntu
+## Build from source
 
 1. Install [Rust](https://www.rust-lang.org/tools/install)
 2. Check source code
@@ -109,24 +109,24 @@ Options:
 
 [R] Creating (ek, vk) for 10 clients...
 
-[!] Time elapsed in registration of 10 clients is 593.777864ms
+[!] Time elapsed in registration of 10 clients is 5.890227ms
 
 [!] Starting protocol with client0 and server...
 
 [C] Running Round 1...
-[!] Time elapsed in Round 1 is 96.401µs
+[!] Time elapsed in Round 1 is 5.2µs
 [C -> S] Sending m1 to server...
 
 [S] Running Round 2...
-[!] Time elapsed in Round 2 is 1.110861947s
+[!] Time elapsed in Round 2 is 84.785926ms
 [C <- S] Sending m2 to client0...
 
 [C] Running Round 3...
-[!] Time elapsed in Round 3 is 114.209709ms
+[!] Time elapsed in Round 3 is 8.876892ms
 [C -> S] Sending m3 to server...
 
 [S] Running Round 4...
-[!] Time elapsed in Round 4 is 3.951356ms
+[!] Time elapsed in Round 4 is 136.503µs
 [C <- S] Sending m4 to client...
 
 [C] Running Round 5...
@@ -140,50 +140,49 @@ Options:
 [C] VRF verification for j=7 -> OK
 [C] VRF verification for j=8 -> OK
 [C] VRF verification for j=9 -> OK
-[!] Time elapsed in Round 5 is 637.430678ms
+[!] Time elapsed in Round 5 is 24.049718ms
 [C -> S] Sending m5 to server...
 
 [S] Running Round 6...
 [S] Commitment verification -> OK
-[!] Time elapsed in Round 6 is 305.404µs
+[!] Time elapsed in Round 6 is 41.501µs
 
 [!] Printing session keys...
-[C] 0x1319a50c12b4603119e666ab65a246ba763128981591d9901c26c23a16f32036
-[S] 0x1319a50c12b4603119e666ab65a246ba763128981591d9901c26c23a16f32036
+[C] 0x8ceec8fa1175d310e53a78727bbdb97fb07863994531d8e95df5975c6232523f
+[S] 0x8ceec8fa1175d310e53a78727bbdb97fb07863994531d8e95df5975c6232523f
 [!] Printing diagram...
 
                  Client i                     Server
                     |                            |
                     |                            | <---    Registration 
                     |                            |         for 10 clients
-                    |                            |         (593 ms)
+                    |                            |         (005 ms)
 Round 1        ---> |                            |
-(00000096 µs)       |                            |
+(00000005 µs)       |                            |
                     |                            |
                     |-------------m1------------>|
                     |        (0000032 B)         |
                     |                            | <---    Round 2
-                    |                            |         (00001110 ms)
+                    |                            |         (00000084 ms)
                     |                            |
                     |<------------m2-------------|
                     |        (0002480 B)         |
 Round 3        ---> |                            |
-(00000114 ms)       |                            |
+(00000008 ms)       |                            |
                     |                            |
                     |-------------m3------------>|
                     |        (0000032 B)         |   
                     |                            | <---    Round 4
-                    |                            |         (00000003 ms)
+                    |                            |         (00000000 ms)
                     |                            |
                     |<------------m4-------------|
                     |        (0011050 B)         |
 Round 5        ---> |                            |
-(00000637 ms)       |                            |
+(00000024 ms)       |                            |
                     |                            |
                     |-------------m5------------>|
                     |        (0001836 B)         |   
                     |                            | <---    Round 6
-                    |                            |         (00000305 µs)
+                    |                            |         (00000041 µs)
                     |                            |
-
 ```
