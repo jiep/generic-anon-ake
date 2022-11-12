@@ -1,6 +1,7 @@
 use std::process;
 use std::time::Instant;
 
+use anon_sym_ake::protocol::emoji::{emojify, print_emojified_key};
 use clap::Parser;
 
 use anon_sym_ake::protocol::client::Client;
@@ -152,6 +153,15 @@ fn main() {
     println!("[!] Time elapsed in Round 6 is {:?}\n", duration);
 
     println!("[!] Printing session keys...");
-    print_hex(&client0.get_key(), "[C]");
-    print_hex(&server.get_key(0), "[S]");
+    let key_server = server.get_key(0);
+    let key_client = client0.get_key();
+    print_hex(&key_client, "[C]");
+    print_hex(&key_server, "[S]");
+
+    let emojified_key_server = emojify(&key_server);
+    let emojified_key_client = emojify(&key_client);
+
+    print_emojified_key(&emojified_key_server);
+    print_emojified_key(&emojified_key_client);
+    
 }
