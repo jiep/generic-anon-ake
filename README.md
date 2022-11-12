@@ -13,7 +13,7 @@
 
 ## Dependencies
 
-* [`liboqs`](https://github.com/open-quantum-safe/liboqs-rust): for Post-Quantum KEM and signatures
+* [`liboqs`](https://github.com/open-quantum-safe/liboqs-rust): for Post-Quantum KEM
 * [`lb-vrf`](https://github.com/zhenfeizhang/lb-vrf): for Lattices-Based VRF
 
 ## Protocol
