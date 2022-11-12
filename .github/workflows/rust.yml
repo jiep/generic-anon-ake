@@ -82,13 +82,14 @@ jobs:
           cd -
       - name: Package all targets for Windows
         if: ${{ contains(matrix.config.target, 'windows') }}
+        shell: bash
         run: |
-          SET BIN=anon-sym-ake
-          SET BIN_NAME=%BIN%.exe
-          SET TARGET=${{ matrix.config.target }}
-          cd target/%TARGET%/release
-          certUtil -hashfile %BIN_NAME% SHA256 > digest.sha256
-          powershell Compress-Archive ${BIN_NAME} digest.sha256 ../../../%BIN%-%TARGET%.zip
+          BIN=anon-sym-ake
+          BIN_NAME=${BIN}.exe
+          TARGET=${{ matrix.config.target }}
+          cd target/${TARGET}/release
+          sha256sum ${BIN_NAME} > digest.sha256
+          powershell Compress-Archive ${BIN_NAME} digest.sha256 ../../../${BIN}-${TARGET}.zip
           cd ../../..
       - name: Add to Releases
         if: startsWith(github.ref, 'refs/tags/')
