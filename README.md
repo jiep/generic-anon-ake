@@ -4,9 +4,8 @@
 
   <strong>Implementation of `anon-sym-ake`</strong>
 
-  <p>
-    <a href="https://github.com/jiep/anon-sym-ake/actions"><img src="https://github.com/jiep/anon-sym-ake/actions/workflows/rust.yml/badge.svg" alt="Build Status" /></a>
-  </p>
+  [![ci](https://github.com/jiep/anon-sym-ake/actions/workflows/rust.yml/badge.svg)](https://github.com/jiep/anon-sym-ake/actions/workflows/rust.yml)
+  [![dependency status](https://deps.rs/repo/github/jiep/anon-sym-ake/status.svg)](https://deps.rs/repo/github/jiep/anon-sym-ake)
 
   <sub>Built with 🦀</sub>
 </div>
