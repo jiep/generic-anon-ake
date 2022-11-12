@@ -131,7 +131,7 @@ fn main() {
     client0.send_m3(m3, &mut server);
 
     if verbose {
-        println!("[S] Running Round 4...\n");
+        println!("[S] Running Round 4...");
     }
     let start = Instant::now();
     let m4 = round_4(&mut server);
