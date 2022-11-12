@@ -30,7 +30,8 @@ jobs:
     needs: build_and_test
     #if: startsWith(github.ref, 'refs/tags/')
     runs-on: ${{ matrix.config.os }}
-    strategy: 
+    strategy:
+      fail-fast: false
       matrix:
         config:
           - {
@@ -67,10 +68,12 @@ jobs:
           if [[ ${TARGET} == *"windows"* ]]; then
             BIN_NAME=${BIN}.exe
           fi
-          strip target/release/${BIN_NAME}
-          cd target/release
+          if [[ ${TARGET} == *"darwin"* ]]; then
+            strip target/${TARGET}/release/${BIN_NAME}
+          fi
+          cd target/${TARGET}/release
           sha256sum ${BIN_NAME} | cut -f 1 -d " " > digest.sha256
-          zip ../../${BIN}-${TARGET}.zip ${BIN_NAME} digest.sha256
+          zip ../../../${BIN}-${TARGET}.zip ${BIN_NAME} digest.sha256
           cd -
       - name: Add to Releases
         if: startsWith(github.ref, 'refs/tags/')
