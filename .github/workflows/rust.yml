@@ -83,13 +83,13 @@ jobs:
       - name: Package all targets for Windows
         if: ${{ contains(matrix.config.target, 'windows') }}
         run: |
-          BIN=anon-sym-ake
-          BIN_NAME=${BIN}.exe
-          TARGET=${{ matrix.config.target }}
-          cd target/${TARGET}/release
+          SET BIN=anon-sym-ake
+          SET BIN_NAME=%BIN%.exe
+          SET TARGET=${{ matrix.config.target }}
+          cd target/%TARGET%/release
           certUtil -hashfile ${BIN_NAME} SHA256 > digest.sha256
-          powershell Compress-Archive ${BIN_NAME} digest.sha256 ../../../${BIN}-${TARGET}.zip
-          cd -
+          powershell Compress-Archive ${BIN_NAME} digest.sha256 ../../../%BIN%-%TARGET%.zip
+          cd ../../..
       - name: Add to Releases
         if: startsWith(github.ref, 'refs/tags/')
         uses: ncipollo/release-action@v1
