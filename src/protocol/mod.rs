@@ -8,4 +8,3 @@ pub mod supported_algs;
 pub mod utils;
 pub mod vrf;
 pub mod x_vrf;
-pub mod emoji;

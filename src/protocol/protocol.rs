@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use aes_gcm::aes::cipher::generic_array::{
     typenum::{UInt, UTerm, B0, B1},
     GenericArray,
@@ -213,4 +215,79 @@ pub fn round_6(server: &mut Server, config: &Config, i: u8, verbose: bool) {
     }
 
     server.set_k(k, i);
+}
+
+pub fn get_m1_length(m1: &(Vec<u8>, u8)) -> usize {
+    m1.0.len()
+}
+
+pub fn get_m2_length(m2: &(Vec<Vec<u8>>, Vec<u8>, kem::PublicKey)) -> usize {
+    m2.0.len() * m2.0[0].len() + m2.1.len() + m2.2.len()
+}
+
+pub fn get_m3_length(m3: &(Vec<u8>, u8)) -> usize {
+    get_m1_length(m3)
+}
+
+pub fn get_m4_length(m4: &Vec<([Vec<u8>; 9], Vec<u8>)>) -> usize {
+    m4.len() * (m4[0].0.len() * 9 + m4[0].1.len())
+}
+
+pub fn get_m5_length(m5: &(CiphertextType, (Vec<u8>, Vec<u8>))) -> usize {
+    m5.0 .0.len() + m5.0 .1.len() + m5.0 .2.len() + m5.1 .0.len() + m5.1 .1.len()
+}
+
+pub fn show_diagram(times: &[Duration], lengths: &[usize], clients: u8) {
+    let diagram = format!(
+        r#"
+                 Client i                     Server
+                    |                            |
+                    |                            | <---    Registration 
+                    |                            |         for {clients} clients
+                    |                            |         ({registration:0>3} ms)
+Round 1        ---> |                            |
+({round1:0>8} µs)       |                            |
+                    |                            |
+                    |-------------m1------------>|
+                    |        ({m1:0>7} B)         |
+                    |                            | <---    Round 2
+                    |                            |         ({round2:0>8} ms)
+                    |                            |
+                    |<------------m2-------------|
+                    |        ({m2:0>7} B)         |
+Round 3        ---> |                            |
+({round3:0>8} ms)       |                            |
+                    |                            |
+                    |-------------m3------------>|
+                    |        ({m3:0>7} B)         |   
+                    |                            | <---    Round 4
+                    |                            |         ({round4:0>8} ms)
+                    |                            |
+                    |<------------m4-------------|
+                    |        ({m4:0>7} B)         |
+Round 5        ---> |                            |
+({round5:0>8} ms)       |                            |
+                    |                            |
+                    |-------------m5------------>|
+                    |        ({m5:0>7} B)         |   
+                    |                            | <---    Round 6
+                    |                            |         ({round6:0>8} µs)
+                    |                            |
+
+"#,
+        clients = clients,
+        registration = times[0].as_millis(),
+        round1 = times[1].as_micros(),
+        round2 = times[2].as_millis(),
+        round3 = times[3].as_millis(),
+        round4 = times[4].as_millis(),
+        round5 = times[5].as_millis(),
+        round6 = times[6].as_micros(),
+        m1 = lengths[0],
+        m2 = lengths[1],
+        m3 = lengths[2],
+        m4 = lengths[3],
+        m5 = lengths[4]
+    );
+    println!("{}", diagram);
 }
