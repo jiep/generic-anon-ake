@@ -1,9 +1,7 @@
 use anon_sym_ake::protocol::x_vrf::{x_vrf_eval, x_vrf_gen, x_vrf_vfy};
 use qrllib::rust_wrapper::{
-    qrl::xmss_fast::XMSSFast,
     xmss_alt::{
-        algsxmss_fast::{xmss_fast_gen_keypair, BDSState, TreeHashInst},
-        hash_functions::HashFunction,
+        algsxmss_fast::{BDSState, TreeHashInst},
         xmss_common::XMSSParams,
     },
 };
@@ -38,7 +36,7 @@ fn x_vrf_works() {
 
     let mut params = XMSSParams::new(32, h.into(), 16, 2).unwrap();
 
-    let mut x: Vec<u8> = vec![1, 2, 3, 4];
+    let x: Vec<u8> = vec![1, 2, 3, 4];
 
     let (vk, mut ek) = x_vrf_gen(&mut params, &mut state, &mut seed);
 
