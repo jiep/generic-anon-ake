@@ -22,23 +22,22 @@
 sequenceDiagram
 participant Client i
 participant Server
-Note right of Server: Init<br/>(pk_S, sk_S) <- SIG.Gen(λ)
 Client i -->> Server: Request for registration
 Note right of Server: Registration<br/>(ek_i, vk_i) <- VRF.Gen(λ)
 Server ->> Client i: ek_i
-Note left of Client i: Round 1<br />n_i <-$ R<br />(comm, open) <- COMM.Comm(n_i)
-Client i -->> Server: m_1 := ("init", comm)
-Note right of Server: Round 2<br />(pk*, sk*) <- PKE.Gen(λ)<br />n_S, r <-$ R<br />Do for all i ∈ C := {1,...,l}:<br />(y_i, π_i) <- VRF.Eval(ek_i, r)<br />c_i := y_i ⊕ n_S <br />End Do<br />m := (c_1, ..., c_l, π_1, ..., π_l, r, pk*)<br/>σ := SIG.Sign(sk_S, m)
-Server ->> Client i: m_2 := (σ, m)
-Note left of Client i: Round 3<br />Assert SIG.Vfy(pk_S, σ, m_2) == 1<br />n_S := VRF.Eval(ek_i, r) ⊕ c_i<br/>Do for all j in C\{i}<br/>Assert VRF.Vry(vk_j, r, n_S) ⊕ c_j, π_j) == 1<br/>End Do<br/> K := n_S ⊕ n_i<br/>cn_i := PKE.Enc(pk*, n_i) 
-Client i -->> Server: m_3 := (open, cn_i)
-Note right of Server: Round 4<br />Assert Comm.Vfy(comm, open) == 1<br />n_i := PKE.Dec(sk*, cn_i)<br/>Do for all j in C\{i}<br/>Assert VRF.Vry(vk_j, r, n_S) ⊕ c_j, π_j) == 1<br/> K := n_S ⊕ n_i<br/>cn_i := PKE.Enc(pk*, n_i)<br/>K := n_S ⊕ n_i
+Note left of Client i: Round 1<br />n_i <-$ R<br />(comm_i, open_i) <- COMM.Comm(n_i)
+Client i -->> Server: m_1 := (comm_i)
+Note right of Server: Round 2<br />(pk*, sk*) <- PKE.Gen(λ)<br />n_S, r <-$ R<br />Do for all i ∈ C := {1,...,l}:<br />(y_i, π_i) <- VRF.Eval(ek_i, r)<br />c_i := y_i ⊕ n_S <br />End Do<br />
+Server ->> Client i: m_2 := (c_1, ..., c_l, r, pk*)
+Note left of Client i: Round 3<br />n_S := VRF.Eval(ek_i, r) ⊕ c_i<br/>(comm_S, open_S) <- COMM.Comm(n_S) 
+Client i -->> Server: m_3 := (comm_S)
+Server ->> Client i: m_4 := (π_1, ..., π_l)
+Note left of Client i: Round 5<br/>Do for all j in C\{i}<br/>Assert VRF.Vry(vk_j, r, n_S ⊕ c_j, π_j) == 1<br/>End Do<br/> K := n_S ⊕ n_i<br/>ctx_i := PKE.Enc(pk*, open_i)
+Client i -->> Server: m_5 := (ctx_i, open_S)
+Note right of Server: Round 6<br />open_i := PKE.Dec(sk*, ctx_i)<br/>Assert Comm.Vfy(comm_i, open_i) == 1<br/>Assert Comm.Vfy(comm_S, open_S) == 1<br/>K := n_S ⊕ n_i
 ```
 
 ## Supported algorithms
-
-<details>
-  <summary>Click to expand supported KEMs!</summary>
   
     * Kyber512
     * Kyber512_90s
@@ -46,55 +45,6 @@ Note right of Server: Round 4<br />Assert Comm.Vfy(comm, open) == 1<br />n_i := 
     * Kyber768_90s
     * Kyber1024
     * Kyber1024_90s
-    
-</details>
-
-<details>
-  <summary>Click to expand supported Signature schemes!</summary>
-  
-    * *Dilithium2 
-    * *Dilithium3
-    * *Dilithium5 
-    * *Falcon512
-    * *Falcon1024
-    * SphincsHaraka128fRobust
-    * SphincsHaraka128fSimple
-    * SphincsHaraka128sRobust
-    * SphincsHaraka128sSimple
-    * SphincsHaraka192fRobust
-    * SphincsHaraka192fSimple
-    * SphincsHaraka192sRobust
-    * SphincsHaraka192sSimple
-    * SphincsHaraka256fRobust
-    * SphincsHaraka256fSimple
-    * SphincsHaraka256sRobust
-    * SphincsHaraka256sSimple
-    * SphincsSha256128fRobust
-    * SphincsSha256128fSimple
-    * SphincsSha256128sRobust
-    * SphincsSha256128sSimple
-    * SphincsSha256192fRobust
-    * SphincsSha256192fSimple
-    * SphincsSha256192sRobust
-    * SphincsSha256192sSimple
-    * SphincsSha256256fRobust
-    * SphincsSha256256fSimple
-    * SphincsSha256256sRobust
-    * SphincsSha256256sSimple
-    * SphincsShake256128fRobust
-    * SphincsShake256128fSimple
-    * SphincsShake256128sRobust
-    * SphincsShake256128sSimple
-    * SphincsShake256192fRobust
-    * SphincsShake256192fSimple
-    * SphincsShake256192sRobust
-    * SphincsShake256192sSimple
-    * SphincsShake256256fRobust
-    * SphincsShake256256fSimple
-    * SphincsShake256256sRobust
-    * SphincsShake256256sSimple
-    
-</details>
 
 ## Binaries
 
@@ -136,11 +86,10 @@ cargo run
 
 ```
 ./target/debug/anon-sym-ake --help
-Usage: anon-sym-ake [OPTIONS] --kem <KEM> --sig <SIG> --clients <CLIENTS>
+Usage: anon-sym-ake [OPTIONS] --kem <KEM> --clients <CLIENTS>
 
 Options:
   -k, --kem <KEM>          
-  -s, --sig <SIG>          
   -c, --clients <CLIENTS>  
   -v, --verbose            
   -h, --help               Print help information
@@ -149,12 +98,11 @@ Options:
 
 ### Example
 
-10 clients (the protocol is executed with just one!) with Kyber1024 as KEM and Dilithium5 as Signature scheme
+10 clients (the protocol is executed with just one!) with Kyber1024 as KEM
 
 ```
-./target/release/anon-sym-ake --kem Kyber1024 --sig Dilithium5 --clients 10 --verbose
+./target/release/anon-sym-ake --kem Kyber1024 --clients 10 --verbose
 [!] Generating param and seed for PQ VRF...
-[!] Setting Dilithium5 as signature scheme...
 [!] Setting Kyber1024 as KEM...
 
 [!] Creating 10 clients...
@@ -162,20 +110,27 @@ Options:
 
 [R] Creating (ek, vk) for 10 clients...
 
-[!] Time elapsed in registration of 10 clients is 6.150324ms
+[!] Time elapsed in registration of 10 clients is 593.777864ms
 
 [!] Starting protocol with client0 and server...
 
 [C] Running Round 1...
-[!] Time elapsed in Round 1 is 5.3µs
+[!] Time elapsed in Round 1 is 96.401µs
 [C -> S] Sending m1 to server...
 
 [S] Running Round 2...
-[!] Time elapsed in Round 2 is 85.251021ms
+[!] Time elapsed in Round 2 is 1.110861947s
 [C <- S] Sending m2 to client0...
 
 [C] Running Round 3...
-[C] Signature verification -> OK
+[!] Time elapsed in Round 3 is 114.209709ms
+[C -> S] Sending m3 to server...
+
+[S] Running Round 4...
+[!] Time elapsed in Round 4 is 3.951356ms
+[C <- S] Sending m4 to client...
+
+[C] Running Round 5...
 [C] VRF verification for j=0 -> OK
 [C] VRF verification for j=1 -> OK
 [C] VRF verification for j=2 -> OK
@@ -186,14 +141,50 @@ Options:
 [C] VRF verification for j=7 -> OK
 [C] VRF verification for j=8 -> OK
 [C] VRF verification for j=9 -> OK
-[!] Time elapsed in Round 3 is 24.515595ms
-[C -> S] Sending m3 to server...
+[!] Time elapsed in Round 5 is 637.430678ms
+[C -> S] Sending m5 to server...
 
-[S] Running Round 4...
+[S] Running Round 6...
 [S] Commitment verification -> OK
-[!] Time elapsed in Round 4 is 77.602µs
+[!] Time elapsed in Round 6 is 305.404µs
 
 [!] Printing session keys...
-[C] 0xa4857c5fd9baf50f23d83eea39cec440ca9d19078e22d261d7dba835ac009c54
-[S] 0xa4857c5fd9baf50f23d83eea39cec440ca9d19078e22d261d7dba835ac009c54
+[C] 0x1319a50c12b4603119e666ab65a246ba763128981591d9901c26c23a16f32036
+[S] 0x1319a50c12b4603119e666ab65a246ba763128981591d9901c26c23a16f32036
+[!] Printing diagram...
+
+                 Client i                     Server
+                    |                            |
+                    |                            | <---    Registration 
+                    |                            |         for 10 clients
+                    |                            |         (593 ms)
+Round 1        ---> |                            |
+(00000096 µs)       |                            |
+                    |                            |
+                    |-------------m1------------>|
+                    |        (0000032 B)         |
+                    |                            | <---    Round 2
+                    |                            |         (00001110 ms)
+                    |                            |
+                    |<------------m2-------------|
+                    |        (0002480 B)         |
+Round 3        ---> |                            |
+(00000114 ms)       |                            |
+                    |                            |
+                    |-------------m3------------>|
+                    |        (0000032 B)         |   
+                    |                            | <---    Round 4
+                    |                            |         (00000003 ms)
+                    |                            |
+                    |<------------m4-------------|
+                    |        (0011050 B)         |
+Round 5        ---> |                            |
+(00000637 ms)       |                            |
+                    |                            |
+                    |-------------m5------------>|
+                    |        (0001836 B)         |   
+                    |                            | <---    Round 6
+                    |                            |         (00000305 µs)
+                    |                            |
+
 ```
