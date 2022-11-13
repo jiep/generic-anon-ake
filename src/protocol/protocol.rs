@@ -5,9 +5,13 @@ use aes_gcm::aes::cipher::generic_array::{
     GenericArray,
 };
 
-use lb_vrf::lbvrf::{Proof, LBVRF};
+use itertools::Itertools;
 use lb_vrf::poly32::Poly32;
 use lb_vrf::VRF;
+use lb_vrf::{
+    lbvrf::{Proof, LBVRF},
+    poly256::Poly256,
+};
 use oqs::kem;
 
 use crate::protocol::commitment::{comm, comm_vfy};
@@ -17,7 +21,9 @@ use crate::protocol::utils::{get_random_key32, get_random_key88, xor};
 use crate::protocol::client::Client;
 use crate::protocol::config::Config;
 use crate::protocol::server::Server;
-use crate::protocol::vrf::{vrf_keypair, vrf_serialize_pi, vrf_serialize_y_from_proof};
+use crate::protocol::vrf::{vrf_keypair, vrf_serialize_y_from_proof};
+
+use super::vrf::vrf_serialize_pi;
 
 pub type CiphertextType = (oqs::kem::Ciphertext, Vec<u8>, TagType);
 pub type TagType = GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
@@ -113,11 +119,10 @@ pub fn round_3(client: &mut Client, config: &Config) -> (Vec<u8>, u32) {
     (comm_s, client.get_id())
 }
 
-pub fn round_4(server: &mut Server) -> Vec<([Vec<u8>; 9], Vec<u8>)> {
+pub fn round_4(server: &mut Server) -> Vec<([Poly256; 9], Poly256)> {
     let proofs = server.get_proofs();
 
-    let pis: Vec<([Vec<u8>; 9], Vec<u8>)> =
-        proofs.iter().map(|x| vrf_serialize_pi(x.z, x.c)).collect();
+    let pis = proofs.iter().map(|x| (x.z, x.c)).collect_vec();
 
     pis
 }
@@ -139,6 +144,7 @@ pub fn round_5(
     let vki: lb_vrf::keypair::PublicKey = *vks.get(id as usize).unwrap();
     let r: Vec<u8> = client.get_r();
     let ni: Vec<u8> = client.get_ni();
+    let proofs = client.get_proofs();
 
     let proof_client = <LBVRF as VRF>::prove(r.clone(), param, vki, eki, seed).unwrap();
     let mut y_client: Vec<u8> = Vec::new();
@@ -152,14 +158,11 @@ pub fn round_5(
         let cj: Vec<u8> = cis.get(j as usize).unwrap().to_vec();
         let vkj: lb_vrf::keypair::PublicKey = *vks.get(j as usize).unwrap();
         let yj = xor(&ns, &cj);
+        let (z, c) = proofs.get(j as usize).unwrap();
 
         let v: Poly32 = lb_vrf::serde::Serdes::deserialize(&mut yj[..].as_ref()).unwrap();
 
-        let created_proof: Proof = Proof {
-            v,
-            z: proof_client.z,
-            c: proof_client.c,
-        };
+        let created_proof: Proof = Proof { v, z: *z, c: *c };
 
         let res = <LBVRF as VRF>::verify(r.clone(), param, vkj, created_proof).unwrap();
 
@@ -229,8 +232,9 @@ pub fn get_m3_length(m3: &(Vec<u8>, u32)) -> usize {
     get_m1_length(m3)
 }
 
-pub fn get_m4_length(m4: &Vec<([Vec<u8>; 9], Vec<u8>)>) -> usize {
-    m4.len() * (m4[0].0.len() * 9 + m4[0].1.len())
+pub fn get_m4_length(m4: &Vec<([Poly256; 9], Poly256)>) -> usize {
+    let x = vrf_serialize_pi(m4[0].0, m4[0].1);
+    m4.len() * (x.0.len() * 9 + x.1.len())
 }
 
 pub fn get_m5_length(m5: &(CiphertextType, (Vec<u8>, Vec<u8>))) -> usize {
