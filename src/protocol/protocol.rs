@@ -23,6 +23,8 @@ use crate::protocol::config::Config;
 use crate::protocol::server::Server;
 use crate::protocol::vrf::{vrf_keypair, vrf_serialize_y_from_proof};
 
+use super::vrf::vrf_serialize_pi;
+
 pub type CiphertextType = (oqs::kem::Ciphertext, Vec<u8>, TagType);
 pub type TagType = GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
 
@@ -231,10 +233,8 @@ pub fn get_m3_length(m3: &(Vec<u8>, u32)) -> usize {
 }
 
 pub fn get_m4_length(m4: &Vec<([Poly256; 9], Poly256)>) -> usize {
-    let mut y: Vec<u8> = Vec::new();
-    lb_vrf::serde::Serdes::serialize(&m4[0].1, &mut y).unwrap();
-    let len_poly256 = y.len();
-    m4.len() * (len_poly256 * 9 + len_poly256)
+    let x = vrf_serialize_pi(m4[0].0, m4[0].1);
+    m4.len() * (x.0.len() * 9 + x.1.len())
 }
 
 pub fn get_m5_length(m5: &(CiphertextType, (Vec<u8>, Vec<u8>))) -> usize {
