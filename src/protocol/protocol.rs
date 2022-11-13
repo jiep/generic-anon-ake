@@ -5,33 +5,37 @@ use aes_gcm::aes::cipher::generic_array::{
     GenericArray,
 };
 
-use lb_vrf::lbvrf::{Proof, LBVRF};
-use lb_vrf::poly32::Poly32;
-use lb_vrf::VRF;
 use oqs::kem;
 use qrllib::rust_wrapper::xmss_alt::algsxmss_fast::BDSState;
 
-use crate::protocol::commitment::{comm, comm_vfy};
 use crate::protocol::pke::{pke_dec, pke_enc};
 use crate::protocol::utils::{get_random_key32, get_random_key88, xor};
+use crate::protocol::{
+    commitment::{comm, comm_vfy},
+    x_vrf::x_vrf_vfy,
+};
 
 use crate::protocol::client::Client;
 use crate::protocol::config::Config;
 use crate::protocol::server::Server;
-use crate::protocol::vrf::{vrf_keypair, vrf_serialize_pi, vrf_serialize_y_from_proof};
 
-use super::x_vrf::{x_vrf_gen, x_vrf_eval};
+use super::x_vrf::{x_vrf_eval, x_vrf_gen};
 
 pub type CiphertextType = (oqs::kem::Ciphertext, Vec<u8>, TagType);
 pub type TagType = GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
 
-pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &mut Config, state: &mut BDSState) {
+pub fn registration(
+    clients: &mut Vec<Client>,
+    server: &mut Server,
+    config: &mut Config,
+    state: &mut BDSState,
+) {
     let mut keys: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
     let mut seed = config.get_seed();
-    let mut params = config.get_params();
+    let params = config.get_params();
 
     for _ in 0..clients.len() {
-        let (vk, ek) = x_vrf_gen(&mut params, state, &mut seed);
+        let (vk, ek) = x_vrf_gen(params, state, &mut seed);
         keys.push((vk, ek));
     }
 
@@ -57,7 +61,7 @@ pub fn round_2(
     server: &mut Server,
     config: &Config,
     id: u32,
-    state: &mut BDSState
+    state: &mut BDSState,
 ) -> (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey) {
     let (pk, sk) = config.get_kem_algorithm().keypair().unwrap();
     server.set_kem_keypair((pk.clone(), sk), id);
@@ -66,8 +70,7 @@ pub fn round_2(
     let n_s: Vec<u8> = get_random_key88();
     server.set_ns(id, n_s.clone());
     let r: Vec<u8> = get_random_key32();
-    let client_keys: Vec<(Vec<u8>, Vec<u8>)> =
-        server.get_clients_keys();
+    let client_keys: Vec<(Vec<u8>, Vec<u8>)> = server.get_clients_keys();
 
     let mut proofs: Vec<Vec<u8>> = Vec::new();
     let mut yis: Vec<Vec<u8>> = Vec::new();
@@ -76,7 +79,7 @@ pub fn round_2(
     for i in 0..users {
         let (ek, _) = client_keys.get(i as usize).unwrap();
         println!("ek: {:?}", ek);
-        let (y, pi) = x_vrf_eval(&mut ek.clone(), &r, &params, state);
+        let (y, pi) = x_vrf_eval(&mut ek.clone(), &r, params, state);
 
         let c = xor(&y, &n_s);
 
@@ -90,100 +93,79 @@ pub fn round_2(
     (cis, r, pk)
 }
 
-// pub fn round_3(client: &mut Client, config: &Config) -> (Vec<u8>, u32) {
-//     let (cis, r, pk) = client.get_m2_info();
-//     let id = client.get_id();
-//     let param = config.get_params();
-//     let seed = config.get_seed();
-//     client.set_pk(pk);
+pub fn round_3(client: &mut Client, config: &Config, state: &mut BDSState) -> (Vec<u8>, u32) {
+    let (cis, r, pk) = client.get_m2_info();
+    let id = client.get_id();
+    let params = config.get_params();
+    client.set_pk(pk);
 
-//     let ci: Vec<u8> = cis.get(id as usize).unwrap().to_vec();
-//     let eki: Vec<u8> = client.get_ek();
+    let ci: Vec<u8> = cis.get(id as usize).unwrap().to_vec();
+    let mut eki: Vec<u8> = client.get_ek();
 
-//     let vks: Vec<Vec<u8>> = client.get_vks();
-//     let vki: Vec<u8> = *vks.get(id as usize).unwrap();
+    let (y_client, _) = x_vrf_eval(&mut eki, &r, params, state);
+    let ns = xor(&y_client, &ci);
 
-//     let proof_client = <LBVRF as VRF>::prove(r, param, vki, eki, seed).unwrap();
-//     let mut y_client: Vec<u8> = Vec::new();
-//     lb_vrf::serde::Serdes::serialize(&proof_client.v, &mut y_client).unwrap();
-//     let ns = xor(&y_client, &ci);
+    client.set_ns(&ns);
 
-//     client.set_ns(&ns);
+    let (comm_s, open_s) = comm(&ns);
+    client.set_commitment_server((comm_s.clone(), open_s));
 
-//     let (comm_s, open_s) = comm(&ns);
-//     client.set_commitment_server((comm_s.clone(), open_s));
+    (comm_s, client.get_id())
+}
 
-//     (comm_s, client.get_id())
-// }
+pub fn round_4(server: &mut Server) -> Vec<Vec<u8>> {
+    server.get_proofs()
+}
 
-// pub fn round_4(server: &mut Server) -> Vec<([Vec<u8>; 9], Vec<u8>)> {
-//     let proofs = server.get_proofs();
+pub fn round_5(
+    client: &mut Client,
+    config: &Config,
+    verbose: bool,
+    state: &mut BDSState,
+) -> (CiphertextType, (Vec<u8>, Vec<u8>)) {
+    let kemalg = config.get_kem_algorithm();
+    let users = config.get_users_number();
+    let params = config.get_params();
+    let id = client.get_id();
+    let cis = client.get_cis();
+    let ci: Vec<u8> = cis.get(id as usize).unwrap().to_vec();
+    let mut eki: Vec<u8> = client.get_ek();
+    let vks: Vec<Vec<u8>> = client.get_vks();
+    let r: Vec<u8> = client.get_r();
+    let ni: Vec<u8> = client.get_ni();
 
-//     let pis: Vec<([Vec<u8>; 9], Vec<u8>)> =
-//         proofs.iter().map(|x| vrf_serialize_pi(x.z, x.c)).collect();
+    let (y_client, _) = x_vrf_eval(&mut eki, &r, params, state);
+    let ns = xor(&y_client, &ci);
+    let pk = client.get_pk();
+    let proofs = client.get_proofs();
 
-//     pis
-// }
+    let k: Vec<u8> = xor(&ns, &ni);
 
-// pub fn round_5(
-//     client: &mut Client,
-//     config: &Config,
-//     verbose: bool,
-// ) -> (CiphertextType, (Vec<u8>, Vec<u8>)) {
-//     let kemalg = config.get_kem_algorithm();
-//     let users = config.get_users_number();
-//     let param = config.get_params();
-//     let seed = config.get_seed();
-//     let id = client.get_id();
-//     let cis = client.get_cis();
-//     let ci: Vec<u8> = cis.get(id as usize).unwrap().to_vec();
-//     let eki: Vec<u8> = client.get_ek();
-//     let vks: Vec<Vec<u8>> = client.get_vks();
-//     let vki: Vec<u8> = *vks.get(id as usize).unwrap();
-//     let r: Vec<u8> = client.get_r();
-//     let ni: Vec<u8> = client.get_ni();
+    for j in 0..users {
+        let cj: Vec<u8> = cis.get(j as usize).unwrap().to_vec();
+        let vkj: Vec<u8> = vks.get(j as usize).unwrap().to_vec();
+        let yj = xor(&ns, &cj);
+        let proof = proofs.get(j as usize).unwrap();
 
-//     let proof_client = <LBVRF as VRF>::prove(r.clone(), param, vki, eki, seed).unwrap();
-//     let mut y_client: Vec<u8> = Vec::new();
-//     lb_vrf::serde::Serdes::serialize(&proof_client.v, &mut y_client).unwrap();
-//     let ns = xor(&y_client, &ci);
-//     let pk = client.get_pk();
+        let res = x_vrf_vfy(&vkj, &mut r.to_vec(), &yj, proof, params);
+        if res {
+            if verbose {
+                println!("[C] VRF verification for j={} -> OK", j);
+            }
+        } else if verbose {
+            println!("[C] VRF verification for j={} -> FAIL", j);
+        }
+    }
 
-//     let k: Vec<u8> = xor(&ns, &ni);
+    client.set_k(k);
+    let (_, open) = client.get_commitment();
+    let (_, open_s) = client.get_commitment_server();
+    let (r, x) = open;
 
-//     for j in 0..users {
-//         let cj: Vec<u8> = cis.get(j as usize).unwrap().to_vec();
-//         let vkj: Vec<u8> = *vks.get(j as usize).unwrap();
-//         let yj = xor(&ns, &cj);
+    let ctxi = pke_enc(kemalg, &pk, &[r, x].concat());
 
-//         let v: Poly32 = lb_vrf::serde::Serdes::deserialize(&mut yj[..].as_ref()).unwrap();
-
-//         let created_proof: Proof = Proof {
-//             v,
-//             z: proof_client.z,
-//             c: proof_client.c,
-//         };
-
-//         let res = <LBVRF as VRF>::verify(r.clone(), param, vkj, created_proof).unwrap();
-
-//         if res.is_some() {
-//             if verbose {
-//                 println!("[C] VRF verification for j={} -> OK", j);
-//             }
-//         } else if verbose {
-//             println!("[C] VRF verification for j={} -> FAIL", j);
-//         }
-//     }
-
-//     client.set_k(k);
-//     let (_, open) = client.get_commitment();
-//     let (_, open_s) = client.get_commitment_server();
-//     let (r, x) = open;
-
-//     let ctxi = pke_enc(kemalg, &pk, &[r, x].concat());
-
-//     (ctxi, open_s)
-// }
+    (ctxi, open_s)
+}
 
 pub fn round_6(server: &mut Server, config: &Config, i: u32, verbose: bool) {
     let kemalg = config.get_kem_algorithm();
@@ -232,8 +214,8 @@ pub fn get_m3_length(m3: &(Vec<u8>, u32)) -> usize {
     get_m1_length(m3)
 }
 
-pub fn get_m4_length(m4: &Vec<([Vec<u8>; 9], Vec<u8>)>) -> usize {
-    m4.len() * (m4[0].0.len() * 9 + m4[0].1.len())
+pub fn get_m4_length(m4: &Vec<Vec<u8>>) -> usize {
+    m4.len() * m4[0].len()
 }
 
 pub fn get_m5_length(m5: &(CiphertextType, (Vec<u8>, Vec<u8>))) -> usize {

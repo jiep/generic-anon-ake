@@ -1,9 +1,7 @@
 use anon_sym_ake::protocol::x_vrf::{x_vrf_eval, x_vrf_gen, x_vrf_vfy};
-use qrllib::rust_wrapper::{
-    xmss_alt::{
-        algsxmss_fast::{BDSState, TreeHashInst},
-        xmss_common::XMSSParams,
-    },
+use qrllib::rust_wrapper::xmss_alt::{
+    algsxmss_fast::{BDSState, TreeHashInst},
+    xmss_common::XMSSParams,
 };
 
 #[test]

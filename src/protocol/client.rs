@@ -1,4 +1,3 @@
-use lb_vrf::keypair::{PublicKey, SecretKey};
 use oqs::kem;
 use sha3::{Digest, Sha3_256};
 
@@ -16,7 +15,7 @@ pub struct Client {
     commitment: (Vec<u8>, (Vec<u8>, Vec<u8>)),
     commitment_server: (Vec<u8>, (Vec<u8>, Vec<u8>)),
     cis: Vec<Vec<u8>>,
-    proofs: Vec<([Vec<u8>; 9], Vec<u8>)>,
+    proofs: Vec<Vec<u8>>,
     r: Vec<u8>,
     pk: Option<kem::PublicKey>,
     k: Vec<u8>,
@@ -116,6 +115,10 @@ impl Client {
         self.vks.clone()
     }
 
+    pub fn get_proofs(&self) -> Vec<Vec<u8>> {
+        self.proofs.clone()
+    }
+
     pub fn get_id(&self) -> u32 {
         self.id
     }
@@ -151,7 +154,7 @@ impl Client {
         )
     }
 
-    pub fn receive_m4(&mut self, m4: Vec<([Vec<u8>; 9], Vec<u8>)>) {
+    pub fn receive_m4(&mut self, m4: Vec<Vec<u8>>) {
         let proofs = m4;
         self.proofs = proofs;
     }

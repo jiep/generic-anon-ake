@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use lb_vrf::lbvrf::Proof;
 use oqs::kem::{self, Ciphertext};
 
 use sha3::{Digest, Sha3_256};
@@ -77,9 +76,7 @@ impl Server {
         self.clients_keys.push(key);
     }
 
-    pub fn get_clients_keys(
-        &self,
-    ) -> Vec<(Vec<u8>, Vec<u8>)> {
+    pub fn get_clients_keys(&self) -> Vec<(Vec<u8>, Vec<u8>)> {
         self.clients_keys.clone()
     }
 
@@ -150,7 +147,7 @@ impl Server {
         self.add_commitment_server(comm_s, id);
     }
 
-    pub fn send_m4(&self, m4: Vec<([Vec<u8>; 9], Vec<u8>)>, client: &mut Client) {
+    pub fn send_m4(&self, m4: Vec<Vec<u8>>, client: &mut Client) {
         client.receive_m4(m4);
     }
 

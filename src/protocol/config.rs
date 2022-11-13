@@ -1,6 +1,5 @@
-use lb_vrf::param::Param;
 use oqs::kem;
-use qrllib::rust_wrapper::xmss_alt::{algsxmss_fast::BDSState, xmss_common::XMSSParams};
+use qrllib::rust_wrapper::xmss_alt::xmss_common::XMSSParams;
 
 pub struct Config {
     users_numbers: u32,
