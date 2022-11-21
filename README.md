@@ -26,11 +26,12 @@ Note right of Server: Registration<br/>(ek_i, vk_i) <- VRF.Gen(λ)
 Server ->> Client i: ek_i
 Note left of Client i: Round 1<br />n_i <-$ R<br />(comm_i, open_i) <- COMM.Comm(n_i)
 Client i -->> Server: m_1 := (comm_i)
-Note right of Server: Round 2<br />(pk*, sk*) <- PKE.Gen(λ)<br />n_S, r <-$ R<br />Do for all i ∈ C := {1,...,l}:<br />(y_i, π_i) <- VRF.Eval(ek_i, r)<br />c_i := y_i ⊕ n_S <br />End Do<br />
-Server ->> Client i: m_2 := (c_1, ..., c_l, r, pk*)
+Note right of Server: Round 2<br />(pk*, sk*) <- PKE.Gen(λ)<br />n_S, r <-$ R<br />Do for all i ∈ C := {1,...,l}:<br />(y_i, π_i) <- VRF.Eval(ek_i, r)<br />c_i := y_i ⊕ n_S <br />End Do<br />m := (c_1, ..., c_l, r, pk*)<br />σ_2 <- SIG.Sign(sk_S, m)
+Server ->> Client i: m_2 := (m, σ_2)
 Note left of Client i: Round 3<br />n_S := VRF.Eval(ek_i, r) ⊕ c_i<br/>(comm_S, open_S) <- COMM.Comm(n_S) 
 Client i -->> Server: m_3 := (comm_S)
-Server ->> Client i: m_4 := (π_1, ..., π_l)
+Note right of Server: Round 4<br />m' := (π_1, ..., π_l)<br />σ_4 <- SIG.Sign(sk_S, m')
+Server ->> Client i: m_4 := (m', σ_4)
 Note left of Client i: Round 5<br/>Do for all j in C\{i}<br/>Assert VRF.Vry(vk_j, r, n_S ⊕ c_j, π_j) == 1<br/>End Do<br/> K := n_S ⊕ n_i<br/>ctx_i := PKE.Enc(pk*, open_i)
 Client i -->> Server: m_5 := (ctx_i, open_S)
 Note right of Server: Round 6<br />open_i := PKE.Dec(sk*, ctx_i)<br/>Assert Comm.Vfy(comm_i, open_i) == 1<br/>Assert Comm.Vfy(comm_S, open_S) == 1<br/>K := n_S ⊕ n_i
@@ -155,6 +156,7 @@ Options:
 ```
 ./target/release/anon-sym-ake --kem Kyber1024 --sig Dilithium5 --clients 10 --verbose
 [!] Generating param and seed for PQ VRF...
+[!] Setting Dilithium5 as signature scheme...
 [!] Setting Kyber1024 as KEM...
 
 [!] Creating 10 clients...
@@ -162,27 +164,29 @@ Options:
 
 [R] Creating (ek, vk) for 10 clients...
 
-[!] Time elapsed in registration of 10 clients is 5.890227ms
+[!] Time elapsed in registration of 10 clients is 586.126439ms
 
 [!] Starting protocol with client0 and server...
 
 [C] Running Round 1...
-[!] Time elapsed in Round 1 is 5.2µs
+[!] Time elapsed in Round 1 is 75.301µs
 [C -> S] Sending m1 to server...
 
 [S] Running Round 2...
-[!] Time elapsed in Round 2 is 84.785926ms
+[!] Time elapsed in Round 2 is 2.213861396s
 [C <- S] Sending m2 to client0...
 
 [C] Running Round 3...
-[!] Time elapsed in Round 3 is 8.876892ms
+[C] Signature verification -> OK
+[!] Time elapsed in Round 3 is 218.86895ms
 [C -> S] Sending m3 to server...
 
 [S] Running Round 4...
-[!] Time elapsed in Round 4 is 136.503µs
+[!] Time elapsed in Round 4 is 4.405469ms
 [C <- S] Sending m4 to client...
 
 [C] Running Round 5...
+[C] Signature verification -> OK
 [C] VRF verification for j=0 -> OK
 [C] VRF verification for j=1 -> OK
 [C] VRF verification for j=2 -> OK
@@ -193,49 +197,49 @@ Options:
 [C] VRF verification for j=7 -> OK
 [C] VRF verification for j=8 -> OK
 [C] VRF verification for j=9 -> OK
-[!] Time elapsed in Round 5 is 24.049718ms
+[!] Time elapsed in Round 5 is 751.686558ms
 [C -> S] Sending m5 to server...
 
 [S] Running Round 6...
 [S] Commitment verification -> OK
-[!] Time elapsed in Round 6 is 41.501µs
+[!] Time elapsed in Round 6 is 295.705µs
 
 [!] Printing session keys...
-[C] 0x8ceec8fa1175d310e53a78727bbdb97fb07863994531d8e95df5975c6232523f
-[S] 0x8ceec8fa1175d310e53a78727bbdb97fb07863994531d8e95df5975c6232523f
+[C] 0x08e8629f499875e08296da73b2dba978dd71fd18324f18ee5d405c0746b14ce1
+[S] 0x08e8629f499875e08296da73b2dba978dd71fd18324f18ee5d405c0746b14ce1
 [!] Printing diagram...
 
                  Client i                     Server
                     |                            |
                     |                            | <---    Registration 
                     |                            |         for 10 clients
-                    |                            |         (005 ms)
+                    |                            |         (586 ms)
 Round 1        ---> |                            |
-(00000005 µs)       |                            |
+(00000075 µs)       |                            |
                     |                            |
                     |-------------m1------------>|
                     |        (0000032 B)         |
                     |                            | <---    Round 2
-                    |                            |         (00000084 ms)
+                    |                            |         (00002213 ms)
                     |                            |
                     |<------------m2-------------|
-                    |        (0002480 B)         |
+                    |        (0007075 B)         |
 Round 3        ---> |                            |
-(00000008 ms)       |                            |
+(00000218 ms)       |                            |
                     |                            |
                     |-------------m3------------>|
                     |        (0000032 B)         |   
                     |                            | <---    Round 4
-                    |                            |         (00000000 ms)
+                    |                            |         (00000004 ms)
                     |                            |
                     |<------------m4-------------|
-                    |        (0011050 B)         |
+                    |        (0015645 B)         |
 Round 5        ---> |                            |
-(00000024 ms)       |                            |
+(00000751 ms)       |                            |
                     |                            |
                     |-------------m5------------>|
                     |        (0001836 B)         |   
                     |                            | <---    Round 6
-                    |                            |         (00000041 µs)
+                    |                            |         (00000295 µs)
                     |                            |
 ```
