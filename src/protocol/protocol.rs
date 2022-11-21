@@ -12,7 +12,7 @@ use lb_vrf::{
     lbvrf::{Proof, LBVRF},
     poly256::Poly256,
 };
-use oqs::kem;
+use oqs::sig::{self, Signature};
 
 use crate::protocol::commitment::{comm, comm_vfy};
 use crate::protocol::pke::{pke_dec, pke_enc};
@@ -27,11 +27,14 @@ use super::vrf::vrf_serialize_pi;
 
 pub type CiphertextType = (oqs::kem::Ciphertext, Vec<u8>, TagType);
 pub type TagType = GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
+pub type M2Message = ((Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey), Signature);
 
 pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &Config) {
     let mut keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> = Vec::new();
     let seed = config.get_seed();
     let param = config.get_param();
+
+    let (pks, _) = server.get_sig_keypair();
 
     for _ in 0..clients.len() {
         let (vk, ek) = vrf_keypair(&seed, &param);
@@ -42,6 +45,7 @@ pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &Con
         let (vk, ek) = keys.get(i).unwrap();
         client.set_ek(*ek);
         server.add_key((*vk, *ek));
+        client.set_pks(pks.clone());
         let vks = keys.iter().map(|x| x.0).collect();
         client.set_vks(vks);
     }
@@ -56,11 +60,7 @@ pub fn round_1(client: &mut Client) -> (Vec<u8>, u32) {
     (comm, client.get_id())
 }
 
-pub fn round_2(
-    server: &mut Server,
-    config: &Config,
-    id: u32,
-) -> (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey) {
+pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
     let (pk, sk) = config.get_kem_algorithm().keypair().unwrap();
     server.set_kem_keypair((pk.clone(), sk), id);
     let users = config.get_users_number();
@@ -68,6 +68,7 @@ pub fn round_2(
     let param = config.get_param();
     let n_s: Vec<u8> = get_random_key88();
     server.set_ns(id, n_s.clone());
+    let (_, sk_s) = server.get_sig_keypair();
     let r: Vec<u8> = get_random_key32();
     let client_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> =
         server.get_clients_keys();
@@ -90,15 +91,49 @@ pub fn round_2(
 
     server.add_proofs_and_ciphertexts(&cis, &yis, &proofs);
 
-    (cis, r, pk)
+    let to_sign: Vec<u8> = [
+        cis.clone().into_iter().flatten().collect(),
+        r.clone(),
+        pk.clone().into_vec(),
+    ]
+    .concat();
+
+    let signature2: sig::Signature = config
+        .get_signature_algorithm()
+        .sign(&to_sign, &sk_s)
+        .unwrap();
+
+    let m2 = (cis, r, pk);
+
+    (m2, signature2)
 }
 
-pub fn round_3(client: &mut Client, config: &Config) -> (Vec<u8>, u32) {
-    let (cis, r, pk) = client.get_m2_info();
+pub fn round_3(client: &mut Client, config: &Config, verbose: bool) -> (Vec<u8>, u32) {
+    let (cis, r, pk, signature2) = client.get_m2_info();
     let id = client.get_id();
     let param = config.get_param();
     let seed = config.get_seed();
-    client.set_pk(pk);
+    let pk_s: sig::PublicKey = client.get_pks();
+    client.set_pk(pk.clone());
+
+    let to_verify: Vec<u8> = [
+        cis.clone().into_iter().flatten().collect(),
+        r.clone(),
+        pk.into_vec(),
+    ]
+    .concat();
+
+    let verification = config
+        .get_signature_algorithm()
+        .verify(&to_verify, &signature2, &pk_s)
+        .is_ok();
+    if verification {
+        if verbose {
+            println!("[C] Signature verification -> OK");
+        }
+    } else if verbose {
+        println!("[C] Signature verification -> FAIL");
+    }
 
     let ci: Vec<u8> = cis.get(id as usize).unwrap().to_vec();
     let eki: lb_vrf::keypair::SecretKey = client.get_ek();
@@ -119,12 +154,20 @@ pub fn round_3(client: &mut Client, config: &Config) -> (Vec<u8>, u32) {
     (comm_s, client.get_id())
 }
 
-pub fn round_4(server: &mut Server) -> Vec<([Poly256; 9], Poly256)> {
+pub fn round_4(server: &mut Server, config: &Config) -> (Vec<([Poly256; 9], Poly256)>, Signature) {
     let proofs = server.get_proofs();
+    let (_, sk_s) = server.get_sig_keypair();
 
     let pis = proofs.iter().map(|x| (x.z, x.c)).collect_vec();
 
-    pis
+    let to_sign = concat_proofs(&proofs);
+
+    let signature4: sig::Signature = config
+        .get_signature_algorithm()
+        .sign(&to_sign, &sk_s)
+        .unwrap();
+
+    (pis, signature4)
 }
 
 pub fn round_5(
@@ -145,6 +188,22 @@ pub fn round_5(
     let r: Vec<u8> = client.get_r();
     let ni: Vec<u8> = client.get_ni();
     let proofs = client.get_proofs();
+    let pk_s: sig::PublicKey = client.get_pks();
+    let signature4 = client.get_signature4();
+
+    let to_verify = concat_serialized_proofs(&proofs);
+
+    let verification = config
+        .get_signature_algorithm()
+        .verify(&to_verify, &signature4, &pk_s)
+        .is_ok();
+    if verification {
+        if verbose {
+            println!("[C] Signature verification -> OK");
+        }
+    } else if verbose {
+        println!("[C] Signature verification -> FAIL");
+    }
 
     let proof_client = <LBVRF as VRF>::prove(r.clone(), param, vki, eki, seed).unwrap();
     let mut y_client: Vec<u8> = Vec::new();
@@ -224,17 +283,17 @@ pub fn get_m1_length(m1: &(Vec<u8>, u32)) -> usize {
     m1.0.len()
 }
 
-pub fn get_m2_length(m2: &(Vec<Vec<u8>>, Vec<u8>, kem::PublicKey)) -> usize {
-    m2.0.len() * m2.0[0].len() + m2.1.len() + m2.2.len()
+pub fn get_m2_length(m2: &M2Message) -> usize {
+    m2.0 .0.len() * m2.0 .0[0].len() + m2.0 .1.len() + m2.0 .2.len() + m2.1.len()
 }
 
 pub fn get_m3_length(m3: &(Vec<u8>, u32)) -> usize {
     get_m1_length(m3)
 }
 
-pub fn get_m4_length(m4: &Vec<([Poly256; 9], Poly256)>) -> usize {
-    let x = vrf_serialize_pi(m4[0].0, m4[0].1);
-    m4.len() * (x.0.len() * 9 + x.1.len())
+pub fn get_m4_length(m4: &(Vec<([Poly256; 9], Poly256)>, Signature)) -> usize {
+    let x = vrf_serialize_pi(m4.0[0].0, m4.0[0].1);
+    m4.0.len() * (x.0.len() * 9 + x.1.len()) + m4.1.len()
 }
 
 pub fn get_m5_length(m5: &(CiphertextType, (Vec<u8>, Vec<u8>))) -> usize {
@@ -294,4 +353,52 @@ Round 5        ---> |                            |
         m5 = lengths[4]
     );
     println!("{}", diagram);
+}
+
+fn concat_proofs(proofs: &Vec<Proof>) -> Vec<u8> {
+    let mut pis: Vec<u8> = Vec::new();
+
+    for proof in proofs {
+        let (z, c) = vrf_serialize_pi(proof.z, proof.c);
+        let mut concat_pi = [
+            z.as_ref().get(0).unwrap().to_vec(),
+            z.as_ref().get(1).unwrap().to_vec(),
+            z.as_ref().get(2).unwrap().to_vec(),
+            z.as_ref().get(3).unwrap().to_vec(),
+            z.as_ref().get(4).unwrap().to_vec(),
+            z.as_ref().get(5).unwrap().to_vec(),
+            z.as_ref().get(6).unwrap().to_vec(),
+            z.as_ref().get(7).unwrap().to_vec(),
+            z.as_ref().get(8).unwrap().to_vec(),
+            c,
+        ]
+        .concat();
+        pis.append(&mut concat_pi);
+    }
+
+    pis
+}
+
+fn concat_serialized_proofs(proofs: &Vec<([Poly256; 9], Poly256)>) -> Vec<u8> {
+    let mut pis: Vec<u8> = Vec::new();
+
+    for (z, c) in proofs {
+        let (z, c) = vrf_serialize_pi(*z, *c);
+        let mut concat_pi = [
+            z.as_ref().get(0).unwrap().to_vec(),
+            z.as_ref().get(1).unwrap().to_vec(),
+            z.as_ref().get(2).unwrap().to_vec(),
+            z.as_ref().get(3).unwrap().to_vec(),
+            z.as_ref().get(4).unwrap().to_vec(),
+            z.as_ref().get(5).unwrap().to_vec(),
+            z.as_ref().get(6).unwrap().to_vec(),
+            z.as_ref().get(7).unwrap().to_vec(),
+            z.as_ref().get(8).unwrap().to_vec(),
+            c,
+        ]
+        .concat();
+        pis.append(&mut concat_pi);
+    }
+
+    pis
 }
