@@ -60,11 +60,7 @@ pub fn round_1(client: &mut Client) -> (Vec<u8>, u32) {
     (comm, client.get_id())
 }
 
-pub fn round_2(
-    server: &mut Server,
-    config: &Config,
-    id: u32,
-) -> M2Message {
+pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
     let (pk, sk) = config.get_kem_algorithm().keypair().unwrap();
     server.set_kem_keypair((pk.clone(), sk), id);
     let users = config.get_users_number();
