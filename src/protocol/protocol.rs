@@ -5,7 +5,7 @@ use aes_gcm::aes::cipher::generic_array::{
     GenericArray,
 };
 
-use itertools::{izip, Itertools};
+use itertools::Itertools;
 use lb_vrf::poly32::Poly32;
 use lb_vrf::VRF;
 use lb_vrf::{
@@ -157,12 +157,21 @@ pub fn round_3(client: &mut Client, config: &Config, verbose: bool) -> (Vec<u8>,
     (comm_s, client.get_id())
 }
 
-pub fn round_4(server: &mut Server) -> Vec<([Poly256; 9], Poly256)> {
+pub fn round_4(server: &mut Server, config: &Config) -> (Vec<([Poly256; 9], Poly256)>, Signature) {
     let proofs = server.get_proofs();
+    let (_, sk_s) = server.get_sig_keypair();
 
     let pis = proofs.iter().map(|x| (x.z, x.c)).collect_vec();
 
-    pis
+    let to_sign = concat_proofs(&proofs);
+
+    let signature4: sig::Signature = config
+        .get_signature_algorithm()
+        .sign(&to_sign, &sk_s)
+        .unwrap();
+
+    (pis, signature4)
+
 }
 
 pub fn round_5(
@@ -183,6 +192,22 @@ pub fn round_5(
     let r: Vec<u8> = client.get_r();
     let ni: Vec<u8> = client.get_ni();
     let proofs = client.get_proofs();
+    let pk_s: sig::PublicKey = client.get_pks();
+    let signature4 = client.get_signature4();
+
+    let to_verify = concat_serialized_proofs(&proofs);
+
+    let verification = config
+        .get_signature_algorithm()
+        .verify(&to_verify, &signature4, &pk_s)
+        .is_ok();
+    if verification {
+        if verbose {
+            println!("[C] Signature verification -> OK");
+        }
+    } else if verbose {
+        println!("[C] Signature verification -> FAIL");
+    }
 
     let proof_client = <LBVRF as VRF>::prove(r.clone(), param, vki, eki, seed).unwrap();
     let mut y_client: Vec<u8> = Vec::new();
@@ -270,9 +295,9 @@ pub fn get_m3_length(m3: &(Vec<u8>, u32)) -> usize {
     get_m1_length(m3)
 }
 
-pub fn get_m4_length(m4: &Vec<([Poly256; 9], Poly256)>) -> usize {
-    let x = vrf_serialize_pi(m4[0].0, m4[0].1);
-    m4.len() * (x.0.len() * 9 + x.1.len())
+pub fn get_m4_length(m4: &(Vec<([Poly256; 9], Poly256)>, Signature)) -> usize {
+    let x = vrf_serialize_pi(m4.0[0].0, m4.0[0].1);
+    m4.0.len() * (x.0.len() * 9 + x.1.len()) + m4.1.len()
 }
 
 pub fn get_m5_length(m5: &(CiphertextType, (Vec<u8>, Vec<u8>))) -> usize {
@@ -334,17 +359,11 @@ Round 5        ---> |                            |
     println!("{}", diagram);
 }
 
-fn to_verify(
-    cis: &Vec<Vec<u8>>,
-    pis: &Vec<([Vec<u8>; 9], Vec<u8>)>,
-    r: &Vec<u8>,
-    pk: &Vec<u8>,
-) -> Vec<u8> {
-    let mut res: Vec<u8> = Vec::new();
-    let mut c_i: Vec<u8> = Vec::new();
-    let mut pi_i: Vec<u8> = Vec::new();
+fn concat_proofs(proofs: &Vec<Proof>) -> Vec<u8> {
+    let mut pis: Vec<u8> = Vec::new();
 
-    for ((z, c), ct) in izip!(pis, cis) {
+    for proof in proofs {
+        let (z, c) = vrf_serialize_pi(proof.z, proof.c);
         let mut concat_pi = [
             z.as_ref().get(0).unwrap().to_vec(),
             z.as_ref().get(1).unwrap().to_vec(),
@@ -355,16 +374,35 @@ fn to_verify(
             z.as_ref().get(6).unwrap().to_vec(),
             z.as_ref().get(7).unwrap().to_vec(),
             z.as_ref().get(8).unwrap().to_vec(),
-            c.to_vec(),
+            c,
         ]
         .concat();
-        pi_i.append(&mut concat_pi);
-        c_i.append(&mut ct.clone());
+        pis.append(&mut concat_pi);
     }
 
-    res.append(&mut c_i.to_owned());
-    res.append(&mut pi_i.to_owned());
-    res.append(&mut r.to_owned());
-    res.append(&mut pk.to_owned());
-    res
+    pis
+}
+
+fn concat_serialized_proofs(proofs: &Vec<([Poly256; 9], Poly256)>) -> Vec<u8> {
+    let mut pis: Vec<u8> = Vec::new();
+
+    for (z,c) in proofs {
+        let (z, c) = vrf_serialize_pi(*z, *c);
+        let mut concat_pi = [
+            z.as_ref().get(0).unwrap().to_vec(),
+            z.as_ref().get(1).unwrap().to_vec(),
+            z.as_ref().get(2).unwrap().to_vec(),
+            z.as_ref().get(3).unwrap().to_vec(),
+            z.as_ref().get(4).unwrap().to_vec(),
+            z.as_ref().get(5).unwrap().to_vec(),
+            z.as_ref().get(6).unwrap().to_vec(),
+            z.as_ref().get(7).unwrap().to_vec(),
+            z.as_ref().get(8).unwrap().to_vec(),
+            c,
+        ]
+        .concat();
+        pis.append(&mut concat_pi);
+    }
+
+    pis
 }

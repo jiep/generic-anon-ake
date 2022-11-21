@@ -152,7 +152,7 @@ fn main() {
         println!("[S] Running Round 4...");
     }
     let start = Instant::now();
-    let m4 = round_4(&mut server);
+    let m4 = round_4(&mut server, &config);
     lengths.push(get_m4_length(&m4));
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 4 is {:?}", duration);

@@ -166,7 +166,7 @@ impl Server {
         self.add_commitment_server(comm_s, id);
     }
 
-    pub fn send_m4(&self, m4: Vec<([Poly256; 9], Poly256)>, client: &mut Client) {
+    pub fn send_m4(&self, m4: (Vec<([Poly256; 9], Poly256)>, Signature), client: &mut Client) {
         client.receive_m4(m4);
     }
 

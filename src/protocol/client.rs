@@ -28,6 +28,7 @@ pub struct Client {
     k: Vec<u8>,
     ns: Vec<u8>,
     signature2: Option<sig::Signature>,
+    signature4: Option<sig::Signature>,
     pk_s: Option<sig::PublicKey>,
 }
 
@@ -47,6 +48,7 @@ impl Client {
             k: Vec::new(),
             ns: Vec::new(),
             signature2: None,
+            signature4: None,
             pk_s: None,
         }
     }
@@ -84,6 +86,10 @@ impl Client {
 
     pub fn get_ek(&self) -> SecretKey {
         self.ek.unwrap()
+    }
+
+    pub fn get_signature4(&self) -> Signature {
+        self.signature4.as_ref().unwrap().clone()
     }
 
     pub fn get_key(&self) -> Vec<u8> {
@@ -175,9 +181,10 @@ impl Client {
         )
     }
 
-    pub fn receive_m4(&mut self, m4: Vec<([Poly256; 9], Poly256)>) {
-        let proofs = m4;
+    pub fn receive_m4(&mut self, m4: (Vec<([Poly256; 9], Poly256)>, Signature)) {
+        let (proofs, signature4) = m4;
         self.proofs = proofs;
+        self.signature4 = Some(signature4);
     }
 }
 
@@ -197,6 +204,7 @@ impl Clone for Client {
             k: self.k.clone(),
             ns: self.ni.clone(),
             signature2: self.signature2.clone(),
+            signature4: self.signature4.clone(),
             pk_s: self.pk_s.clone(),
         }
     }
