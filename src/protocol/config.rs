@@ -1,20 +1,28 @@
 use lb_vrf::param::Param;
-use oqs::kem;
+use oqs::{kem, sig};
 
 pub struct Config {
     users_numbers: u32,
     seed: [u8; 32],
     param: Param,
     kem: kem::Kem,
+    sig: sig::Sig,
 }
 
 impl Config {
-    pub fn new(users_numbers: u32, seed: [u8; 32], param: Param, kem: kem::Kem) -> Self {
+    pub fn new(
+        users_numbers: u32,
+        seed: [u8; 32],
+        param: Param,
+        kem: kem::Kem,
+        sig: sig::Sig,
+    ) -> Self {
         Config {
             users_numbers,
             seed,
             param,
             kem,
+            sig,
         }
     }
 
@@ -32,5 +40,9 @@ impl Config {
 
     pub fn get_users_number(&self) -> u32 {
         self.users_numbers
+    }
+
+    pub fn get_signature_algorithm(&self) -> &sig::Sig {
+        &self.sig
     }
 }

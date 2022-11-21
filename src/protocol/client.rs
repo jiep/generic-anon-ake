@@ -2,7 +2,10 @@ use lb_vrf::{
     keypair::{PublicKey, SecretKey},
     poly256::Poly256,
 };
-use oqs::kem;
+use oqs::{
+    kem,
+    sig::{self, Signature},
+};
 use sha3::{Digest, Sha3_256};
 
 use crate::protocol::server::Server;
@@ -24,6 +27,8 @@ pub struct Client {
     pk: Option<kem::PublicKey>,
     k: Vec<u8>,
     ns: Vec<u8>,
+    signature2: Option<sig::Signature>,
+    pk_s: Option<sig::PublicKey>,
 }
 
 impl Client {
@@ -41,6 +46,8 @@ impl Client {
             pk: None,
             k: Vec::new(),
             ns: Vec::new(),
+            signature2: None,
+            pk_s: None,
         }
     }
 
@@ -89,6 +96,14 @@ impl Client {
 
     pub fn set_pk(&mut self, pk: kem::PublicKey) {
         self.pk = Some(pk);
+    }
+
+    pub fn set_pks(&mut self, pk_s: sig::PublicKey) {
+        self.pk_s = Some(pk_s);
+    }
+
+    pub fn get_pks(&self) -> sig::PublicKey {
+        self.pk_s.as_ref().unwrap().clone()
     }
 
     pub fn get_ni(&self) -> Vec<u8> {
@@ -143,18 +158,20 @@ impl Client {
         server.receive_m5((ctxi, open_s, self.get_id()));
     }
 
-    pub fn receive_m2(&mut self, m2: (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey)) {
-        let (cis, r, pk) = m2;
+    pub fn receive_m2(&mut self, m2: ((Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey), Signature)) {
+        let ((cis, r, pk), signature2) = m2;
         self.cis = cis;
         self.r = r;
         self.pk = Some(pk);
+        self.signature2 = Some(signature2);
     }
 
-    pub fn get_m2_info(&self) -> (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey) {
+    pub fn get_m2_info(&self) -> (Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey, Signature) {
         (
             self.cis.clone(),
             self.r.clone(),
             self.pk.as_ref().unwrap().clone(),
+            self.signature2.as_ref().unwrap().clone(),
         )
     }
 
@@ -179,6 +196,8 @@ impl Clone for Client {
             pk: self.pk.clone(),
             k: self.k.clone(),
             ns: self.ni.clone(),
+            signature2: self.signature2.clone(),
+            pk_s: self.pk_s.clone(),
         }
     }
 }

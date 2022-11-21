@@ -5,14 +5,14 @@ use aes_gcm::aes::cipher::generic_array::{
     GenericArray,
 };
 
-use itertools::Itertools;
+use itertools::{izip, Itertools};
 use lb_vrf::poly32::Poly32;
 use lb_vrf::VRF;
 use lb_vrf::{
     lbvrf::{Proof, LBVRF},
     poly256::Poly256,
 };
-use oqs::kem;
+use oqs::sig::{self, Signature};
 
 use crate::protocol::commitment::{comm, comm_vfy};
 use crate::protocol::pke::{pke_dec, pke_enc};
@@ -33,6 +33,8 @@ pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &Con
     let seed = config.get_seed();
     let param = config.get_param();
 
+    let (pks, _) = server.get_sig_keypair();
+
     for _ in 0..clients.len() {
         let (vk, ek) = vrf_keypair(&seed, &param);
         keys.push((vk, ek));
@@ -42,6 +44,7 @@ pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &Con
         let (vk, ek) = keys.get(i).unwrap();
         client.set_ek(*ek);
         server.add_key((*vk, *ek));
+        client.set_pks(pks.clone());
         let vks = keys.iter().map(|x| x.0).collect();
         client.set_vks(vks);
     }
@@ -60,7 +63,7 @@ pub fn round_2(
     server: &mut Server,
     config: &Config,
     id: u32,
-) -> (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey) {
+) -> ((Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey), Signature) {
     let (pk, sk) = config.get_kem_algorithm().keypair().unwrap();
     server.set_kem_keypair((pk.clone(), sk), id);
     let users = config.get_users_number();
@@ -68,6 +71,7 @@ pub fn round_2(
     let param = config.get_param();
     let n_s: Vec<u8> = get_random_key88();
     server.set_ns(id, n_s.clone());
+    let (_, sk_s) = server.get_sig_keypair();
     let r: Vec<u8> = get_random_key32();
     let client_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> =
         server.get_clients_keys();
@@ -90,15 +94,49 @@ pub fn round_2(
 
     server.add_proofs_and_ciphertexts(&cis, &yis, &proofs);
 
-    (cis, r, pk)
+    let to_sign: Vec<u8> = [
+        cis.clone().into_iter().flatten().collect(),
+        r.clone(),
+        pk.clone().into_vec(),
+    ]
+    .concat();
+
+    let signature2: sig::Signature = config
+        .get_signature_algorithm()
+        .sign(&to_sign, &sk_s)
+        .unwrap();
+
+    let m2 = (cis, r, pk);
+
+    (m2, signature2)
 }
 
-pub fn round_3(client: &mut Client, config: &Config) -> (Vec<u8>, u32) {
-    let (cis, r, pk) = client.get_m2_info();
+pub fn round_3(client: &mut Client, config: &Config, verbose: bool) -> (Vec<u8>, u32) {
+    let (cis, r, pk, signature2) = client.get_m2_info();
     let id = client.get_id();
     let param = config.get_param();
     let seed = config.get_seed();
-    client.set_pk(pk);
+    let pk_s: sig::PublicKey = client.get_pks();
+    client.set_pk(pk.clone());
+
+    let to_verify: Vec<u8> = [
+        cis.clone().into_iter().flatten().collect(),
+        r.clone(),
+        pk.into_vec(),
+    ]
+    .concat();
+
+    let verification = config
+        .get_signature_algorithm()
+        .verify(&to_verify, &signature2, &pk_s)
+        .is_ok();
+    if verification {
+        if verbose {
+            println!("[C] Signature verification -> OK");
+        }
+    } else if verbose {
+        println!("[C] Signature verification -> FAIL");
+    }
 
     let ci: Vec<u8> = cis.get(id as usize).unwrap().to_vec();
     let eki: lb_vrf::keypair::SecretKey = client.get_ek();
@@ -224,8 +262,8 @@ pub fn get_m1_length(m1: &(Vec<u8>, u32)) -> usize {
     m1.0.len()
 }
 
-pub fn get_m2_length(m2: &(Vec<Vec<u8>>, Vec<u8>, kem::PublicKey)) -> usize {
-    m2.0.len() * m2.0[0].len() + m2.1.len() + m2.2.len()
+pub fn get_m2_length(m2: &((Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey), Signature)) -> usize {
+    m2.0 .0.len() * m2.0 .0[0].len() + m2.0 .1.len() + m2.0 .2.len() + m2.1.len()
 }
 
 pub fn get_m3_length(m3: &(Vec<u8>, u32)) -> usize {
@@ -294,4 +332,39 @@ Round 5        ---> |                            |
         m5 = lengths[4]
     );
     println!("{}", diagram);
+}
+
+fn to_verify(
+    cis: &Vec<Vec<u8>>,
+    pis: &Vec<([Vec<u8>; 9], Vec<u8>)>,
+    r: &Vec<u8>,
+    pk: &Vec<u8>,
+) -> Vec<u8> {
+    let mut res: Vec<u8> = Vec::new();
+    let mut c_i: Vec<u8> = Vec::new();
+    let mut pi_i: Vec<u8> = Vec::new();
+
+    for ((z, c), ct) in izip!(pis, cis) {
+        let mut concat_pi = [
+            z.as_ref().get(0).unwrap().to_vec(),
+            z.as_ref().get(1).unwrap().to_vec(),
+            z.as_ref().get(2).unwrap().to_vec(),
+            z.as_ref().get(3).unwrap().to_vec(),
+            z.as_ref().get(4).unwrap().to_vec(),
+            z.as_ref().get(5).unwrap().to_vec(),
+            z.as_ref().get(6).unwrap().to_vec(),
+            z.as_ref().get(7).unwrap().to_vec(),
+            z.as_ref().get(8).unwrap().to_vec(),
+            c.to_vec(),
+        ]
+        .concat();
+        pi_i.append(&mut concat_pi);
+        c_i.append(&mut ct.clone());
+    }
+
+    res.append(&mut c_i.to_owned());
+    res.append(&mut pi_i.to_owned());
+    res.append(&mut r.to_owned());
+    res.append(&mut pk.to_owned());
+    res
 }

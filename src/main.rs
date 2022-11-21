@@ -10,7 +10,9 @@ use anon_sym_ake::protocol::protocol::{
     round_1, round_2, round_3, round_4, round_5, round_6, show_diagram,
 };
 use anon_sym_ake::protocol::server::Server;
-use anon_sym_ake::protocol::supported_algs::{get_kem_algorithm, print_supported_kems};
+use anon_sym_ake::protocol::supported_algs::{
+    get_kem_algorithm, get_signature_algorithm, print_supported_kems, print_supported_signatures,
+};
 use anon_sym_ake::protocol::utils::print_hex;
 use anon_sym_ake::protocol::vrf::vrf_gen_seed_param;
 
@@ -19,6 +21,9 @@ use anon_sym_ake::protocol::vrf::vrf_gen_seed_param;
 struct Args {
     #[arg(short, long)]
     kem: String,
+
+    #[arg(short, long)]
+    sig: String,
 
     #[arg(short, long)]
     #[arg(value_parser = clap::value_parser!(u32).range(1..))]
@@ -44,6 +49,19 @@ fn main() {
     }
     let (seed, param) = vrf_gen_seed_param();
 
+    // Init PQ signature scheme
+    println!("[!] Setting {} as signature scheme...", args.sig);
+    let sigalg = get_signature_algorithm(&args.sig);
+    if sigalg.is_none() {
+        println!(
+            "[!] Signature {} is invalid or is not supported!\n[!] Suppored signature schemes:",
+            args.sig
+        );
+        print_supported_signatures();
+        process::exit(1);
+    }
+    let sigalg = sigalg.unwrap();
+
     // Init PQ KEM scheme
     println!("[!] Setting {} as KEM...\n", args.kem);
     let kemalg = get_kem_algorithm(&args.kem);
@@ -58,7 +76,7 @@ fn main() {
 
     let kemalg = kemalg.unwrap();
 
-    let config: Config = Config::new(users, seed, param, kemalg);
+    let config: Config = Config::new(users, seed, param, kemalg, sigalg);
 
     if verbose {
         println!("[!] Creating {} clients...", users);
@@ -69,7 +87,7 @@ fn main() {
     if verbose {
         println!("[!] Creating server...\n");
     }
-    let mut server: Server = Server::new();
+    let mut server: Server = Server::new(&config);
 
     if verbose {
         println!("[R] Creating (ek, vk) for {} clients...\n", users);
@@ -120,7 +138,7 @@ fn main() {
         println!("[C] Running Round 3...");
     }
     let start = Instant::now();
-    let m3 = round_3(&mut client0, &config);
+    let m3 = round_3(&mut client0, &config, verbose);
     lengths.push(get_m3_length(&m3));
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 3 is {:?}", duration);

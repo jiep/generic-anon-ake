@@ -1,13 +1,19 @@
 use std::collections::HashMap;
 
 use lb_vrf::{lbvrf::Proof, poly256::Poly256};
-use oqs::kem::{self, Ciphertext};
+use oqs::{
+    kem::{self, Ciphertext},
+    sig::{self, Signature},
+};
 
 use sha3::{Digest, Sha3_256};
 
 use crate::protocol::client::Client;
 
-use super::protocol::{CiphertextType, TagType};
+use super::{
+    config::Config,
+    protocol::{CiphertextType, TagType},
+};
 
 #[derive(Debug)]
 pub struct Server {
@@ -22,16 +28,13 @@ pub struct Server {
     ns: HashMap<u32, Vec<u8>>,
     k: HashMap<u32, Vec<u8>>,
     ctxis: HashMap<u32, CiphertextType>,
-}
-
-impl Default for Server {
-    fn default() -> Self {
-        Self::new()
-    }
+    signature_keys: (sig::PublicKey, sig::SecretKey),
 }
 
 impl Server {
-    pub fn new() -> Self {
+    pub fn new(config: &Config) -> Self {
+        let (pk_sig, sk_sig) = config.get_signature_algorithm().keypair().unwrap();
+
         Server {
             clients_keys: Vec::new(),
             kem_keys: HashMap::new(),
@@ -44,6 +47,7 @@ impl Server {
             ns: HashMap::new(),
             k: HashMap::new(),
             ctxis: HashMap::new(),
+            signature_keys: (pk_sig, sk_sig),
         }
     }
 
@@ -122,6 +126,14 @@ impl Server {
         self.ns.get(&index).unwrap().clone()
     }
 
+    pub fn get_sig_keypair(&self) -> (sig::PublicKey, sig::SecretKey) {
+        self.signature_keys.clone()
+    }
+
+    pub fn get_sig_pk(&self) -> sig::PublicKey {
+        self.signature_keys.0.clone()
+    }
+
     pub fn add_proofs_and_ciphertexts(
         &mut self,
         cis: &[Vec<u8>],
@@ -141,7 +153,11 @@ impl Server {
         self.cis.clone()
     }
 
-    pub fn send_m2(&self, m2: (Vec<Vec<u8>>, Vec<u8>, kem::PublicKey), client: &mut Client) {
+    pub fn send_m2(
+        &self,
+        m2: ((Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey), Signature),
+        client: &mut Client,
+    ) {
         client.receive_m2(m2);
     }
 

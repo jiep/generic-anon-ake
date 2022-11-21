@@ -38,12 +38,64 @@ Note right of Server: Round 6<br />open_i := PKE.Dec(sk*, ctx_i)<br/>Assert Comm
 
 ## Supported algorithms
   
+    <details>
+  <summary>Click to expand supported KEMs!</summary>
+
     * Kyber512
     * Kyber512_90s
     * Kyber768
     * Kyber768_90s
     * Kyber1024
     * Kyber1024_90s
+
+</details>
+
+<details>
+  <summary>Click to expand supported Signature schemes!</summary>
+
+    * *Dilithium2 
+    * *Dilithium3
+    * *Dilithium5 
+    * *Falcon512
+    * *Falcon1024
+    * SphincsHaraka128fRobust
+    * SphincsHaraka128fSimple
+    * SphincsHaraka128sRobust
+    * SphincsHaraka128sSimple
+    * SphincsHaraka192fRobust
+    * SphincsHaraka192fSimple
+    * SphincsHaraka192sRobust
+    * SphincsHaraka192sSimple
+    * SphincsHaraka256fRobust
+    * SphincsHaraka256fSimple
+    * SphincsHaraka256sRobust
+    * SphincsHaraka256sSimple
+    * SphincsSha256128fRobust
+    * SphincsSha256128fSimple
+    * SphincsSha256128sRobust
+    * SphincsSha256128sSimple
+    * SphincsSha256192fRobust
+    * SphincsSha256192fSimple
+    * SphincsSha256192sRobust
+    * SphincsSha256192sSimple
+    * SphincsSha256256fRobust
+    * SphincsSha256256fSimple
+    * SphincsSha256256sRobust
+    * SphincsSha256256sSimple
+    * SphincsShake256128fRobust
+    * SphincsShake256128fSimple
+    * SphincsShake256128sRobust
+    * SphincsShake256128sSimple
+    * SphincsShake256192fRobust
+    * SphincsShake256192fSimple
+    * SphincsShake256192sRobust
+    * SphincsShake256192sSimple
+    * SphincsShake256256fRobust
+    * SphincsShake256256fSimple
+    * SphincsShake256256sRobust
+    * SphincsShake256256sSimple
+
+</details>
 
 ## Binaries
 
@@ -85,10 +137,11 @@ cargo run
 
 ```
 ./target/debug/anon-sym-ake --help
-Usage: anon-sym-ake [OPTIONS] --kem <KEM> --clients <CLIENTS>
+Usage: anon-sym-ake [OPTIONS] --kem <KEM> --sig <SIG> --clients <CLIENTS>
 
 Options:
-  -k, --kem <KEM>          
+  -k, --kem <KEM>
+  -s, --sig <SIG>          
   -c, --clients <CLIENTS>  
   -v, --verbose            
   -h, --help               Print help information
@@ -97,10 +150,10 @@ Options:
 
 ### Example
 
-10 clients (the protocol is executed with just one!) with Kyber1024 as KEM
+10 clients (the protocol is executed with just one!) with Kyber1024 as KEM and Dilithium5 as Signature scheme
 
 ```
-./target/release/anon-sym-ake --kem Kyber1024 --clients 10 --verbose
+./target/release/anon-sym-ake --kem Kyber1024 --sig Dilithium5 --clients 10 --verbose
 [!] Generating param and seed for PQ VRF...
 [!] Setting Kyber1024 as KEM...
 
