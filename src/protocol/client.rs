@@ -10,7 +10,7 @@ use sha3::{Digest, Sha3_256};
 
 use crate::protocol::server::Server;
 
-use super::protocol::CiphertextType;
+use super::protocol::{CiphertextType, M2Message};
 
 #[derive(Debug)]
 pub struct Client {
@@ -164,7 +164,7 @@ impl Client {
         server.receive_m5((ctxi, open_s, self.get_id()));
     }
 
-    pub fn receive_m2(&mut self, m2: ((Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey), Signature)) {
+    pub fn receive_m2(&mut self, m2: M2Message) {
         let ((cis, r, pk), signature2) = m2;
         self.cis = cis;
         self.r = r;

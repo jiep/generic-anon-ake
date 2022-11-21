@@ -6,9 +6,9 @@ use anon_sym_ake::{
     protocol::client::Client,
     protocol::config::Config,
     protocol::protocol::{registration, round_1, round_2, round_3, round_4, round_5, round_6},
-    protocol::{server::Server, supported_algs::get_signature_algorithm},
     protocol::supported_algs::get_kem_algorithm,
     protocol::vrf::vrf_gen_seed_param,
+    protocol::{server::Server, supported_algs::get_signature_algorithm},
 };
 
 fn bench_1(c: &mut Criterion) {

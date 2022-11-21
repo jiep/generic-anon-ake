@@ -12,7 +12,7 @@ use crate::protocol::client::Client;
 
 use super::{
     config::Config,
-    protocol::{CiphertextType, TagType},
+    protocol::{CiphertextType, TagType, M2Message},
 };
 
 #[derive(Debug)]
@@ -155,7 +155,7 @@ impl Server {
 
     pub fn send_m2(
         &self,
-        m2: ((Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey), Signature),
+        m2: M2Message,
         client: &mut Client,
     ) {
         client.receive_m2(m2);

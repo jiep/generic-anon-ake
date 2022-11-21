@@ -27,6 +27,7 @@ use super::vrf::vrf_serialize_pi;
 
 pub type CiphertextType = (oqs::kem::Ciphertext, Vec<u8>, TagType);
 pub type TagType = GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
+pub type M2Message = ((Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey), Signature);
 
 pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &Config) {
     let mut keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> = Vec::new();
@@ -63,7 +64,7 @@ pub fn round_2(
     server: &mut Server,
     config: &Config,
     id: u32,
-) -> ((Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey), Signature) {
+) -> M2Message {
     let (pk, sk) = config.get_kem_algorithm().keypair().unwrap();
     server.set_kem_keypair((pk.clone(), sk), id);
     let users = config.get_users_number();
@@ -171,7 +172,6 @@ pub fn round_4(server: &mut Server, config: &Config) -> (Vec<([Poly256; 9], Poly
         .unwrap();
 
     (pis, signature4)
-
 }
 
 pub fn round_5(
@@ -287,7 +287,7 @@ pub fn get_m1_length(m1: &(Vec<u8>, u32)) -> usize {
     m1.0.len()
 }
 
-pub fn get_m2_length(m2: &((Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey), Signature)) -> usize {
+pub fn get_m2_length(m2: &M2Message) -> usize {
     m2.0 .0.len() * m2.0 .0[0].len() + m2.0 .1.len() + m2.0 .2.len() + m2.1.len()
 }
 
@@ -386,7 +386,7 @@ fn concat_proofs(proofs: &Vec<Proof>) -> Vec<u8> {
 fn concat_serialized_proofs(proofs: &Vec<([Poly256; 9], Poly256)>) -> Vec<u8> {
     let mut pis: Vec<u8> = Vec::new();
 
-    for (z,c) in proofs {
+    for (z, c) in proofs {
         let (z, c) = vrf_serialize_pi(*z, *c);
         let mut concat_pi = [
             z.as_ref().get(0).unwrap().to_vec(),
