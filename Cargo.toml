@@ -37,6 +37,10 @@ lto = "fat"
 name = "performance"
 harness = false
 
+[[bench]]
+name = "primitives"
+harness = false
+
 [lib]
 name = "anon_sym_ake"
 path = "src/lib.rs"

@@ -176,7 +176,7 @@ pub fn round_6(server: &mut Server, config: &Config, i: u32, verbose: bool) {
     let (_, sk) = server.get_kem_keypair(i);
     let (ct, ciphertext, iv) = ctxis.get(&i).unwrap();
 
-    let open_i_concat: Vec<u8> = pke_dec(kemalg, sk, ct, ciphertext, iv);
+    let open_i_concat: Vec<u8> = pke_dec(kemalg, &sk, ct, ciphertext, iv);
     let ni: Vec<u8> = open_i_concat[0..88].to_vec();
     let ri: Vec<u8> = open_i_concat[88..].to_vec();
     let comm_i = comms.get(&i).unwrap();
