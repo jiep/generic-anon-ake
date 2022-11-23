@@ -4,9 +4,11 @@ use anon_sym_ake::protocol::{
     pke::{pke_dec, pke_enc},
     supported_algs::get_kem_algorithm,
     utils::get_random_key32,
+    vrf::{vrf_gen_seed_param, vrf_keypair},
     x_vrf::{x_vrf_eval, x_vrf_gen, x_vrf_vfy},
 };
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use lb_vrf::{lbvrf::LBVRF, VRF};
 use qrllib::rust_wrapper::xmss_alt::{
     algsxmss_fast::{xmss_fast_gen_keypair, xmss_fast_sign_msg, BDSState, TreeHashInst},
     hash_functions::HashFunction,
@@ -240,5 +242,42 @@ fn bench_4(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, bench_1, bench_2, bench_3, bench_4);
+fn bench_5(c: &mut Criterion) {
+    let mut group = c.benchmark_group("LB-VRF");
+
+    group.measurement_time(Duration::from_secs(1));
+    group.sample_size(1000);
+
+    let (seed, param) = vrf_gen_seed_param();
+    let message: Vec<u8> = get_random_key32();
+
+    assert_eq!(seed.len(), 32);
+    assert_ne!(seed, [0u8; 32]);
+
+    let (pk, sk) = vrf_keypair(&seed, &param);
+
+    let proof = <LBVRF as VRF>::prove(&message, param, pk, sk, seed).unwrap();
+
+    <LBVRF as VRF>::verify(&message, param, pk, proof).unwrap();
+
+    let parameter_string = format!("");
+
+    let _x0 = (0, 0);
+    group.bench_with_input(
+        BenchmarkId::new("EVAL", parameter_string.clone()),
+        &_x0,
+        |b, _| b.iter(|| <LBVRF as VRF>::prove(&message, param, pk, sk, seed).unwrap()),
+    );
+
+    let _x0 = (0, 0);
+    group.bench_with_input(
+        BenchmarkId::new("VFY", parameter_string.clone()),
+        &_x0,
+        |b, _| b.iter(|| <LBVRF as VRF>::verify(&message, param, pk, proof).unwrap()),
+    );
+
+    group.finish();
+}
+
+criterion_group!(benches, bench_1, bench_2, bench_3, bench_4, bench_5);
 criterion_main!(benches);
