@@ -29,26 +29,33 @@ pub type CiphertextType = (oqs::kem::Ciphertext, Vec<u8>, TagType);
 pub type TagType = GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
 pub type M2Message = ((Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey), Signature);
 
-pub fn registration(clients: &mut Vec<Client>, server: &mut Server, config: &Config) {
+pub fn registration(config: &Config) -> (Server, Client) {
     let mut keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> = Vec::new();
     let seed = config.get_seed();
     let param = config.get_param();
+    let clients = config.get_users_number();
+    let mut server: Server = Server::new(config);
+    let mut client: Client = Client::new(0);
 
     let (pks, _) = server.get_sig_keypair();
+    client.set_pks(pks);
 
-    for _ in 0..clients.len() {
+    for _ in 0..clients {
         let (vk, ek) = vrf_keypair(&seed, &param);
         keys.push((vk, ek));
     }
 
-    for (i, client) in clients.iter_mut().enumerate() {
-        let (vk, ek) = keys.get(i).unwrap();
-        client.set_ek(*ek);
+    let (_, ek) = keys.get(0_usize).unwrap();
+    client.set_ek(*ek);
+
+    for (vk, ek) in keys.iter() {
         server.add_key((*vk, *ek));
-        client.set_pks(pks.clone());
-        let vks = keys.iter().map(|x| x.0).collect();
-        client.set_vks(vks);
     }
+
+    let vks = keys.iter().map(|x| x.0).collect();
+    client.set_vks(vks);
+
+    (server, client)
 }
 
 pub fn round_1(client: &mut Client) -> (Vec<u8>, u32) {

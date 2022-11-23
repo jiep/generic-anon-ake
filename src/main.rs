@@ -3,13 +3,11 @@ use std::time::{Duration, Instant};
 
 use clap::Parser;
 
-use anon_sym_ake::protocol::client::Client;
 use anon_sym_ake::protocol::config::Config;
 use anon_sym_ake::protocol::protocol::{
     get_m1_length, get_m2_length, get_m3_length, get_m4_length, get_m5_length, registration,
     round_1, round_2, round_3, round_4, round_5, round_6, show_diagram,
 };
-use anon_sym_ake::protocol::server::Server;
 use anon_sym_ake::protocol::supported_algs::{
     get_kem_algorithm, get_signature_algorithm, print_supported_kems, print_supported_signatures,
 };
@@ -82,18 +80,15 @@ fn main() {
         println!("[!] Creating {} clients...", users);
     }
 
-    let mut clients: Vec<Client> = (0..users).map(Client::new).collect();
-
     if verbose {
         println!("[!] Creating server...\n");
     }
-    let mut server: Server = Server::new(&config);
 
     if verbose {
         println!("[R] Creating (ek, vk) for {} clients...\n", users);
     }
     let start = Instant::now();
-    registration(&mut clients, &mut server, &config);
+    let (mut server, mut client) = registration(&config);
     let duration = start.elapsed();
     println!(
         "[!] Time elapsed in registration of {} clients is {:?}\n",
@@ -101,14 +96,12 @@ fn main() {
     );
     times.push(duration);
 
-    let mut client0 = clients[0].clone();
-
     if verbose {
-        println!("[!] Starting protocol with client0 and server...\n");
+        println!("[!] Starting protocol with client and server...\n");
         println!("[C] Running Round 1...");
     }
     let start = Instant::now();
-    let m1 = round_1(&mut client0);
+    let m1 = round_1(&mut client);
     lengths.push(get_m1_length(&m1));
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 1 is {:?}", duration);
@@ -117,28 +110,28 @@ fn main() {
     if verbose {
         println!("[C -> S] Sending m1 to server...\n");
     }
-    client0.send_m1(m1, &mut server);
+    client.send_m1(m1, &mut server);
 
     if verbose {
         println!("[S] Running Round 2...");
     }
     let start = Instant::now();
-    let m2 = round_2(&mut server, &config, client0.get_id());
+    let m2 = round_2(&mut server, &config, client.get_id());
     lengths.push(get_m2_length(&m2));
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 2 is {:?}", duration);
     times.push(duration);
 
     if verbose {
-        println!("[C <- S] Sending m2 to client0...\n");
+        println!("[C <- S] Sending m2 to client...\n");
     }
-    server.send_m2(m2, &mut client0);
+    server.send_m2(m2, &mut client);
 
     if verbose {
         println!("[C] Running Round 3...");
     }
     let start = Instant::now();
-    let m3 = round_3(&mut client0, &config, verbose);
+    let m3 = round_3(&mut client, &config, verbose);
     lengths.push(get_m3_length(&m3));
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 3 is {:?}", duration);
@@ -146,7 +139,7 @@ fn main() {
     if verbose {
         println!("[C -> S] Sending m3 to server...\n");
     }
-    client0.send_m3(m3, &mut server);
+    client.send_m3(m3, &mut server);
 
     if verbose {
         println!("[S] Running Round 4...");
@@ -160,13 +153,13 @@ fn main() {
     if verbose {
         println!("[C <- S] Sending m4 to client...\n");
     }
-    server.send_m4(m4, &mut client0);
+    server.send_m4(m4, &mut client);
 
     if verbose {
         println!("[C] Running Round 5...");
     }
     let start = Instant::now();
-    let m5 = round_5(&mut client0, &config, verbose);
+    let m5 = round_5(&mut client, &config, verbose);
     lengths.push(get_m5_length(&m5));
     let duration = start.elapsed();
     times.push(duration);
@@ -174,20 +167,20 @@ fn main() {
     if verbose {
         println!("[C -> S] Sending m5 to server...\n");
     }
-    client0.send_m5(m5, &mut server);
+    client.send_m5(m5, &mut server);
 
     if verbose {
         println!("[S] Running Round 6...");
     }
     let start = Instant::now();
-    round_6(&mut server, &config, client0.get_id(), verbose);
+    round_6(&mut server, &config, client.get_id(), verbose);
     let duration = start.elapsed();
     times.push(duration);
     println!("[!] Time elapsed in Round 6 is {:?}\n", duration);
 
     println!("[!] Printing session keys...");
     let key_server = server.get_key(0);
-    let key_client = client0.get_key();
+    let key_client = client.get_key();
     print_hex(&key_client, "[C]");
     print_hex(&key_server, "[S]");
 
