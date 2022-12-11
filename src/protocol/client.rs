@@ -1,7 +1,3 @@
-use lb_vrf::{
-    keypair::{PublicKey, SecretKey},
-    poly256::Poly256,
-};
 use oqs::{
     kem,
     sig::{self, Signature},
@@ -15,14 +11,14 @@ use super::protocol::{CiphertextType, M2Message};
 #[derive(Debug)]
 pub struct Client {
     id: u32,
-    ek: Option<SecretKey>,
+    ek: Option<kem::SecretKey>,
     ni: Vec<u8>,
-    vks: Vec<PublicKey>,
+    vks: Vec<kem::PublicKey>,
     //commitment and open
     commitment: (Vec<u8>, (Vec<u8>, Vec<u8>)),
     commitment_server: (Vec<u8>, (Vec<u8>, Vec<u8>)),
-    cis: Vec<Vec<u8>>,
-    proofs: Vec<([Poly256; 9], Poly256)>,
+    cis: Vec<CiphertextType>,
+    ri: Vec<u8>,
     r: Vec<u8>,
     pk: Option<kem::PublicKey>,
     k: Vec<u8>,
@@ -42,7 +38,7 @@ impl Client {
             commitment: (Vec::new(), (Vec::new(), Vec::new())),
             commitment_server: (Vec::new(), (Vec::new(), Vec::new())),
             cis: Vec::new(),
-            proofs: Vec::new(),
+            ri: Vec::new(),
             r: Vec::new(),
             pk: None,
             k: Vec::new(),
@@ -53,11 +49,11 @@ impl Client {
         }
     }
 
-    pub fn set_ek(&mut self, ek: lb_vrf::keypair::SecretKey) {
+    pub fn set_ek(&mut self, ek: kem::SecretKey) {
         self.ek = Some(ek);
     }
 
-    pub fn set_vks(&mut self, vks: Vec<lb_vrf::keypair::PublicKey>) {
+    pub fn set_vks(&mut self, vks: Vec<kem::PublicKey>) {
         self.vks = vks;
     }
 
@@ -84,8 +80,8 @@ impl Client {
         self.k = hashed_k;
     }
 
-    pub fn get_ek(&self) -> SecretKey {
-        self.ek.unwrap()
+    pub fn get_ek(&self) -> kem::SecretKey {
+        self.ek.as_ref().unwrap().clone()
     }
 
     pub fn get_signature4(&self) -> Signature {
@@ -124,12 +120,12 @@ impl Client {
         self.r.clone()
     }
 
-    pub fn get_cis(&self) -> Vec<Vec<u8>> {
+    pub fn get_cis(&self) -> Vec<CiphertextType> {
         self.cis.clone()
     }
 
-    pub fn get_proofs(&self) -> Vec<([Poly256; 9], Poly256)> {
-        self.proofs.clone()
+    pub fn get_ri(&self) -> Vec<u8> {
+        self.ri.clone()
     }
 
     pub fn get_commitment(&self) -> (Vec<u8>, (Vec<u8>, Vec<u8>)) {
@@ -140,7 +136,7 @@ impl Client {
         self.commitment_server.clone()
     }
 
-    pub fn get_vks(&self) -> Vec<PublicKey> {
+    pub fn get_vks(&self) -> Vec<kem::PublicKey> {
         self.vks.clone()
     }
 
@@ -172,7 +168,7 @@ impl Client {
         self.signature2 = Some(signature2);
     }
 
-    pub fn get_m2_info(&self) -> (Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey, Signature) {
+    pub fn get_m2_info(&self) -> (Vec<CiphertextType>, Vec<u8>, oqs::kem::PublicKey, Signature) {
         (
             self.cis.clone(),
             self.r.clone(),
@@ -181,9 +177,9 @@ impl Client {
         )
     }
 
-    pub fn receive_m4(&mut self, m4: (Vec<([Poly256; 9], Poly256)>, Signature)) {
-        let (proofs, signature4) = m4;
-        self.proofs = proofs;
+    pub fn receive_m4(&mut self, m4: (Vec<u8>, Signature)) {
+        let (r, signature4) = m4;
+        self.r = r;
         self.signature4 = Some(signature4);
     }
 }
@@ -192,13 +188,13 @@ impl Clone for Client {
     fn clone(&self) -> Client {
         Client {
             id: self.id,
-            ek: self.ek,
+            ek: self.ek.clone(),
             ni: self.ni.clone(),
             vks: self.vks.clone(),
             commitment: self.commitment.clone(),
             commitment_server: self.commitment_server.clone(),
             cis: self.cis.clone(),
-            proofs: self.proofs.clone(),
+            ri: self.ri.clone(),
             r: self.r.clone(),
             pk: self.pk.clone(),
             k: self.k.clone(),

@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use lb_vrf::{lbvrf::Proof, poly256::Poly256};
 use oqs::{
     kem::{self, Ciphertext},
     sig::{self, Signature},
@@ -17,14 +16,13 @@ use super::{
 
 #[derive(Debug)]
 pub struct Server {
-    clients_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)>,
+    clients_keys: Vec<(kem::PublicKey, kem::SecretKey)>,
     kem_keys: HashMap<u32, (kem::PublicKey, kem::SecretKey)>,
     comms: HashMap<u32, Vec<u8>>,
     comms_server: HashMap<u32, Vec<u8>>,
     opens_server: HashMap<u32, (Vec<u8>, Vec<u8>)>,
-    cis: Vec<Vec<u8>>,
-    yis: Vec<Vec<u8>>,
-    proofs: Vec<Proof>,
+    cis: Vec<CiphertextType>,
+    r: Vec<u8>,
     ns: HashMap<u32, Vec<u8>>,
     k: HashMap<u32, Vec<u8>>,
     ctxis: HashMap<u32, CiphertextType>,
@@ -42,8 +40,7 @@ impl Server {
             comms_server: HashMap::new(),
             opens_server: HashMap::new(),
             cis: Vec::new(),
-            yis: Vec::new(),
-            proofs: Vec::new(),
+            r: Vec::new(),
             ns: HashMap::new(),
             k: HashMap::new(),
             ctxis: HashMap::new(),
@@ -77,13 +74,11 @@ impl Server {
         self.kem_keys.insert(index, keys);
     }
 
-    pub fn add_key(&mut self, key: (lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)) {
+    pub fn add_key(&mut self, key: (kem::PublicKey, kem::SecretKey)) {
         self.clients_keys.push(key);
     }
 
-    pub fn get_clients_keys(
-        &self,
-    ) -> Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> {
+    pub fn get_clients_keys(&self) -> Vec<(kem::PublicKey, kem::SecretKey)> {
         self.clients_keys.clone()
     }
 
@@ -134,22 +129,16 @@ impl Server {
         self.signature_keys.0.clone()
     }
 
-    pub fn add_proofs_and_ciphertexts(
-        &mut self,
-        cis: &[Vec<u8>],
-        yis: &[Vec<u8>],
-        proofs: &Vec<Proof>,
-    ) {
+    pub fn add_proofs_and_ciphertexts(&mut self, cis: &Vec<CiphertextType>, r: &Vec<u8>) {
         self.cis = cis.to_owned();
-        self.yis = yis.to_owned();
-        self.proofs = proofs.to_owned();
+        self.r = r.to_owned();
     }
 
-    pub fn get_proofs(&self) -> Vec<Proof> {
-        self.proofs.clone()
+    pub fn get_r(&self) -> Vec<u8> {
+        self.r.clone()
     }
 
-    pub fn get_cis(&self) -> Vec<Vec<u8>> {
+    pub fn get_cis(&self) -> Vec<CiphertextType> {
         self.cis.clone()
     }
 
@@ -162,7 +151,7 @@ impl Server {
         self.add_commitment_server(comm_s, id);
     }
 
-    pub fn send_m4(&self, m4: (Vec<([Poly256; 9], Poly256)>, Signature), client: &mut Client) {
+    pub fn send_m4(&self, m4: (Vec<u8>, Signature), client: &mut Client) {
         client.receive_m4(m4);
     }
 

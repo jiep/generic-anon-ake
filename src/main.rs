@@ -12,7 +12,6 @@ use anon_sym_ake::protocol::supported_algs::{
     get_kem_algorithm, get_signature_algorithm, print_supported_kems, print_supported_signatures,
 };
 use anon_sym_ake::protocol::utils::print_hex;
-use anon_sym_ake::protocol::vrf::vrf_gen_seed_param;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -45,7 +44,6 @@ fn main() {
     if verbose {
         println!("[!] Generating param and seed for PQ VRF...");
     }
-    let (seed, param) = vrf_gen_seed_param();
 
     // Init PQ signature scheme
     println!("[!] Setting {} as signature scheme...", args.sig);
@@ -74,7 +72,7 @@ fn main() {
 
     let kemalg = kemalg.unwrap();
 
-    let config: Config = Config::new(users, seed, param, kemalg, sigalg);
+    let config: Config = Config::new(users, kemalg, sigalg);
 
     if verbose {
         println!("[!] Creating {} clients...", users);

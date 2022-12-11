@@ -11,4 +11,6 @@ fn prf_works() {
     let n2 = prf(&key, &nonce2);
 
     assert_ne!(n, n2);
+    assert!(n.len() == 16);
+    assert!(n2.len() == 16);
 }
