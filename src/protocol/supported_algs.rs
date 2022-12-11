@@ -1,16 +1,8 @@
 use oqs::{kem, sig};
 
-pub static SUPPORTED_KEMS: &[&str] = &[
-    "Kyber512",
-    "Kyber768",
-    "Kyber1024",
-];
+pub static SUPPORTED_KEMS: &[&str] = &["Kyber512", "Kyber768", "Kyber1024"];
 
-pub static SUPPORTED_SIGS: &[&str] = &[
-    "Dilithium2",
-    "Dilithium3",
-    "Dilithium5",
-];
+pub static SUPPORTED_SIGS: &[&str] = &["Dilithium2", "Dilithium3", "Dilithium5"];
 
 fn print_static_array(arr: &'static [&str]) {
     for elem in arr {
