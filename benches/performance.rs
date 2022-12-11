@@ -16,8 +16,8 @@ fn bench_1(c: &mut Criterion) {
     group.sample_size(10);
 
     for users in [16384, 8192, 4096, 2048, 1024, 512, 256, 128, 64] {
-        for kemalg_str in ["Kyber1024"] {
-            for sigalg_str in ["Dilithium5"] {
+        for kemalg_str in ["Kyber1024", "Kyber768", "Kyber512"] {
+            for sigalg_str in ["Dilithium5", "Dilithium3", "Dilithium2"] {
                 let kemalg = get_kem_algorithm(kemalg_str).unwrap();
                 let sigalg = get_signature_algorithm(sigalg_str).unwrap();
                 let config: Config = Config::new(users, kemalg, sigalg);
@@ -42,7 +42,7 @@ fn bench_1(c: &mut Criterion) {
 
                 round_6(&mut server, &config, client.get_id(), false);
 
-                let parameter_string = format!("{}-{}", kemalg_str, users);
+                let parameter_string = format!("{}-{}-{}", kemalg_str, sigalg_str, users);
 
                 let _x0 = (0, 0);
                 group.bench_with_input(
@@ -91,8 +91,8 @@ fn bench_2(c: &mut Criterion) {
     group.sample_size(10);
 
     for users in [16384, 8192, 4096, 2048, 1024, 512, 256, 128, 64] {
-        for kemalg_str in ["Kyber1024"] {
-            for sigalg_str in ["Dilithium5"] {
+        for kemalg_str in ["Kyber1024", "Kyber768", "Kyber512"] {
+            for sigalg_str in ["Dilithium5", "Dilithium3", "Dilithium2"] {
                 let kemalg = get_kem_algorithm(kemalg_str).unwrap();
                 let sigalg = get_signature_algorithm(sigalg_str).unwrap();
                 let config: Config = Config::new(users, kemalg, sigalg);
@@ -117,7 +117,7 @@ fn bench_2(c: &mut Criterion) {
 
                 round_6(&mut server, &config, client.get_id(), false);
 
-                let parameter_string = format!("{}-{}", kemalg_str, users);
+                let parameter_string = format!("{}-{}-{}", kemalg_str, sigalg_str, users);
 
                 let _x5 = (0, 0);
                 group.bench_with_input(
