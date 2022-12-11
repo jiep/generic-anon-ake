@@ -20,7 +20,7 @@ aes = "0.8.2"
 [dependencies.oqs]
 version = "0.7.2"
 default-features = false
-features = ["dilithium", "falcon", "sphincs", "kyber"]
+features = ["dilithium", "kyber"]
 
 [dev-dependencies]
 criterion = "0.4.0"
