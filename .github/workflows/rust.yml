@@ -25,6 +25,9 @@ jobs:
       - name: Check Clippy
         run: cargo clippy -- -D warnings
 
+      - name: Run benchamarks
+        run: cargo bench
+
   deploy:
     name: Create binaries ${{ matrix.config.target }}
     needs: build_and_test
