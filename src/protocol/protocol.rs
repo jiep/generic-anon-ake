@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use aes_gcm::aes::cipher::generic_array::{
     typenum::{UInt, UTerm, B0, B1},
@@ -66,7 +66,6 @@ pub fn round_1(client: &mut Client) -> (Vec<u8>, u32) {
 }
 
 pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
-    let start = Instant::now();
     let (pk, sk) = config.get_kem_algorithm().keypair().unwrap();
     let kemalg = config.get_kem_algorithm();
     server.set_kem_keypair((pk.clone(), sk), id);
@@ -78,8 +77,6 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
     let client_keys: Vec<(kem::PublicKey, kem::SecretKey)> = server.get_clients_keys();
 
     let mut cis: Vec<CiphertextType> = Vec::new();
-    let duration = start.elapsed();
-    println!("[!] Time elapsed in Round 2 (init) is {:?}", duration);
 
     for i in 0..users {
         let (ek, _) = client_keys.get(i as usize).unwrap();
