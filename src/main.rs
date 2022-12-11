@@ -5,8 +5,8 @@ use clap::Parser;
 
 use anon_sym_ake::protocol::config::Config;
 use anon_sym_ake::protocol::protocol::{
-    get_m1_length, get_m2_length, get_m3_length, get_m4_length, get_m5_length, 
-    registration, round_1, round_2, round_3, round_4, round_5, round_6, show_diagram,
+    get_m1_length, get_m2_length, get_m3_length, get_m4_length, get_m5_length, registration,
+    round_1, round_2, round_3, round_4, round_5, round_6, show_diagram,
 };
 use anon_sym_ake::protocol::supported_algs::{
     get_kem_algorithm, get_signature_algorithm, print_supported_kems, print_supported_signatures,

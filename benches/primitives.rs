@@ -2,9 +2,9 @@ use std::time::Duration;
 
 use anon_sym_ake::protocol::{
     pke::{pke_dec, pke_enc},
+    prf::prf,
     supported_algs::{get_kem_algorithm, get_signature_algorithm},
     utils::get_random_key32,
-    prf::prf,
 };
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
