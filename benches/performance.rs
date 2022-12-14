@@ -16,7 +16,9 @@ fn bench_1(c: &mut Criterion) {
     group.sample_size(10);
 
     for users in (6..17).map(|x| 2_u32.pow(x)).rev().collect::<Vec<u32>>() {
-        for (kemalg_str, sigalg_str) in vec![("Kyber1024", "Dilithium5"), ("Kyber768", "Dilithium3")] {
+        for (kemalg_str, sigalg_str) in
+            vec![("Kyber1024", "Dilithium5"), ("Kyber768", "Dilithium3")]
+        {
             let kemalg = get_kem_algorithm(kemalg_str).unwrap();
             let sigalg = get_signature_algorithm(sigalg_str).unwrap();
             let config: Config = Config::new(users, kemalg, sigalg);
@@ -89,7 +91,9 @@ fn bench_2(c: &mut Criterion) {
     group.sample_size(10);
 
     for users in (6..17).map(|x| 2_u32.pow(x)).rev().collect::<Vec<u32>>() {
-        for (kemalg_str, sigalg_str) in vec![("Kyber1024", "Dilithium5"), ("Kyber768", "Dilithium3")] {
+        for (kemalg_str, sigalg_str) in
+            vec![("Kyber1024", "Dilithium5"), ("Kyber768", "Dilithium3")]
+        {
             let kemalg = get_kem_algorithm(kemalg_str).unwrap();
             let sigalg = get_signature_algorithm(sigalg_str).unwrap();
             let config: Config = Config::new(users, kemalg, sigalg);
