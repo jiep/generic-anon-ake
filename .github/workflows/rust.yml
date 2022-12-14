@@ -7,6 +7,12 @@ jobs:
     name: Build binary, test, and check format
     runs-on: ubuntu-latest
     steps:
+      - name: Check machine info
+        run: lscpu
+
+      - name: Check CPU extensions
+        run: cat /proc/cpuinfo
+
       - name: Checkout repo
         uses: actions/checkout@v3
         
