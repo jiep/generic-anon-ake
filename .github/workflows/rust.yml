@@ -10,9 +10,6 @@ jobs:
       - name: Check machine info
         run: lscpu
 
-      - name: Check CPU extensions
-        run: cat /proc/cpuinfo
-
       - name: Checkout repo
         uses: actions/checkout@v3
         
