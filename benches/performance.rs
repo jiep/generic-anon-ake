@@ -9,13 +9,21 @@ use anon_sym_ake::{
     protocol::supported_algs::get_signature_algorithm,
 };
 
+const SAMPLES: usize = 100;
+const LOW_LIMIT: u32 = 6;
+const UPP_LIMIT: u32 = 17;
+
 fn bench_1(c: &mut Criterion) {
     let mut group = c.benchmark_group("Protocol");
 
     group.measurement_time(Duration::from_secs(1));
-    group.sample_size(10);
+    group.sample_size(SAMPLES);
 
-    for users in (6..17).map(|x| 2_u32.pow(x)).rev().collect::<Vec<u32>>() {
+    for users in (LOW_LIMIT..UPP_LIMIT)
+        .map(|x| 2_u32.pow(x))
+        .rev()
+        .collect::<Vec<u32>>()
+    {
         for (kemalg_str, sigalg_str) in
             vec![("Kyber1024", "Dilithium5"), ("Kyber768", "Dilithium3")]
         {
@@ -88,9 +96,13 @@ fn bench_2(c: &mut Criterion) {
     let mut group = c.benchmark_group("Protocol");
 
     group.measurement_time(Duration::from_secs(1));
-    group.sample_size(10);
+    group.sample_size(SAMPLES);
 
-    for users in (6..17).map(|x| 2_u32.pow(x)).rev().collect::<Vec<u32>>() {
+    for users in (LOW_LIMIT..UPP_LIMIT)
+        .map(|x| 2_u32.pow(x))
+        .rev()
+        .collect::<Vec<u32>>()
+    {
         for (kemalg_str, sigalg_str) in
             vec![("Kyber1024", "Dilithium5"), ("Kyber768", "Dilithium3")]
         {
