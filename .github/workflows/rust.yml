@@ -28,8 +28,28 @@ jobs:
       - name: Check Clippy
         run: cargo clippy -- -D warnings
 
-      - name: Run benchamarks
-        run: cargo bench
+      - name: Run benchmark
+        run: | 
+          cargo criterion --message-format=json | criterion-table > BENCHMARKS.md
+          mv BENCHMARKS.md target/criterion/
+
+      - name: Set Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+
+      - name: Generate graphics
+        run: |
+          pip install -r graphics/requirements.txt
+          python graphics/format_data.py
+          zip -r benchmark-linux.zip target/criterion/*
+
+      - name: Archive results
+        uses: actions/upload-artifact@v2
+        with:
+          name: benchmark-linux.zip
+          path: ./benchmark-linux.zip
+          retention-days: 7
 
   deploy:
     name: Create binaries ${{ matrix.config.target }}
@@ -125,10 +145,19 @@ jobs:
           cargo criterion --message-format=json | criterion-table > BENCHMARKS.md
           mv BENCHMARKS.md target/criterion/
 
+      - name: Set Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+
+      - name: Generate graphics
+        run: |
+          pip install -r graphics/requirements.txt
+          python graphics/format_data.py
+        
       - name: Package results
         shell: bash
         run: |
-          BIN=anon-sym-ake
           zip -r benchmark-linux.zip target/criterion/*
 
       - name: Add to Releases
