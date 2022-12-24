@@ -6,7 +6,7 @@ import pandas as pd
 import seaborn as sns
 
 COLORS = {
-    'Kyber512+Dilithium3': "#B79762",
+    'Kyber512+Dilithium2': "#B79762",
     'Kyber768+Dilithium3': "#FF4A46",
     'Kyber1024+Dilithium5': "#0000A6"
 }
@@ -23,7 +23,8 @@ def get_samples(path):
 def load_data(pathfile):
     headers = ["Algorithm", "Clients", "Round", "Time"]
     all_samples = np.array([headers])
-    for path in glob.glob(pathfile + "*/*/**"):
+    for path in glob.glob(pathfile + "*/**"):
+        print(path)
         alg_clients = path.split("/")[-1]
         alg = alg_clients.split("-")[0] + "+" + alg_clients.split("-")[1]
         clients = alg_clients.split("-")[-1]
