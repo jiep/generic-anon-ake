@@ -38,6 +38,11 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Install dependencies
+        run: |
+          cargo install cargo-criterion
+          cargo install criterion-table
+
       - name: Generate graphics
         run: |
           pip install -r graphics/requirements.txt
