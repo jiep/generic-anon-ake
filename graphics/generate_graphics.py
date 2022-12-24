@@ -119,7 +119,7 @@ def plot_scalability(df, output_path):
     p.legend(h, l)
     reorderLegend(p, ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5"])
 
-    figname = "{}scalability_time.png".format(output_path)
+    figname = "{}scalability.png".format(output_path)
     fig.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
 
@@ -149,7 +149,7 @@ def plot_rounds(df, output_path):
     reorderLegend(axes[0, 2], ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5"])
     # axes[0, 2].legend(h, l, bbox_to_anchor=(1.05, 1.05))
     axes[1, 2].get_legend().remove()
-    figname = "{}round_time.png".format(output_path)
+    figname = "{}rounds.png".format(output_path)
     plt.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
 
@@ -169,7 +169,7 @@ def plot_registration(df, output_path):
     l, h = zip(*sorted(zip(l, h)))
     p.legend(h, l)
 
-    figname = "{}registration_time.png".format(output_path)
+    figname = "{}registration.png".format(output_path)
     plt.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
 
@@ -184,7 +184,7 @@ def plot_pke(df, output_path):
     axes.set_xlabel('Operation', fontsize="x-large")
     axes.set_ylabel('Time (nanoseconds)', fontsize="x-large")
 
-    figname = "{}pke_time.png".format(output_path)
+    figname = "{}pke.png".format(output_path)
     plt.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
 
@@ -198,7 +198,7 @@ def plot_sig(df, output_path):
     axes.set_xlabel('Operation', fontsize="x-large")
     axes.set_ylabel('Time (nanoseconds)', fontsize="x-large")
 
-    figname = "{}sig_time.png".format(output_path)
+    figname = "{}sig.png".format(output_path)
     plt.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
 
