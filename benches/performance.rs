@@ -9,7 +9,7 @@ use anon_sym_ake::{
     protocol::supported_algs::get_signature_algorithm,
 };
 
-const SAMPLES: usize = 100;
+const SAMPLES: usize = 10;
 const LOW_LIMIT: u32 = 6;
 const UPP_LIMIT: u32 = 17;
 

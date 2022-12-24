@@ -46,7 +46,7 @@ jobs:
       - name: Generate graphics
         run: |
           pip install -r graphics/requirements.txt
-          python graphics/format_data.py
+          python graphics/generate_graphics.py
           zip -r benchmark-linux.zip target/criterion/*
 
       - name: Archive results
@@ -150,15 +150,10 @@ jobs:
           cargo criterion --message-format=json | criterion-table > BENCHMARKS.md
           mv BENCHMARKS.md target/criterion/
 
-      - name: Set Python 3.10
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.10'
-
       - name: Generate graphics
         run: |
           pip install -r graphics/requirements.txt
-          python graphics/format_data.py
+          python graphics/generate_graphics.py
         
       - name: Package results
         shell: bash

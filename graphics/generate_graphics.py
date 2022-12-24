@@ -52,11 +52,8 @@ def load_csv(input_path):
     df = pd.read_csv(input_path + 'data.csv')
     return df
 
-
-def plot_scalability(input_path, output_path):
-
-    df = load_csv(input_path)
-    print(df)
+def plot_scalability(df, output_path):
+    # print(df)
     fig, axes = plt.subplots(1, figsize=(18,9), dpi=300, sharey=False)
     fig.suptitle('Scalability', fontsize=20)
     fig.subplots_adjust(hspace=0.0, wspace=0.0)
@@ -64,8 +61,7 @@ def plot_scalability(input_path, output_path):
 
     df2 = df2.groupby(['Algorithm', 'Clients', 'Round'])['Time'].mean().reset_index()
     df2 = df2.groupby(['Algorithm', 'Clients'])['Time'].sum().reset_index()
-    print(df2)
-
+    
     p = sns.lineplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, linewidth=4, style="Algorithm", markers=True, dashes=False)
     axes.set_xlabel('Number of clients', fontsize="x-large")
     axes.set_ylabel('Time (nanoseconds)', fontsize="x-large")
@@ -78,33 +74,38 @@ def plot_scalability(input_path, output_path):
     fig.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
 
-def plot_scalability2(input_path, output_path):
+# def plot_scalability2(input_path, output_path):
 
-    df = load_csv(input_path)
-    print(df)
-    fig, axes = plt.subplots(1, figsize=(18,9), dpi=300, sharey=False)
-    fig.suptitle('Round', fontsize=20)
-    fig.subplots_adjust(hspace=0.0, wspace=0.0)
-    df2 = df[df['Round'] != 'Registration']
+#     df = load_csv(input_path)
+#     # print(df)
+#     fig, axes = plt.subplots(3, 3, figsize=(18,9), dpi=300, sharey=False)
+#     fig.suptitle('Round', fontsize=20)
+#     fig.subplots_adjust(hspace=0.0, wspace=0.0)
+#     df2 = df[df['Round'] != 'Registration']
 
-    p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS)
-    axes.set_xlabel('Number of clients', fontsize="x-large")
-    axes.set_ylabel('Time (nanoseconds)', fontsize="x-large")
+#     rounds = ["Round 1", "Round 2", "Round 3", "Round 4", "Round 5", "Round 6"]
+#     for (i, round) in enumerate(rounds):
+#         df2 = df2[(df2['Round'] == round)]
 
-    h, l = p.get_legend_handles_labels()
-    l, h = zip(*sorted(zip(l, h)))
-    p.legend(h, l)
+#         # df2 = df2.groupby(['Algorithm', 'Clients', 'Round'])['Time'].mean().reset_index()
+#         # df2 = df2.groupby(['Algorithm', 'Clients'])['Time'].sum().reset_index()
 
-    figname = "{}round_time.png".format(output_path)
-    fig.savefig(figname, bbox_inches="tight")
-    print("Saved file to {}".format(figname), flush=True)
+#         sns.barplot(ax=axes[i], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS)
+
+#         axes.set_xlabel('Number of clients', fontsize="x-large")
+#         axes.set_ylabel('Time (nanoseconds)', fontsize="x-large")
+
+#     figname = "{}round_time.png".format(output_path)
+#     plt.savefig(figname)
+#     print("Saved file to {}".format(figname), flush=True)
 
 def main(): 
     PATH = "./target/criterion/Protocol"
     OUTPUT = "./target/criterion/"
     save_to_csv(PATH, OUTPUT)
-    plot_scalability(OUTPUT, OUTPUT)
-    plot_scalability2(OUTPUT, OUTPUT)
+    df = load_csv(PATH)
+    plot_scalability(df, OUTPUT)
+    # plot_scalability2(OUTPUT, OUTPUT)
 
 if __name__ == '__main__':
     main()
