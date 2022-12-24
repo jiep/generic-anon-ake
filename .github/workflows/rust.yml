@@ -35,8 +35,7 @@ jobs:
 
       - name: Run benchmark
         run: | 
-          cargo criterion --message-format=json | criterion-table > BENCHMARKS.md
-          mv BENCHMARKS.md target/criterion/
+          cargo bench
 
       - name: Set Python 3.10
         uses: actions/setup-python@v3
@@ -147,9 +146,7 @@ jobs:
 
       - name: Run benchmark
         run: | 
-          cargo criterion --message-format=json | criterion-table > BENCHMARKS.md
-          mv BENCHMARKS.md target/criterion/
-
+          cargo bench
       - name: Generate graphics
         run: |
           pip install -r graphics/requirements.txt

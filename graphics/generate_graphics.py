@@ -53,7 +53,7 @@ def load_csv(input_path):
     return df
 
 def plot_scalability(df, output_path):
-    # print(df)
+    print(df)
     fig, axes = plt.subplots(1, figsize=(18,9), dpi=300, sharey=False)
     fig.suptitle('Scalability', fontsize=20)
     fig.subplots_adjust(hspace=0.0, wspace=0.0)
@@ -100,10 +100,10 @@ def plot_scalability(df, output_path):
 #     print("Saved file to {}".format(figname), flush=True)
 
 def main(): 
-    PATH = "./target/criterion/Protocol"
+    PATH = "./target/criterion/Protocol/"
     OUTPUT = "./target/criterion/"
     save_to_csv(PATH, OUTPUT)
-    df = load_csv(PATH)
+    df = load_csv(OUTPUT)
     plot_scalability(df, OUTPUT)
     # plot_scalability2(OUTPUT, OUTPUT)
 

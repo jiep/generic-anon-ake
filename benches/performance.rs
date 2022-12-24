@@ -11,12 +11,18 @@ use anon_sym_ake::{
 
 const SAMPLES: usize = 10;
 const LOW_LIMIT: u32 = 6;
-const UPP_LIMIT: u32 = 17;
+const UPP_LIMIT: u32 = 10; // Fix: Change to 17
+const WARMUP: u64 = 1;
+const ALGS: [(&'static str, &'static str); 3] = [
+    ("Kyber1024", "Dilithium5"),
+    ("Kyber768", "Dilithium3"),
+    ("Kyber512", "Dilithium2"),
+];
 
 fn bench_1(c: &mut Criterion) {
     let mut group = c.benchmark_group("Protocol");
 
-    group.measurement_time(Duration::from_secs(1));
+    group.measurement_time(Duration::from_secs(WARMUP));
     group.sample_size(SAMPLES);
 
     for users in (LOW_LIMIT..UPP_LIMIT)
@@ -24,9 +30,7 @@ fn bench_1(c: &mut Criterion) {
         .rev()
         .collect::<Vec<u32>>()
     {
-        for (kemalg_str, sigalg_str) in
-            vec![("Kyber1024", "Dilithium5"), ("Kyber768", "Dilithium3")]
-        {
+        for (kemalg_str, sigalg_str) in ALGS {
             let kemalg = get_kem_algorithm(kemalg_str).unwrap();
             let sigalg = get_signature_algorithm(sigalg_str).unwrap();
             let config: Config = Config::new(users, kemalg, sigalg);
@@ -95,7 +99,7 @@ fn bench_1(c: &mut Criterion) {
 fn bench_2(c: &mut Criterion) {
     let mut group = c.benchmark_group("Protocol");
 
-    group.measurement_time(Duration::from_secs(1));
+    group.measurement_time(Duration::from_secs(WARMUP));
     group.sample_size(SAMPLES);
 
     for users in (LOW_LIMIT..UPP_LIMIT)
@@ -103,9 +107,7 @@ fn bench_2(c: &mut Criterion) {
         .rev()
         .collect::<Vec<u32>>()
     {
-        for (kemalg_str, sigalg_str) in
-            vec![("Kyber1024", "Dilithium5"), ("Kyber768", "Dilithium3")]
-        {
+        for (kemalg_str, sigalg_str) in ALGS {
             let kemalg = get_kem_algorithm(kemalg_str).unwrap();
             let sigalg = get_signature_algorithm(sigalg_str).unwrap();
             let config: Config = Config::new(users, kemalg, sigalg);
