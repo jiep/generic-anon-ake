@@ -46,7 +46,7 @@ jobs:
       - name: Archive results
         uses: actions/upload-artifact@v3
         with:
-          name: benchmark-linux.zip
+          name: benchmark-linux
           path: ./benchmark-linux.zip
           retention-days: 7
 

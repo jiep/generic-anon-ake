@@ -56,7 +56,6 @@ def load_csv(input_path):
 def plot_scalability(df, output_path):
     print(df)
     fig, axes = plt.subplots(1, figsize=(18,9), dpi=300, sharey=False)
-    fig.suptitle('Scalability', fontsize=20)
     fig.subplots_adjust(hspace=0.0, wspace=0.0)
     df2 = df[df['Round'] != 'Registration']
 
@@ -75,30 +74,39 @@ def plot_scalability(df, output_path):
     fig.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
 
-# def plot_scalability2(input_path, output_path):
+def plot_rounds(input_path, output_path):
 
-#     df = load_csv(input_path)
-#     # print(df)
-#     fig, axes = plt.subplots(3, 3, figsize=(18,9), dpi=300, sharey=False)
-#     fig.suptitle('Round', fontsize=20)
-#     fig.subplots_adjust(hspace=0.0, wspace=0.0)
-#     df2 = df[df['Round'] != 'Registration']
+    df = load_csv(input_path)
+    # print(df)
+    fig, axes = plt.subplots(2, 3, figsize=(30,9), dpi=300, sharey=False)
+    fig.subplots_adjust(hspace=0.4, wspace=0.2)
+    df2 = df[df['Round'] != 'Registration']
+    # print("------------")
+    # print(df2)
 
-#     rounds = ["Round 1", "Round 2", "Round 3", "Round 4", "Round 5", "Round 6"]
-#     for (i, round) in enumerate(rounds):
-#         df2 = df2[(df2['Round'] == round)]
+    rounds = ["Round 1", "Round 2", "Round 3", "Round 4", "Round 5", "Round 6"]
+    for (i, round) in enumerate(rounds):
+        df2 = df[df['Round'] == round]
+        # print(df2)
 
-#         # df2 = df2.groupby(['Algorithm', 'Clients', 'Round'])['Time'].mean().reset_index()
-#         # df2 = df2.groupby(['Algorithm', 'Clients'])['Time'].sum().reset_index()
+        row = i // 3
+        col = i % 3
+        p = sns.barplot(ax=axes[row, col], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5"])
 
-#         sns.barplot(ax=axes[i], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS)
+        axes[row, col].set_xlabel('Number of clients', fontsize="x-large")
+        axes[row, col].set_ylabel('Time (nanoseconds)', fontsize="x-large")
+        axes[row, col].set_title(round, fontsize="x-large")
+        axes[row, col].get_legend().remove()
 
-#         axes.set_xlabel('Number of clients', fontsize="x-large")
-#         axes.set_ylabel('Time (nanoseconds)', fontsize="x-large")
+    h, l = p.get_legend_handles_labels()
+    l, h = zip(*sorted(zip(l, h)))
+    p.legend(h, l)
 
-#     figname = "{}round_time.png".format(output_path)
-#     plt.savefig(figname)
-#     print("Saved file to {}".format(figname), flush=True)
+    axes[0, 2].legend(h, l, bbox_to_anchor=(1.05, 1.05))
+    axes[1, 2].get_legend().remove()
+    figname = "{}round_time.png".format(output_path)
+    plt.savefig(figname, bbox_inches="tight")
+    print("Saved file to {}".format(figname), flush=True)
 
 def main(): 
     PATH = "./target/criterion/Protocol/"
@@ -106,7 +114,7 @@ def main():
     save_to_csv(PATH, OUTPUT)
     df = load_csv(OUTPUT)
     plot_scalability(df, OUTPUT)
-    # plot_scalability2(OUTPUT, OUTPUT)
+    plot_rounds(OUTPUT, OUTPUT)
 
 if __name__ == '__main__':
     main()
