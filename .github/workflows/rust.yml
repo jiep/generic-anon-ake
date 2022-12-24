@@ -28,6 +28,11 @@ jobs:
       - name: Check Clippy
         run: cargo clippy -- -D warnings
 
+      - name: Install dependencies
+        run: |
+          cargo install cargo-criterion
+          cargo install criterion-table
+
       - name: Run benchmark
         run: | 
           cargo criterion --message-format=json | criterion-table > BENCHMARKS.md
@@ -37,11 +42,6 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          cargo install cargo-criterion
-          cargo install criterion-table
 
       - name: Generate graphics
         run: |
