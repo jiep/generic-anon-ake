@@ -9,9 +9,9 @@ use anon_sym_ake::{
     protocol::supported_algs::get_signature_algorithm,
 };
 
-const SAMPLES: usize = 100;
+const SAMPLES: usize = 10;
 const LOW_LIMIT: u32 = 6;
-const UPP_LIMIT: u32 = 17; // Fix: Change to 17
+const UPP_LIMIT: u32 = 10; // Fix: Change to 17
 const WARMUP: u64 = 1;
 const ALGS: [(&'static str, &'static str); 3] = [
     ("Kyber1024", "Dilithium5"),

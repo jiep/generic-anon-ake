@@ -26,6 +26,13 @@ fn bench_1(c: &mut Criterion) {
 
         let _x0 = (0, 0);
         group.bench_with_input(
+            BenchmarkId::new("KEYGEN", parameter_string.clone()),
+            &_x0,
+            |b, _| b.iter(|| kemalg.keypair().unwrap()),
+        );
+
+        let _x0 = (0, 0);
+        group.bench_with_input(
             BenchmarkId::new("ENC", parameter_string.clone()),
             &_x0,
             |b, _| b.iter(|| pke_enc(&kemalg, &pk, &m)),
@@ -77,6 +84,13 @@ fn bench_3(c: &mut Criterion) {
         sigalg.verify(&m, &signature, &pk).unwrap();
 
         let parameter_string = format!("{}", sigalg_str);
+
+        let _x0 = (0, 0);
+        group.bench_with_input(
+            BenchmarkId::new("KEYGEN", parameter_string.clone()),
+            &_x0,
+            |b, _| b.iter(|| sigalg.keypair().unwrap()),
+        );
 
         let _x0 = (0, 0);
         group.bench_with_input(
