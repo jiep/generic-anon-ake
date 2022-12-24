@@ -45,7 +45,7 @@ jobs:
           zip -r benchmark-linux.zip target/criterion/*
 
       - name: Archive results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: benchmark-linux.zip
           path: ./benchmark-linux.zip
