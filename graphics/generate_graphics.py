@@ -109,10 +109,11 @@ def plot_scalability(df, output_path):
 
     df2 = df2.groupby(['Algorithm', 'Clients', 'Round'])['Time'].mean().reset_index()
     df2 = df2.groupby(['Algorithm', 'Clients'])['Time'].sum().reset_index()
+    df2['Time'] = df2['Time'] / 1000000
     
     p = sns.lineplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, linewidth=4, style="Algorithm", markers=True, dashes=False)
     axes.set_xlabel('Number of clients', fontsize="x-large")
-    axes.set_ylabel('Time (nanoseconds)', fontsize="x-large")
+    axes.set_ylabel('Time (milliseconds)', fontsize="x-large")
 
     h, l = p.get_legend_handles_labels()
     l, h = zip(*sorted(zip(l, h)))
@@ -131,6 +132,8 @@ def plot_rounds(df, output_path):
     rounds = ["Round 1", "Round 2", "Round 3", "Round 4", "Round 5", "Round 6"]
     for (i, round) in enumerate(rounds):
         df2 = df[df['Round'] == round]
+        df2['Time'] = df2['Time'] / 1000000
+
         # print(df2)
 
         row = i // 3
@@ -138,7 +141,7 @@ def plot_rounds(df, output_path):
         p = sns.barplot(ax=axes[row, col], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5"])
 
         axes[row, col].set_xlabel('Number of clients', fontsize="x-large")
-        axes[row, col].set_ylabel('Time (nanoseconds)', fontsize="x-large")
+        axes[row, col].set_ylabel('Time (milliseconds)', fontsize="x-large")
         axes[row, col].set_title(round, fontsize="x-large")
         axes[row, col].get_legend().remove()
 
@@ -158,12 +161,13 @@ def plot_registration(df, output_path):
     fig, axes = plt.subplots(1, figsize=(18,9), dpi=300, sharey=False)
     fig.subplots_adjust(hspace=0, wspace=0)
     df2 = df[df['Round'] == 'Registration']
+    df2['Time'] = df2['Time'] / 1000000
     # print("------------")
     # print(df2)
 
     p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5"])
     axes.set_xlabel('Number of clients', fontsize="x-large")
-    axes.set_ylabel('Time (nanoseconds)', fontsize="x-large")
+    axes.set_ylabel('Time (milliseconds)', fontsize="x-large")
 
     h, l = p.get_legend_handles_labels()
     l, h = zip(*sorted(zip(l, h)))
@@ -180,9 +184,11 @@ def plot_pke(df, output_path):
     fig.subplots_adjust(hspace=0, wspace=0)
 
     df2 = df[df['Type'] == 'PKE']
+    df2['Time'] = df2['Time'] / 1000
+
     p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024"], order=["KEYGEN", "ENC", "DEC"])
     axes.set_xlabel('Operation', fontsize="x-large")
-    axes.set_ylabel('Time (nanoseconds)', fontsize="x-large")
+    axes.set_ylabel('Time (microseconds)', fontsize="x-large")
 
     figname = "{}pke.png".format(output_path)
     plt.savefig(figname, bbox_inches="tight")
@@ -194,9 +200,11 @@ def plot_sig(df, output_path):
     fig.subplots_adjust(hspace=0, wspace=0)
 
     df2 = df[df['Type'] == 'SIG']
+    df2['Time'] = df2['Time'] / 1000
+
     p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, order=["KEYGEN", "SIG", "VRY"], hue_order=["Dilithium2", "Dilithium3", "Dilithium5"])
     axes.set_xlabel('Operation', fontsize="x-large")
-    axes.set_ylabel('Time (nanoseconds)', fontsize="x-large")
+    axes.set_ylabel('Time (microseconds)', fontsize="x-large")
 
     figname = "{}sig.png".format(output_path)
     plt.savefig(figname, bbox_inches="tight")
