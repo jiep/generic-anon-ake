@@ -1,10 +1,9 @@
 use std::time::Duration;
 
 use anon_sym_ake::protocol::{
-    pke::{pke_dec, pke_enc},
     prf::prf,
     supported_algs::{get_kem_algorithm, get_signature_algorithm},
-    utils::get_random_key32,
+    utils::get_random_key32, ccpake::{ccapke_enc, ccapke_dec},
 };
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
@@ -18,9 +17,9 @@ fn bench_1(c: &mut Criterion) {
         let kemalg = get_kem_algorithm(kemalg_str).unwrap();
         let (pk, sk) = kemalg.keypair().unwrap();
         let m: Vec<u8> = get_random_key32();
-        let (ct_kem, ct_dem, iv_tag) = pke_enc(&kemalg, &pk, &m);
+        let (ct_kem, ct_dem, iv_tag) = ccapke_enc(&kemalg, &pk, &m);
 
-        pke_dec(&kemalg, sk.clone(), &ct_kem, &ct_dem, &iv_tag);
+        ccapke_dec(&kemalg, sk.clone(), &ct_kem, &ct_dem, &iv_tag);
 
         let parameter_string = format!("{}", kemalg_str);
 
@@ -35,14 +34,14 @@ fn bench_1(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::new("ENC", parameter_string.clone()),
             &_x0,
-            |b, _| b.iter(|| pke_enc(&kemalg, &pk, &m)),
+            |b, _| b.iter(|| ccapke_enc(&kemalg, &pk, &m)),
         );
 
         let _x0 = (0, 0);
         group.bench_with_input(
             BenchmarkId::new("DEC", parameter_string.clone()),
             &_x0,
-            |b, _| b.iter(|| pke_dec(&kemalg, sk.clone(), &ct_kem, &ct_dem, &iv_tag)),
+            |b, _| b.iter(|| ccapke_dec(&kemalg, sk.clone(), &ct_kem, &ct_dem, &iv_tag)),
         );
     }
     group.finish();

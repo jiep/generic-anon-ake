@@ -6,7 +6,7 @@ use aes_gcm::aes::cipher::generic_array::{
 };
 
 use oqs::{
-    kem,
+    kem::{self, PublicKey},
     sig::{self, Signature},
 };
 use sha3::{Digest, Sha3_256};
@@ -19,7 +19,7 @@ use crate::protocol::client::Client;
 use crate::protocol::config::Config;
 use crate::protocol::server::Server;
 
-use super::prf::prf;
+use super::{prf::prf, pke::check_ciphertext, ccpake::{ccapke_enc, ccapke_dec}, utils::print_hex};
 
 pub type CiphertextType = (oqs::kem::Ciphertext, Vec<u8>, TagType);
 pub type TagType = GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
@@ -50,7 +50,10 @@ pub fn registration(config: &Config) -> (Server, Client) {
         server.add_key((vk.to_owned(), ek.to_owned()));
     }
 
-    let vks = keys.iter().map(|x| x.0.to_owned()).collect();
+    println!("server keys: {:?}", server.get_clients_keys());
+
+    let vks: Vec<PublicKey> = keys.iter().map(|x| x.0.to_owned()).collect();
+    println!("vks: {:?}", &vks.clone());
     client.set_vks(vks);
 
     (server, client)
@@ -81,13 +84,20 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
     for i in 0..users {
         let (ek, _) = client_keys.get(i as usize).unwrap();
         let nonce = (i as u128).to_be_bytes();
-        // TODO: Add to PKE
-        let _ri = prf(&r, &nonce);
-
-        let c = pke_enc(kemalg, ek, &n_s);
-
+        let ri = prf(&r, &nonce);
+        // println!("r{}: {:?}", i, c);
+        let c = pke_enc(kemalg, ek, &n_s, &ri, &ri[0..12].to_vec());
+        println!("c-------------------------------");        
+        println!("c{}: {:?}", i, c);
+        println!("pk{}: {:?}", i, ek);
+        println!("r{}: {:?}", i, ri);
+        println!("nonce{}: {:?}", i, ri[0..12].to_vec());
+        println!("ns{}: {:?}", i, n_s);
+        println!("end c-------------------------------");
         cis.push(c);
     }
+
+    println!("cis (r2): {:?}", cis);
 
     server.add_proofs_and_ciphertexts(&cis, &r);
 
@@ -123,6 +133,7 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
 pub fn round_3(client: &mut Client, config: &Config, verbose: bool) -> (Vec<u8>, u32) {
     let kemalg = config.get_kem_algorithm();
     let (cis, r, pk, signature2) = client.get_m2_info();
+    println!("cis (r3): {:?}", cis);
     let id = client.get_id();
     let pk_s: sig::PublicKey = client.get_pks();
     client.set_pk(pk.clone());
@@ -154,7 +165,7 @@ pub fn round_3(client: &mut Client, config: &Config, verbose: bool) -> (Vec<u8>,
             println!("[C] Signature verification -> OK");
         }
     } else if verbose {
-        println!("[C] Signature verification -> FAIL");
+        println!("[C] Signature verification -> KO");
     }
 
     let (ct, ciphertext, tag) = cis.get(id as usize).unwrap();
@@ -207,24 +218,30 @@ pub fn round_5(
     }
 
     let pk = client.get_pk();
+    println!("cis: {:?}", cis);
 
     for j in 0..users {
-        let _cj = cis.get(j as usize).unwrap();
+        let cj = cis.get(j as usize).unwrap();
         let vkj = vks.get(j as usize).unwrap();
 
         let nonce = (j as u128).to_be_bytes();
-        // TODO: Add to PKE
-        // TODO: Add assert
-        let _rj = prf(&r, &nonce);
-        let _ci_check = pke_enc(kemalg, vkj, &ns);
+        let rj = prf(&r, &nonce);
+        let ci_check = pke_enc(kemalg, vkj, &ns, &rj, &rj[0..12].to_vec());
+        println!("to_check-------------------------------");
+        println!("c{}: {:?}", j, ci_check);
+        println!("pk{}: {:?}", j, vkj);
+        println!("r{}: {:?}", j, rj);
+        println!("nonce{}: {:?}", j, rj[0..12].to_vec());
+        println!("ns{}: {:?}", j, ns);
+        println!("end to_check-------------------------------");
 
-        // if res.is_some() {
-        //     if verbose {
-        //         println!("[C] Ciphertext verification for j={} -> OK", j);
-        //     }
-        // } else if verbose {
-        //     println!("[C] Ciphertext verification for j={} -> FAIL", j);
-        // }
+        if check_ciphertext(&ci_check, &cj) {
+            if verbose {
+                println!("[C] Ciphertext verification for j={} -> OK", j);
+            }
+        } else if verbose {
+            println!("[C] Ciphertext verification for j={} -> KO", j);
+        }
     }
 
     let mut hasher = Sha3_256::new();
@@ -237,7 +254,7 @@ pub fn round_5(
     let (_, open_s) = client.get_commitment_server();
     let (r, x) = open;
 
-    let ctxi = pke_enc(kemalg, &pk, &[r, x].concat());
+    let ctxi = ccapke_enc(kemalg, &pk, &[r, x].concat());
 
     (ctxi, open_s)
 }
@@ -251,7 +268,7 @@ pub fn round_6(server: &mut Server, config: &Config, i: u32, verbose: bool) {
     let (_, sk) = server.get_kem_keypair(i);
     let (ct, ciphertext, iv) = ctxis.get(&i).unwrap();
 
-    let open_i_concat: Vec<u8> = pke_dec(kemalg, sk, ct, ciphertext, iv);
+    let open_i_concat: Vec<u8> = ccapke_dec(kemalg, sk, ct, ciphertext, iv);
     let ni: Vec<u8> = open_i_concat[0..32].to_vec();
     let ri: Vec<u8> = open_i_concat[32..].to_vec();
     let comm_i = comms.get(&i).unwrap();
