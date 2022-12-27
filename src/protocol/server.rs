@@ -27,7 +27,7 @@ pub struct Server {
     k: HashMap<u32, Vec<u8>>,
     ctxis: HashMap<u32, CiphertextType>,
     signature_keys: (sig::PublicKey, sig::SecretKey),
-    sid: HashMap<u32, Vec<u8>>
+    sid: HashMap<u32, Vec<u8>>,
 }
 
 impl Server {

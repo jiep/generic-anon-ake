@@ -26,7 +26,7 @@ pub struct Client {
     signature2: Option<sig::Signature>,
     signature4: Option<sig::Signature>,
     pk_s: Option<sig::PublicKey>,
-    sid: Vec<u8>
+    sid: Vec<u8>,
 }
 
 impl Client {
@@ -215,7 +215,7 @@ impl Clone for Client {
             signature2: self.signature2.clone(),
             signature4: self.signature4.clone(),
             pk_s: self.pk_s.clone(),
-            sid: self.sid.clone()
+            sid: self.sid.clone(),
         }
     }
 }
