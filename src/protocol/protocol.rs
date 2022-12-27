@@ -231,6 +231,7 @@ pub fn round_5(
     hasher.update([ns, ni].concat());
     let k: Vec<u8> = hasher.finalize().to_vec();
     client.set_k(k);
+    client.set_sid(client.get_key());
 
     let (_, open) = client.get_commitment();
     let (_, open_s) = client.get_commitment_server();
@@ -276,6 +277,8 @@ pub fn round_6(server: &mut Server, config: &Config, i: u32, verbose: bool) {
     }
 
     server.set_k(k, i);
+    let hashed_k = server.get_key(i);
+    server.set_sid(hashed_k, i);
 }
 
 pub fn get_m1_length(m1: &(Vec<u8>, u32)) -> usize {

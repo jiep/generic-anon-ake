@@ -27,6 +27,7 @@ pub struct Server {
     k: HashMap<u32, Vec<u8>>,
     ctxis: HashMap<u32, CiphertextType>,
     signature_keys: (sig::PublicKey, sig::SecretKey),
+    sid: HashMap<u32, Vec<u8>>
 }
 
 impl Server {
@@ -45,6 +46,7 @@ impl Server {
             k: HashMap::new(),
             ctxis: HashMap::new(),
             signature_keys: (pk_sig, sk_sig),
+            sid: HashMap::new(),
         }
     }
 
@@ -113,8 +115,19 @@ impl Server {
         self.k.insert(index, hashed_k);
     }
 
+    pub fn set_sid(&mut self, key: Vec<u8>, index: u32) {
+        let mut hasher = Sha3_256::new();
+        hasher.update(key);
+        let hashed_sid: Vec<u8> = hasher.finalize().to_vec();
+        self.sid.insert(index, hashed_sid);
+    }
+
     pub fn get_key(&mut self, index: u32) -> Vec<u8> {
         self.k.get(&index).unwrap().to_vec()
+    }
+
+    pub fn get_sid(&mut self, index: u32) -> Vec<u8> {
+        self.sid.get(&index).unwrap().to_vec()
     }
 
     pub fn get_ns(&self, index: u32) -> Vec<u8> {

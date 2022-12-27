@@ -181,7 +181,13 @@ fn main() {
     let key_client = client.get_key();
     print_hex(&key_client, "[C]");
     print_hex(&key_server, "[S]");
-
+    println!();
+    println!("[!] Printing session identifiers...");
+    let sid_server = server.get_sid(0);
+    let sid_client = client.get_sid();
+    print_hex(&sid_client, "[C]");
+    print_hex(&sid_server, "[S]");
+    println!();
     println!("[!] Printing diagram...");
     show_diagram(&times, &lengths, users);
 }

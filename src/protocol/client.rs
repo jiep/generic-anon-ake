@@ -26,6 +26,7 @@ pub struct Client {
     signature2: Option<sig::Signature>,
     signature4: Option<sig::Signature>,
     pk_s: Option<sig::PublicKey>,
+    sid: Vec<u8>
 }
 
 impl Client {
@@ -46,6 +47,7 @@ impl Client {
             signature2: None,
             signature4: None,
             pk_s: None,
+            sid: Vec::new(),
         }
     }
 
@@ -80,8 +82,19 @@ impl Client {
         self.k = hashed_k;
     }
 
+    pub fn set_sid(&mut self, k: Vec<u8>) {
+        let mut hasher = Sha3_256::new();
+        hasher.update(k);
+        let hashed_sid: Vec<u8> = hasher.finalize().to_vec();
+        self.sid = hashed_sid;
+    }
+
     pub fn get_ek(&self) -> kem::SecretKey {
         self.ek.as_ref().unwrap().clone()
+    }
+
+    pub fn get_sid(&self) -> Vec<u8> {
+        self.sid.clone()
     }
 
     pub fn get_signature4(&self) -> Signature {
@@ -202,6 +215,7 @@ impl Clone for Client {
             signature2: self.signature2.clone(),
             signature4: self.signature4.clone(),
             pk_s: self.pk_s.clone(),
+            sid: self.sid.clone()
         }
     }
 }
