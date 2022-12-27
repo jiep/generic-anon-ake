@@ -5,9 +5,9 @@ use aes_gcm::{
 
 use oqs::kem::{self, Ciphertext};
 
-use crate::protocol::utils::get_nonce;
+use crate::common::utils::{get_nonce, get_random_key32};
 
-use super::{protocol::TagType, utils::get_random_key32};
+use super::protocol::TagType;
 
 pub fn ccapke_enc(
     kem: &kem::Kem,

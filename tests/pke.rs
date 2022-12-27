@@ -1,6 +1,6 @@
-use anon_sym_ake::protocol::{
-    pke::{pke_dec, pke_enc},
-    utils::get_nonce,
+use anon_sym_ake::{
+    common::utils::get_nonce,
+    pq::pke::{pke_dec, pke_enc},
 };
 use oqs::kem;
 

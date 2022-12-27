@@ -3,10 +3,10 @@ use std::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
 use anon_sym_ake::{
-    protocol::config::Config,
-    protocol::protocol::{registration, round_1, round_2, round_3, round_4, round_5, round_6},
-    protocol::supported_algs::get_kem_algorithm,
-    protocol::supported_algs::get_signature_algorithm,
+    pq::config::Config,
+    pq::protocol::{registration, round_1, round_2, round_3, round_4, round_5, round_6},
+    pq::supported_algs::get_kem_algorithm,
+    pq::supported_algs::get_signature_algorithm,
 };
 
 const SAMPLES: usize = 100;

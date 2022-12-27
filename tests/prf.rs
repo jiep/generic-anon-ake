@@ -1,4 +1,4 @@
-use anon_sym_ake::protocol::{prf::prf, utils::get_random_key32};
+use anon_sym_ake::common::{prf::prf, utils::get_random_key32};
 
 #[test]
 fn prf_works() {

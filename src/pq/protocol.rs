@@ -11,18 +11,20 @@ use oqs::{
 };
 use sha3::{Digest, Sha3_256};
 
-use crate::protocol::commitment::{comm, comm_vfy};
-use crate::protocol::pke::{pke_dec, pke_enc};
-use crate::protocol::utils::get_random_key32;
-
-use crate::protocol::client::Client;
-use crate::protocol::config::Config;
-use crate::protocol::server::Server;
+use crate::{
+    common::{
+        client::Client,
+        commitment::{comm, comm_vfy},
+        prf::prf,
+        server::Server,
+        utils::get_random_key32,
+    },
+    pq::pke::{check_ciphertext, pke_dec, pke_enc},
+};
 
 use super::{
-    ccpake::{ccapke_dec, ccapke_enc},
-    pke::check_ciphertext,
-    prf::prf,
+    ccapake::{ccapke_dec, ccapke_enc},
+    config::Config,
 };
 
 pub type CiphertextType = (oqs::kem::Ciphertext, Vec<u8>, TagType);

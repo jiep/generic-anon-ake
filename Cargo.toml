@@ -5,6 +5,11 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["pq"]
+pq = []
+classical = []
+
 [dependencies]
 rand = "0.8.5"
 hex = "0.4.3"
@@ -35,7 +40,7 @@ inherits = "release"
 lto = "fat"
 
 [[bench]]
-name = "performance"
+name = "performance_pq"
 harness = false
 
 [[bench]]
