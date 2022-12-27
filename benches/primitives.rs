@@ -1,9 +1,10 @@
 use std::time::Duration;
 
 use anon_sym_ake::protocol::{
+    ccpake::{ccapke_dec, ccapke_enc},
     prf::prf,
     supported_algs::{get_kem_algorithm, get_signature_algorithm},
-    utils::get_random_key32, ccpake::{ccapke_enc, ccapke_dec},
+    utils::get_random_key32,
 };
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 

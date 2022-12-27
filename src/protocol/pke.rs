@@ -7,18 +7,25 @@ use oqs::kem::{self, Ciphertext};
 
 use super::protocol::TagType;
 
-pub fn check_ciphertext(c1: &(Ciphertext, Vec<u8>, TagType), c2: &(Ciphertext, Vec<u8>, TagType)) -> bool {
-
+pub fn check_ciphertext(
+    c1: &(Ciphertext, Vec<u8>, TagType),
+    c2: &(Ciphertext, Vec<u8>, TagType),
+) -> bool {
     println!("==========================");
 
-    let are_equal0: bool = c1.0.clone().into_vec().iter().zip(c2.0.clone().into_vec().iter()).all(|(a, b)| a == b);
+    let are_equal0: bool =
+        c1.0.clone()
+            .into_vec()
+            .iter()
+            .zip(c2.0.clone().into_vec().iter())
+            .all(|(a, b)| a == b);
     let are_equal1: bool = c1.1.iter().zip(c2.1.iter()).all(|(a, b)| a == b);
     let are_equal2: bool = c1.2.iter().zip(c2.2.iter()).all(|(a, b)| a == b);
 
-    // c1.0.clone().into_vec() == c2.0.clone().into_vec() 
-    
-    // c1.1 == c2.1 
-    
+    // c1.0.clone().into_vec() == c2.0.clone().into_vec()
+
+    // c1.1 == c2.1
+
     // c1.2 == c2.2
 
     // c1.0 == c2.0 && c1.1 == c2.1 && c1.2 == c2.2
@@ -26,8 +33,13 @@ pub fn check_ciphertext(c1: &(Ciphertext, Vec<u8>, TagType), c2: &(Ciphertext, V
     are_equal0 && are_equal1 && are_equal2
 }
 
-pub fn pke_enc(kem: &kem::Kem, pk: &kem::PublicKey, m: &Vec<u8>, r: &Vec<u8>, nonce: &Vec<u8>) -> (Ciphertext, Vec<u8>, TagType) {
-
+pub fn pke_enc(
+    kem: &kem::Kem,
+    pk: &kem::PublicKey,
+    m: &Vec<u8>,
+    r: &Vec<u8>,
+    nonce: &Vec<u8>,
+) -> (Ciphertext, Vec<u8>, TagType) {
     println!("==========================");
     println!("pk: {:?}", pk);
     println!("m: {:?}", m);
@@ -45,7 +57,6 @@ pub fn pke_enc(kem: &kem::Kem, pk: &kem::PublicKey, m: &Vec<u8>, r: &Vec<u8>, no
     println!("ciphertext: {:?}", ciphertext);
     println!("iv: {:?}", *iv);
     println!("==========================");
-
 
     (ct, ciphertext, *iv)
 }

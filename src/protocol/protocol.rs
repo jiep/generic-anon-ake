@@ -19,7 +19,11 @@ use crate::protocol::client::Client;
 use crate::protocol::config::Config;
 use crate::protocol::server::Server;
 
-use super::{prf::prf, pke::check_ciphertext, ccpake::{ccapke_enc, ccapke_dec}, utils::print_hex};
+use super::{
+    ccpake::{ccapke_dec, ccapke_enc},
+    pke::check_ciphertext,
+    prf::prf,
+};
 
 pub type CiphertextType = (oqs::kem::Ciphertext, Vec<u8>, TagType);
 pub type TagType = GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
@@ -53,7 +57,7 @@ pub fn registration(config: &Config) -> (Server, Client) {
     println!("server keys: {:?}", server.get_clients_keys());
 
     let vks: Vec<PublicKey> = keys.iter().map(|x| x.0.to_owned()).collect();
-    println!("vks: {:?}", &vks.clone());
+    println!("vks: {:?}", &vks);
     client.set_vks(vks);
 
     (server, client)
@@ -87,7 +91,7 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
         let ri = prf(&r, &nonce);
         // println!("r{}: {:?}", i, c);
         let c = pke_enc(kemalg, ek, &n_s, &ri, &ri[0..12].to_vec());
-        println!("c-------------------------------");        
+        println!("c-------------------------------");
         println!("c{}: {:?}", i, c);
         println!("pk{}: {:?}", i, ek);
         println!("r{}: {:?}", i, ri);
@@ -235,7 +239,7 @@ pub fn round_5(
         println!("ns{}: {:?}", j, ns);
         println!("end to_check-------------------------------");
 
-        if check_ciphertext(&ci_check, &cj) {
+        if check_ciphertext(&ci_check, cj) {
             if verbose {
                 println!("[C] Ciphertext verification for j={} -> OK", j);
             }

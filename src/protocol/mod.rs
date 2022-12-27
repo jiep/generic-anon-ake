@@ -1,8 +1,8 @@
+pub mod ccpake;
 pub mod client;
 pub mod commitment;
 pub mod config;
 pub mod pke;
-pub mod ccpake;
 pub mod prf;
 pub mod protocol;
 pub mod server;

@@ -9,7 +9,11 @@ use crate::protocol::utils::get_nonce;
 
 use super::{protocol::TagType, utils::get_random_key32};
 
-pub fn ccapke_enc(kem: &kem::Kem, pk: &kem::PublicKey, m: &Vec<u8>) -> (Ciphertext, Vec<u8>, TagType) {
+pub fn ccapke_enc(
+    kem: &kem::Kem,
+    pk: &kem::PublicKey,
+    m: &Vec<u8>,
+) -> (Ciphertext, Vec<u8>, TagType) {
     let r = get_random_key32();
     let (ct, k) = kem.encapsulate(pk, &r).unwrap();
     let cipher = Aes256Gcm::new_from_slice(k.into_vec().as_slice()).unwrap();
