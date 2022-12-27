@@ -5,9 +5,10 @@ use oqs::{
 use sha3::{Digest, Sha3_256};
 
 use crate::{
-    common::server::Server,
     pq::protocol::{CiphertextType, M2Message},
 };
+
+use super::server::Server;
 
 #[derive(Debug)]
 pub struct Client {

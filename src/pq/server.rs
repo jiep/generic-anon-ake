@@ -8,12 +8,13 @@ use oqs::{
 use sha3::{Digest, Sha3_256};
 
 use crate::{
-    common::client::Client,
     pq::{
         config::Config,
         protocol::{CiphertextType, M2Message, TagType},
     },
 };
+
+use super::client::Client;
 
 #[derive(Debug)]
 pub struct Server {

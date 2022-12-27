@@ -13,18 +13,15 @@ use sha3::{Digest, Sha3_256};
 
 use crate::{
     common::{
-        client::Client,
         commitment::{comm, comm_vfy},
         prf::prf,
-        server::Server,
         utils::get_random_key32,
     },
     pq::pke::{check_ciphertext, pke_dec, pke_enc},
 };
 
 use super::{
-    ccapake::{ccapke_dec, ccapke_enc},
-    config::Config,
+    ccapake::{ccapke_dec, ccapke_enc}, server::Server, client::Client, config::Config,
 };
 
 pub type CiphertextType = (oqs::kem::Ciphertext, Vec<u8>, TagType);

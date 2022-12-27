@@ -19,11 +19,11 @@ impl Config {
         &self.kem
     }
 
-    pub fn get_users_number(&self) -> u32 {
-        self.users_numbers
-    }
-
     pub fn get_signature_algorithm(&self) -> &sig::Sig {
         &self.sig
+    }
+
+    pub fn get_users_number(&self) -> u32 {
+        self.users_numbers
     }
 }
