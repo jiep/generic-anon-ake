@@ -51,6 +51,10 @@ harness = false
 name = "primitives"
 harness = false
 
+[[bench]]
+name = "primitives_classic"
+harness = false
+
 [lib]
 name = "anon_sym_ake"
 path = "src/lib.rs"
