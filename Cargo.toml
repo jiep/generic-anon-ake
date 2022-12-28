@@ -1,8 +1,8 @@
 [package]
-name = "anon-sym-ake"
+name = "generic-anon-ake"
 version = "0.3.0"
 edition = "2021"
-default-run = "anon-sym-ake"
+default-run = "generic_anon_ake"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -57,13 +57,13 @@ name = "primitives_classic"
 harness = false
 
 [lib]
-name = "anon_sym_ake"
+name = "generic_anon_ake"
 path = "src/lib.rs"
 
 [[bin]]
-name = "anon-sym-ake"
+name = "generic_anon_ake"
 path = "src/main.rs"
 
 [[bin]]
-name = "anon-sym-ake-classic"
+name = "generic_anon_ake_classic"
 path = "src/main_classic.rs"

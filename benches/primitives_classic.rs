@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anon_sym_ake::{
+use generic_anon_ake::{
     classic::{
         ccapke::{ccapke_dec, ccapke_enc, ccapke_gen},
         sig::{sig_gen, sig_sign, sig_vry},

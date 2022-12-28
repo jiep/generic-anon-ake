@@ -44,25 +44,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299"
 
 [[package]]
-name = "anon-sym-ake"
-version = "0.3.0"
-dependencies = [
- "aes",
- "aes-gcm",
- "clap 4.0.32",
- "criterion",
- "ctr",
- "ecies",
- "hex",
- "k256",
- "oqs",
- "pke_ecies",
- "rand",
- "sha2 0.10.6",
- "sha3",
-]
-
-[[package]]
 name = "arrayref"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -591,6 +572,25 @@ name = "foreign-types-shared"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
+
+[[package]]
+name = "generic-anon-ake"
+version = "0.3.0"
+dependencies = [
+ "aes",
+ "aes-gcm",
+ "clap 4.0.32",
+ "criterion",
+ "ctr",
+ "ecies",
+ "hex",
+ "k256",
+ "oqs",
+ "pke_ecies",
+ "rand",
+ "sha2 0.10.6",
+ "sha3",
+]
 
 [[package]]
 name = "generic-array"

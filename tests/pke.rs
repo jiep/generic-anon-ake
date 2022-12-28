@@ -1,4 +1,4 @@
-use anon_sym_ake::{
+use generic_anon_ake::{
     common::utils::get_nonce,
     pq::pke::{pke_dec, pke_enc},
 };

@@ -1,4 +1,4 @@
-use anon_sym_ake::{
+use generic_anon_ake::{
     classic::pke::{pke_dec, pke_enc, pke_gen},
     common::utils::get_random_key32,
 };

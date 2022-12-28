@@ -1,4 +1,4 @@
-use anon_sym_ake::{
+use generic_anon_ake::{
     classic::ccapke::{ccapke_dec, ccapke_enc, ccapke_gen},
     common::utils::get_random_key32,
 };

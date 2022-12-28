@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anon_sym_ake::{
+use generic_anon_ake::{
     common::{prf::prf, utils::get_random_key32},
     pq::{
         ccapke::{ccapke_dec, ccapke_enc},

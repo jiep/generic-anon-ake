@@ -1,11 +1,11 @@
 <div align="center">
 
-  <h1><code>anon-sym-ake</code></h1>
+  <h1><code>generic-anon-ake</code></h1>
 
-  <strong>Implementation of `anon-sym-ake`</strong>
+  <strong>Implementation of `Generic Anonymous AKE`</strong>
 
-  [![ci](https://github.com/jiep/anon-sym-ake/actions/workflows/rust.yml/badge.svg)](https://github.com/jiep/anon-sym-ake/actions/workflows/rust.yml)
-  [![dependency status](https://deps.rs/repo/github/jiep/anon-sym-ake/status.svg)](https://deps.rs/repo/github/jiep/anon-sym-ake)
+  [![ci](https://github.com/jiep/generic-anon-ake/actions/workflows/rust.yml/badge.svg)](https://github.com/jiep/generic-anon-ake/actions/workflows/rust.yml)
+  [![dependency status](https://deps.rs/repo/github/jiep/generic-anon-ake/status.svg)](https://deps.rs/repo/github/jiep/generic-anon-ake)
 
   <sub>Built with 🦀</sub>
 </div>
@@ -59,7 +59,7 @@ Note right of Server: Round 6<br />m'' <- CCAPKE.Dec(sk*, ctxi_i)<br/>Assert Com
 
 ## Binaries
 
-Download the latest version from [Releases](https://github.com/jiep/anon-sym-ake/releases).
+Download the latest version from [Releases](https://github.com/jiep/generic-anon-ake/releases).
 
 ## Build from source
 
@@ -89,15 +89,15 @@ cargo test
 ```
 cargo run
 # or
-./target/release/anon-sym-ake # for release version
-./target/debug/anon-sym-ake # for debug version
+./target/release/generic-anon-ake # for release version
+./target/debug/generic-anon-ake # for debug version
 ```
 
 ## 🚴 Usage
 
 ```
-./target/debug/anon-sym-ake --help
-Usage: anon-sym-ake [OPTIONS] --kem <KEM> --sig <SIG> --clients <CLIENTS>
+./target/debug/generic-anon-ake --help
+Usage: generic-anon-ake [OPTIONS] --kem <KEM> --sig <SIG> --clients <CLIENTS>
 
 Options:
   -k, --kem <KEM>
@@ -115,7 +115,7 @@ Options:
 10 clients (the protocol is executed with just one!) with Kyber1024 as KEM and Dilithium5 as Signature scheme.
 
 ```
-./target/release/anon-sym-ake --kem Kyber1024 --sig Dilithium5 --clients 10 --verbose
+./target/release/generic-anon-ake --kem Kyber1024 --sig Dilithium5 --clients 10 --verbose
 ```
 
 <details>
@@ -220,107 +220,12 @@ Round 5        ---> |                            |
 #### Classic
 
 ```
-./target/release/anon-sym-ake-classic --clients 10 --verbose
+./target/release/generic-anon-ake-classic --clients 10 --verbose
 ```
 <details>
   <summary>Click to expand output</summary>
 
 ```
-[!] Generating param and seed for PQ VRF...
-[!] Setting Dilithium5 as signature scheme...
-[!] Setting Kyber1024 as KEM...
-
-[!] Creating 10 clients...
-[!] Creating server...
-
-[R] Creating (ek, vk) for 10 clients...
-
-[!] Time elapsed in registration of 10 clients is 802.613µs
-
-[!] Starting protocol with client and server...
-
-[C] Running Round 1...
-[!] Time elapsed in Round 1 is 1.051217ms
-[C -> S] Sending m1 to server...
-
-[S] Running Round 2...
-[!] Time elapsed in Round 2 is 3.017849ms
-[C <- S] Sending m2 to client...
-
-[C] Running Round 3...
-[C] Signature verification -> OK
-[!] Time elapsed in Round 3 is 1.497624ms
-[C -> S] Sending m3 to server...
-
-[S] Running Round 4...
-[!] Time elapsed in Round 4 is 268.804µs
-[C <- S] Sending m4 to client...
-
-[C] Running Round 5...
-[C] Signature verification -> OK
-[C] Ciphertext verification for j=0 -> OK
-[C] Ciphertext verification for j=1 -> KO
-[C] Ciphertext verification for j=2 -> OK
-[C] Ciphertext verification for j=3 -> KO
-[C] Ciphertext verification for j=4 -> OK
-[C] Ciphertext verification for j=5 -> KO
-[C] Ciphertext verification for j=6 -> OK
-[C] Ciphertext verification for j=7 -> KO
-[C] Ciphertext verification for j=8 -> OK
-[C] Ciphertext verification for j=9 -> KO
-[!] Time elapsed in Round 5 is 3.69616ms
-[C -> S] Sending m5 to server...
-
-[S] Running Round 6...
-[S] Commitment verification -> OK
-[!] Time elapsed in Round 6 is 312.805µs
-
-[!] Printing session keys...
-[C] 0x9dc4bbd831c6036603d8b146dcb9e0eaf2abf2df345062f285df15a7722edf37
-[S] 0x9dc4bbd831c6036603d8b146dcb9e0eaf2abf2df345062f285df15a7722edf37
-
-[!] Printing session identifiers...
-[C] 0x3d138ffce132d493f1c1c2ab9de6c2be85314d21f11bfaf99356372d79248fad
-[S] 0x3d138ffce132d493f1c1c2ab9de6c2be85314d21f11bfaf99356372d79248fad
-
-[!] Printing diagram...
-
-                 Client i                     Server
-                    |                            |
-                    |                            | <---    Registration 
-                    |                            |         for 10 clients
-                    |                            |         (000 ms)
-Round 1        ---> |                            |
-(00001051 µs)       |                            |
-                    |                            |
-                    |-------------m1------------>|
-                    |        (0000032 B)         |
-                    |                            | <---    Round 2
-                    |                            |         (00000003 ms)
-                    |                            |
-                    |<------------m2-------------|
-                    |        (0020307 B)         |
-Round 3        ---> |                            |
-(00000001 ms)       |                            |
-                    |                            |
-                    |-------------m3------------>|
-                    |        (0000032 B)         |   
-                    |                            | <---    Round 4
-                    |                            |         (00000000 ms)
-                    |                            |
-                    |<------------m4-------------|
-                    |        (0004627 B)         |
-Round 5        ---> |                            |
-(00000003 ms)       |                            |
-                    |                            |
-                    |-------------m5------------>|
-                    |        (0001724 B)         |   
-                    |                            | <---    Round 6
-                    |                            |         (00000312 µs)
-                    |                            |
-
-
-@jiep ➜ /workspaces/anon-sym-ake (new-protocol ✗) $ ./target/debug/anon-sym-ake-classic --clients 10 --verbose
 [!] Creating 10 clients...
 [!] Creating server...
 

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anon_sym_ake::classic::{
+use generic_anon_ake::classic::{
     config::Config,
     protocol::{registration, round_1, round_2, round_3, round_4, round_5, round_6},
 };

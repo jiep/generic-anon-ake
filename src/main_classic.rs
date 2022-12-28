@@ -1,10 +1,10 @@
 use std::time::{Duration, Instant};
 
-use anon_sym_ake::common::utils::print_hex;
+use generic_anon_ake::common::utils::print_hex;
 use clap::Parser;
 
-use anon_sym_ake::classic::config::Config;
-use anon_sym_ake::classic::protocol::{
+use generic_anon_ake::classic::config::Config;
+use generic_anon_ake::classic::protocol::{
     get_m1_length, get_m2_length, get_m3_length, get_m4_length, get_m5_length, registration,
     round_1, round_2, round_3, round_4, round_5, round_6, show_diagram,
 };

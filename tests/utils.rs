@@ -1,4 +1,4 @@
-use anon_sym_ake::common::utils::{get_nonce, get_random_key32, get_random_key88, to_hex, xor};
+use generic_anon_ake::common::utils::{get_nonce, get_random_key32, get_random_key88, to_hex, xor};
 
 #[test]
 fn get_random_key32_works() {

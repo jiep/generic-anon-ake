@@ -1,4 +1,4 @@
-use anon_sym_ake::{
+use generic_anon_ake::{
     classic::sig::{sig_gen, sig_sign, sig_vry},
     common::utils::get_random_key32,
 };

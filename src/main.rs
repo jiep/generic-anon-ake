@@ -3,13 +3,13 @@ use std::time::{Duration, Instant};
 
 use clap::Parser;
 
-use anon_sym_ake::common::utils::print_hex;
-use anon_sym_ake::pq::config::Config;
-use anon_sym_ake::pq::protocol::{
+use generic_anon_ake::common::utils::print_hex;
+use generic_anon_ake::pq::config::Config;
+use generic_anon_ake::pq::protocol::{
     get_m1_length, get_m2_length, get_m3_length, get_m4_length, get_m5_length, registration,
     round_1, round_2, round_3, round_4, round_5, round_6, show_diagram,
 };
-use anon_sym_ake::pq::supported_algs::{
+use generic_anon_ake::pq::supported_algs::{
     get_kem_algorithm, get_signature_algorithm, print_supported_kems, print_supported_signatures,
 };
 
