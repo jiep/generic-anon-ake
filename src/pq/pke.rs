@@ -30,9 +30,8 @@ pub fn pke_enc(
     r: &Vec<u8>,
     nonce: &Vec<u8>,
 ) -> (Ciphertext, Vec<u8>, TagType) {
-
     let (ct, k) = kem.encapsulate(pk, r).unwrap();
-    let cipher = Aes256Gcm::new_from_slice(k.clone().into_vec().as_slice()).unwrap();
+    let cipher = Aes256Gcm::new_from_slice(k.into_vec().as_slice()).unwrap();
     let iv = Nonce::from_slice(nonce.as_slice());
     let ciphertext = cipher.encrypt(iv, m.as_slice()).unwrap();
 

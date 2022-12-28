@@ -1,4 +1,4 @@
-use sha3::{Digest, Sha3_256};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
 use super::{client::Client, protocol::M2Message, sig::sig_gen};
@@ -98,14 +98,14 @@ impl Server {
     }
 
     pub fn set_k(&mut self, key: Vec<u8>, index: u32) {
-        let mut hasher = Sha3_256::new();
+        let mut hasher = Sha256::new();
         hasher.update(key);
         let hashed_k: Vec<u8> = hasher.finalize().to_vec();
         self.k.insert(index, hashed_k);
     }
 
     pub fn set_sid(&mut self, key: Vec<u8>, index: u32) {
-        let mut hasher = Sha3_256::new();
+        let mut hasher = Sha256::new();
         hasher.update(key);
         let hashed_sid: Vec<u8> = hasher.finalize().to_vec();
         self.sid.insert(index, hashed_sid);

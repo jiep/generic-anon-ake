@@ -1,18 +1,15 @@
 use std::time::Duration;
 
-use sha3::{Digest, Sha3_256};
+use sha2::{Digest, Sha256};
 
 use crate::{
     classic::{
         ccapke::ccapke_gen,
+        commitment::{comm, comm_vfy},
         pke::{pke_dec, pke_enc, pke_gen},
         sig::{sig_sign, sig_vry},
     },
-    common::{
-        commitment::{comm, comm_vfy},
-        prf::prf,
-        utils::get_random_key32,
-    },
+    common::{prf::prf, utils::get_random_key32},
 };
 
 use super::{
@@ -188,7 +185,7 @@ pub fn round_5(
         }
     }
 
-    let mut hasher = Sha3_256::new();
+    let mut hasher = Sha256::new();
     hasher.update([ns, ni].concat());
     let k: Vec<u8> = hasher.finalize().to_vec();
     client.set_k(k);
@@ -221,7 +218,7 @@ pub fn round_6(server: &mut Server, i: u32, verbose: bool) {
 
     let ns = server.get_ns(i);
 
-    let mut hasher = Sha3_256::new();
+    let mut hasher = Sha256::new();
     hasher.update([ns, ni.clone()].concat());
     let k: Vec<u8> = hasher.finalize().to_vec();
 

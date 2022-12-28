@@ -45,7 +45,7 @@ checksum = "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299"
 
 [[package]]
 name = "anon-sym-ake"
-version = "0.2.3"
+version = "0.3.0"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -58,6 +58,7 @@ dependencies = [
  "oqs",
  "pke_ecies",
  "rand",
+ "sha2 0.10.6",
  "sha3",
 ]
 

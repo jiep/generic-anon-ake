@@ -1,4 +1,4 @@
-use sha3::{Digest, Sha3_256};
+use sha2::{Digest, Sha256};
 
 use super::{protocol::M2Message, server::Server};
 
@@ -70,14 +70,14 @@ impl Client {
     }
 
     pub fn set_k(&mut self, k: Vec<u8>) {
-        let mut hasher = Sha3_256::new();
+        let mut hasher = Sha256::new();
         hasher.update(k);
         let hashed_k: Vec<u8> = hasher.finalize().to_vec();
         self.k = hashed_k;
     }
 
     pub fn set_sid(&mut self, k: Vec<u8>) {
-        let mut hasher = Sha3_256::new();
+        let mut hasher = Sha256::new();
         hasher.update(k);
         let hashed_sid: Vec<u8> = hasher.finalize().to_vec();
         self.sid = hashed_sid;

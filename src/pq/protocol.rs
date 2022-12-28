@@ -12,17 +12,14 @@ use oqs::{
 use sha3::{Digest, Sha3_256};
 
 use crate::{
-    common::{
-        commitment::{comm, comm_vfy},
-        prf::prf,
-        utils::get_random_key32,
-    },
+    common::{prf::prf, utils::get_random_key32},
     pq::pke::{check_ciphertext, pke_dec, pke_enc},
 };
 
 use super::{
     ccapke::{ccapke_dec, ccapke_enc},
     client::Client,
+    commitment::{comm, comm_vfy},
     config::Config,
     server::Server,
 };
