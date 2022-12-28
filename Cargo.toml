@@ -2,6 +2,7 @@
 name = "anon-sym-ake"
 version = "0.2.3"
 edition = "2021"
+default-run = "anon-sym-ake-classic"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -57,3 +58,7 @@ path = "src/lib.rs"
 [[bin]]
 name = "anon-sym-ake"
 path = "src/main.rs"
+
+[[bin]]
+name = "anon-sym-ake-classic"
+path = "src/main_classic.rs"

@@ -21,7 +21,7 @@ use crate::{
 };
 
 use super::{
-    ccapake::{ccapke_dec, ccapke_enc},
+    ccapke::{ccapke_dec, ccapke_enc},
     client::Client,
     config::Config,
     server::Server,

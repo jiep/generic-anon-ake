@@ -3,7 +3,7 @@ use std::time::Duration;
 use anon_sym_ake::{
     common::{prf::prf, utils::get_random_key32},
     pq::{
-        ccapake::{ccapke_dec, ccapke_enc},
+        ccapke::{ccapke_dec, ccapke_enc},
         supported_algs::{get_kem_algorithm, get_signature_algorithm},
     },
 };

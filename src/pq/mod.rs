@@ -1,4 +1,4 @@
-pub mod ccapake;
+pub mod ccapke;
 pub mod client;
 pub mod config;
 pub mod pke;
