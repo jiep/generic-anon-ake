@@ -40,9 +40,9 @@ strip = "debuginfo"
 inherits = "release"
 lto = "fat"
 
-[[bench]]
-name = "performance_pq"
-harness = false
+#[[bench]]
+#name = "performance_pq"
+#harness = false
 
 [[bench]]
 name = "performance_classic"

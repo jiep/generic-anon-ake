@@ -6,10 +6,17 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+CLASSIC_SIG = "ECDSA(seckp256k1)"
+CLASSIC_PKE = "ECIES(seckp256k1)"
+CLASSIC_PKE_SIG = "ECIES+ECDSA(seckp256k1)"
+
 COLORS = {
     'Kyber512+Dilithium2': "#B79762",
     'Kyber768+Dilithium3': "#FF4A46",
     'Kyber1024+Dilithium5': "#0000A6",
+    CLASSIC_PKE_SIG: "#3A345A",
+    CLASSIC_PKE: "#AB2D23",
+    CLASSIC_SIG: "#12A23B",
     'Kyber512': "#3B5DFF",
     'Kyber768': "#4FC601",
     'Kyber1024': "#FAD09F",
@@ -28,42 +35,80 @@ def get_samples(path):
     return samples
 
 def load_data_primitives(pathfiles):
-    headers = ["Algorithm", "Type", "Operation", "Time"]
+    headers = ["Algorithm", "Type", "Operation", "Time", "Kind"]
     all_samples = np.array([headers])
-    paths = list(itertools.chain(*list(map(lambda x: glob.glob(x + "*/*/**"), pathfiles))))
+    paths = list(itertools.chain(*list(map(lambda x: glob.glob(x + "*/*/*"), pathfiles))))
     for path in paths:
-        alg = path.split("/")[-1]
-        operation = path.split("/")[-2]
-        type_ = path.split("/")[-3]
-        data_path_base = "{}/{}/sample.json".format(path, "base")
-        data_path_new = "{}/{}/sample.json".format(path, "new")
-        samples_base = get_samples(data_path_base)
-        samples_new = get_samples(data_path_new)
-        samples = np.concatenate((samples_base, samples_new))
-        row = lambda time: [alg, type_, operation, time] 
-        rows = np.asarray(list(map(row, samples)))
-        all_samples = np.append(all_samples, rows, axis=0)
+        type_kind = path.split("/")[-3]
+        type_ = type_kind.split("_")[0]
+        kind = type_kind.split("_")[1]
+        if(kind == "PQ"):
+            alg = path.split("/")[-1]
+            operation = path.split("/")[-2]
+            data_path_base = "{}/{}/sample.json".format(path, "base")
+            data_path_new = "{}/{}/sample.json".format(path, "new")
+            samples_base = get_samples(data_path_base)
+            samples_new = get_samples(data_path_new)
+            samples = np.concatenate((samples_base, samples_new))
+            row = lambda time: [alg, type_, operation, time, kind] 
+            rows = np.asarray(list(map(row, samples)))
+            all_samples = np.append(all_samples, rows, axis=0)
+        else:
+            operation = path.split("/")[-2]
+            if type_ == "PKE":
+                alg = CLASSIC_PKE
+            elif type_ == "SIG":
+                alg = CLASSIC_SIG
+            else:
+                raise Exception("Error reading file!")
+            data_path_base = "{}/sample.json".format(path, "base")
+            data_path_new = "{}/sample.json".format(path, "new")
+            samples_base = get_samples(data_path_base)
+            samples_new = get_samples(data_path_new)
+            samples = np.concatenate((samples_base, samples_new))
+            row = lambda time: [alg, type_, operation, time, kind] 
+            rows = np.asarray(list(map(row, samples)))
+            all_samples = np.append(all_samples, rows, axis=0)
     return  all_samples
 
 def load_data_protocol(pathfile):
-    headers = ["Algorithm", "Clients", "Round", "Time"]
+    headers = ["Algorithm", "Clients", "Round", "Time", "Kind"]
     all_samples = np.array([headers])
-    for path in glob.glob(pathfile + "*/**"):
-        alg_clients = path.split("/")[-1]
-        alg = alg_clients.split("-")[0] + "+" + alg_clients.split("-")[1]
-        clients = alg_clients.split("-")[-1]
-        round = path.split("/")[-2]
-        # print(alg_clients)
-        # print(round)
-        data_path_base = "{}/{}/sample.json".format(path, "base")
-        data_path_new = "{}/{}/sample.json".format(path, "new")
-        samples_base = get_samples(data_path_base)
-        samples_new = get_samples(data_path_new)
-        samples = np.concatenate((samples_base, samples_new))
-        # print(samples)
-        row = lambda time: [alg, clients, round, time] 
-        rows = np.asarray(list(map(row, samples)))
-        all_samples = np.append(all_samples, rows, axis=0)
+    for path in glob.glob(pathfile + "*/*/**"):
+        check = len(path.split("/")[-1].split("-"))
+        if (check > 1):
+            kind = "PQ"
+            alg_clients = path.split("/")[-1]
+            alg = alg_clients.split("-")[0] + "+" + alg_clients.split("-")[1]
+            clients = alg_clients.split("-")[-1]
+            round = path.split("/")[-2]
+            # print(alg_clients)
+            # print(round)
+            data_path_base = "{}/{}/sample.json".format(path, "base")
+            data_path_new = "{}/{}/sample.json".format(path, "new")
+            samples_base = get_samples(data_path_base)
+            samples_new = get_samples(data_path_new)
+            samples = np.concatenate((samples_base, samples_new))
+            # print(samples)
+            row = lambda time: [alg, clients, round, time, kind] 
+            rows = np.asarray(list(map(row, samples)))
+            all_samples = np.append(all_samples, rows, axis=0)
+        else:
+            kind = "CLASSIC"
+            clients = path.split("/")[-1]
+            round = path.split("/")[-2]
+            print(path)
+            data_path_base = "{}/{}/sample.json".format(path, "base")
+            data_path_new = "{}/{}/sample.json".format(path, "new")
+            samples_base = get_samples(data_path_base)
+            samples_new = get_samples(data_path_new)
+            samples = np.concatenate((samples_base, samples_new))
+            # print(samples)
+            alg = CLASSIC_PKE_SIG
+            row = lambda time: [alg, clients, round, time, kind] 
+            rows = np.asarray(list(map(row, samples)))
+            all_samples = np.append(all_samples, rows, axis=0)
+
     return  all_samples
 
 def save_to_csv_protocol(input_path, output_path, filename):
@@ -138,7 +183,7 @@ def plot_rounds(df, output_path):
 
         row = i // 3
         col = i % 3
-        p = sns.barplot(ax=axes[row, col], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5"])
+        p = sns.barplot(ax=axes[row, col], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", CLASSIC_PKE_SIG])
 
         axes[row, col].set_xlabel('Number of clients', fontsize="x-large")
         axes[row, col].set_ylabel('Time (milliseconds)', fontsize="x-large")
@@ -149,7 +194,7 @@ def plot_rounds(df, output_path):
     l, h = zip(*sorted(zip(l, h)))
     p.legend(h, l)
 
-    reorderLegend(axes[0, 2], ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5"])
+    reorderLegend(axes[0, 2], ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", CLASSIC_PKE_SIG])
     # axes[0, 2].legend(h, l, bbox_to_anchor=(1.05, 1.05))
     axes[1, 2].get_legend().remove()
     figname = "{}rounds.png".format(output_path)
@@ -165,7 +210,7 @@ def plot_registration(df, output_path):
     # print("------------")
     # print(df2)
 
-    p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5"])
+    p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", CLASSIC_PKE_SIG])
     axes.set_xlabel('Number of clients', fontsize="x-large")
     axes.set_ylabel('Time (milliseconds)', fontsize="x-large")
 
@@ -186,7 +231,7 @@ def plot_pke(df, output_path):
     df2 = df[df['Type'] == 'PKE']
     df2['Time'] = df2['Time'] / 1000
 
-    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024"], order=["KEYGEN", "ENC", "DEC"])
+    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024", CLASSIC_PKE], order=["KEYGEN", "ENC", "DEC"])
     axes.set_xlabel('Operation', fontsize="x-large")
     axes.set_ylabel('Time (microseconds)', fontsize="x-large")
 
@@ -202,7 +247,7 @@ def plot_sig(df, output_path):
     df2 = df[df['Type'] == 'SIG']
     df2['Time'] = df2['Time'] / 1000
 
-    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, order=["KEYGEN", "SIG", "VRY"], hue_order=["Dilithium2", "Dilithium3", "Dilithium5"])
+    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, order=["KEYGEN", "SIG", "VRY"], hue_order=["Dilithium2", "Dilithium3", "Dilithium5", CLASSIC_SIG])
     axes.set_xlabel('Operation', fontsize="x-large")
     axes.set_ylabel('Time (microseconds)', fontsize="x-large")
 
@@ -212,17 +257,18 @@ def plot_sig(df, output_path):
 
 
 def main(): 
-    PATH = "./target/criterion/Protocol/"
+    PATH = "./target/criterion/Protocol"
     OUTPUT = "./target/criterion/"
     save_to_csv_protocol(PATH, OUTPUT, 'data.csv')
     df_protocol = load_csv(OUTPUT, 'data.csv')
     plot_scalability(df_protocol, OUTPUT)
     plot_rounds(df_protocol, OUTPUT)
     plot_registration(df_protocol, OUTPUT)
-    save_to_csv_primitives([OUTPUT + "PKE", OUTPUT + "SIG"], OUTPUT, "data_protocol.csv")
-    df_primitives = load_csv(OUTPUT, 'data_protocol.csv')
-    plot_pke(df_primitives, OUTPUT)
-    plot_sig(df_primitives, OUTPUT)
+    
+    # save_to_csv_primitives([OUTPUT + "PKE", OUTPUT + "SIG"], OUTPUT, "data_primitives.csv")
+    # df_primitives = load_csv(OUTPUT, 'data_primitives.csv')
+    # plot_pke(df_primitives, OUTPUT)
+    # plot_sig(df_primitives, OUTPUT)
 
 if __name__ == '__main__':
     main()

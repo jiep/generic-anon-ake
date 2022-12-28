@@ -20,7 +20,7 @@ const ALGS: [(&'static str, &'static str); 3] = [
 ];
 
 fn bench_1(c: &mut Criterion) {
-    let mut group = c.benchmark_group("Protocol");
+    let mut group = c.benchmark_group("Protocol_PQ");
 
     group.measurement_time(Duration::from_secs(WARMUP));
     group.sample_size(SAMPLES);
@@ -97,7 +97,7 @@ fn bench_1(c: &mut Criterion) {
 }
 
 fn bench_2(c: &mut Criterion) {
-    let mut group = c.benchmark_group("Protocol");
+    let mut group = c.benchmark_group("Protocol_PQ");
 
     group.measurement_time(Duration::from_secs(WARMUP));
     group.sample_size(SAMPLES);

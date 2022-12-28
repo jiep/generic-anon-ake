@@ -80,6 +80,44 @@ fn bench_1(c: &mut Criterion) {
             &_x4,
             |b, _| b.iter(|| round_4(&mut server)),
         );
+    }
+    group.finish();
+}
+
+fn bench_2(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Protocol_Classic");
+
+    group.measurement_time(Duration::from_secs(WARMUP));
+    group.sample_size(SAMPLES);
+
+    for users in (LOW_LIMIT..UPP_LIMIT)
+        .map(|x| 2_u32.pow(x))
+        .rev()
+        .collect::<Vec<u32>>()
+    {
+        let config: Config = Config::new(users);
+
+        let (mut server, mut client) = registration(&config);
+
+        let m1 = round_1(&mut client);
+        client.send_m1(m1, &mut server);
+
+        let m2 = round_2(&mut server, &config, client.get_id());
+        server.send_m2(m2, &mut client);
+
+        let m3 = round_3(&mut client, false);
+        client.send_m3(m3, &mut server);
+
+        let m4 = round_4(&mut server);
+
+        server.send_m4(m4, &mut client);
+
+        let m5 = round_5(&mut client, &config, false);
+        client.send_m5(m5, &mut server);
+
+        round_6(&mut server, client.get_id(), false);
+
+        let parameter_string = format!("{}", users);
 
         let _x5 = (0, 0);
         group.bench_with_input(
@@ -98,5 +136,5 @@ fn bench_1(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, bench_1);
+criterion_group!(benches, bench_1, bench_2);
 criterion_main!(benches);

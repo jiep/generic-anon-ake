@@ -10,7 +10,7 @@ use generic_anon_ake::{
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
 fn bench_1(c: &mut Criterion) {
-    let mut group = c.benchmark_group("PKE");
+    let mut group = c.benchmark_group("PKE_PQ");
 
     group.measurement_time(Duration::from_secs(1));
     group.sample_size(1000);
@@ -71,7 +71,7 @@ fn bench_2(c: &mut Criterion) {
 }
 
 fn bench_3(c: &mut Criterion) {
-    let mut group = c.benchmark_group("SIG");
+    let mut group = c.benchmark_group("SIG_PQ");
 
     group.measurement_time(Duration::from_secs(1));
     group.sample_size(1000);
