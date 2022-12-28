@@ -84,7 +84,9 @@ jobs:
           targets: ${{ matrix.config.target }}
 
       - name: Build target
-        run: cargo build --release --target ${{ matrix.config.target }}
+        run: |
+          cargo build --release --target ${{ matrix.config.target }}
+          cargo strip
 
       - name: Package all targets
         shell: bash
