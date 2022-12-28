@@ -1,6 +1,6 @@
 use sha3::{Digest, Sha3_256};
 
-use super::server::Server;
+use super::{protocol::M2Message, server::Server};
 
 #[derive(Debug)]
 pub struct Client {
@@ -11,7 +11,7 @@ pub struct Client {
     //commitment and open
     commitment: (Vec<u8>, (Vec<u8>, Vec<u8>)),
     commitment_server: (Vec<u8>, (Vec<u8>, Vec<u8>)),
-    // cis: Vec<CiphertextType>,
+    cis: Vec<Vec<u8>>,
     ri: Vec<u8>,
     r: Vec<u8>,
     pk: Option<ecies::PublicKey>,
@@ -32,7 +32,7 @@ impl Client {
             vks: Vec::new(),
             commitment: (Vec::new(), (Vec::new(), Vec::new())),
             commitment_server: (Vec::new(), (Vec::new(), Vec::new())),
-            // cis: Vec::new(),
+            cis: Vec::new(),
             ri: Vec::new(),
             r: Vec::new(),
             pk: None,
@@ -84,7 +84,7 @@ impl Client {
     }
 
     pub fn get_ek(&self) -> ecies::SecretKey {
-        self.ek.as_ref().unwrap().clone()
+        self.ek.unwrap()
     }
 
     pub fn get_sid(&self) -> Vec<u8> {
@@ -92,7 +92,7 @@ impl Client {
     }
 
     pub fn get_signature4(&self) -> k256::ecdsa::Signature {
-        self.signature4.as_ref().unwrap().clone()
+        self.signature4.unwrap()
     }
 
     pub fn get_key(&self) -> Vec<u8> {
@@ -100,7 +100,7 @@ impl Client {
     }
 
     pub fn get_pk(&self) -> ecies::PublicKey {
-        self.pk.as_ref().unwrap().clone()
+        self.pk.unwrap()
     }
 
     pub fn set_pk(&mut self, pk: ecies::PublicKey) {
@@ -112,7 +112,7 @@ impl Client {
     }
 
     pub fn get_pks(&self) -> k256::PublicKey {
-        self.pk_s.as_ref().unwrap().clone()
+        self.pk_s.unwrap()
     }
 
     pub fn get_ni(&self) -> Vec<u8> {
@@ -127,9 +127,9 @@ impl Client {
         self.r.clone()
     }
 
-    // pub fn get_cis(&self) -> Vec<CiphertextType> {
-    //     self.cis.clone()
-    // }
+    pub fn get_cis(&self) -> Vec<Vec<u8>> {
+        self.cis.clone()
+    }
 
     pub fn get_ri(&self) -> Vec<u8> {
         self.ri.clone()
@@ -161,28 +161,35 @@ impl Client {
         server.receive_m3((comm_s, self.get_id()));
     }
 
-    // pub fn send_m5(&self, m5: (CiphertextType, (Vec<u8>, Vec<u8>)), server: &mut Server) {
-    //     let (ctxi, open_s) = m5;
+    pub fn send_m5(&self, m5: (Vec<u8>, (Vec<u8>, Vec<u8>)), server: &mut Server) {
+        let (ctxi, open_s) = m5;
 
-    //     server.receive_m5((ctxi, open_s, self.get_id()));
-    // }
+        server.receive_m5((ctxi, open_s, self.get_id()));
+    }
 
-    // pub fn receive_m2(&mut self, m2: M2Message) {
-    //     let ((cis, r, pk), signature2) = m2;
-    //     self.cis = cis;
-    //     self.r = r;
-    //     self.pk = Some(pk);
-    //     self.signature2 = Some(signature2);
-    // }
+    pub fn receive_m2(&mut self, m2: M2Message) {
+        let ((cis, r, pk), signature2) = m2;
+        self.cis = cis;
+        self.r = r;
+        self.pk = Some(pk);
+        self.signature2 = Some(signature2);
+    }
 
-    // pub fn get_m2_info(&self) -> (Vec<CiphertextType>, Vec<u8>, k256::PublicKey, k256::ecdsa::Signature) {
-    //     (
-    //         self.cis.clone(),
-    //         self.r.clone(),
-    //         self.pk.unwrap().clone(),
-    //         self.signature2.as_ref().unwrap().clone(),
-    //     )
-    // }
+    pub fn get_m2_info(
+        &self,
+    ) -> (
+        Vec<Vec<u8>>,
+        Vec<u8>,
+        ecies::PublicKey,
+        k256::ecdsa::Signature,
+    ) {
+        (
+            self.cis.clone(),
+            self.r.clone(),
+            self.pk.unwrap(),
+            self.signature2.unwrap(),
+        )
+    }
 
     pub fn receive_m4(&mut self, m4: (Vec<u8>, k256::ecdsa::Signature)) {
         let (r, signature4) = m4;
@@ -195,20 +202,20 @@ impl Clone for Client {
     fn clone(&self) -> Client {
         Client {
             id: self.id,
-            ek: self.ek.clone(),
+            ek: self.ek,
             ni: self.ni.clone(),
             vks: self.vks.clone(),
             commitment: self.commitment.clone(),
             commitment_server: self.commitment_server.clone(),
-            // cis: self.cis.clone(),
+            cis: self.cis.clone(),
             ri: self.ri.clone(),
             r: self.r.clone(),
-            pk: self.pk.clone(),
+            pk: self.pk,
             k: self.k.clone(),
             ns: self.ni.clone(),
-            signature2: self.signature2.clone(),
-            signature4: self.signature4.clone(),
-            pk_s: self.pk_s.clone(),
+            signature2: self.signature2,
+            signature4: self.signature4,
+            pk_s: self.pk_s,
             sid: self.sid.clone(),
         }
     }
