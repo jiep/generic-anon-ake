@@ -1,4 +1,7 @@
-use anon_sym_ake::{classic::sig::{sig_gen, sig_sign, sig_vry}, common::utils::get_random_key32};
+use anon_sym_ake::{
+    classic::sig::{sig_gen, sig_sign, sig_vry},
+    common::utils::get_random_key32,
+};
 
 #[test]
 fn sig_classic_works() {
@@ -16,5 +19,4 @@ fn sig_classic_works() {
     assert!(ver);
     assert!(!ver2);
     assert!(!ver3);
-
 }

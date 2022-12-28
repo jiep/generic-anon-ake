@@ -1,5 +1,5 @@
 use ecies::{utils::generate_keypair, PublicKey, SecretKey};
-use pke_ecies::{encrypt, decrypt};
+use pke_ecies::{decrypt, encrypt};
 
 pub fn pke_gen() -> (PublicKey, SecretKey) {
     let (sk, pk) = generate_keypair();

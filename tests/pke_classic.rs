@@ -1,6 +1,8 @@
-use anon_sym_ake::{classic::{pke::{pke_gen, pke_enc, pke_dec}}, common::utils::get_random_key32};
+use anon_sym_ake::{
+    classic::pke::{pke_dec, pke_enc, pke_gen},
+    common::utils::get_random_key32,
+};
 use pke_ecies::utils::generate_keypair;
-
 
 #[test]
 fn pke_classic_works() {
@@ -16,5 +18,4 @@ fn pke_classic_works() {
     let m2 = pke_dec(&sk, &ct);
 
     assert_eq!(m, m2);
-
 }

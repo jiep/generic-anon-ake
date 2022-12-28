@@ -1,5 +1,6 @@
 use anon_sym_ake::{
-    classic::ccapke::{ccapke_dec, ccapke_enc, ccapke_gen}, common::utils::get_random_key32,
+    classic::ccapke::{ccapke_dec, ccapke_enc, ccapke_gen},
+    common::utils::get_random_key32,
 };
 
 #[test]
@@ -14,5 +15,4 @@ fn ccapke_classic_works() {
 
     assert_eq!(m, m2);
     assert_ne!(ct, ct2);
-
 }
