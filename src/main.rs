@@ -40,11 +40,6 @@ fn main() {
     let mut times: Vec<Duration> = Vec::new();
     let mut lengths: Vec<usize> = Vec::new();
 
-    // Generate seed and param for PQ (lattice-based) VRF
-    if verbose {
-        println!("[!] Generating param and seed for PQ VRF...");
-    }
-
     // Init PQ signature scheme
     println!("[!] Setting {} as signature scheme...", args.sig);
     let sigalg = get_signature_algorithm(&args.sig);

@@ -80,7 +80,6 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
         let (ek, _) = client_keys.get(i as usize).unwrap();
         let nonce = (i as u128).to_be_bytes();
         let ri = prf(&r, &nonce);
-        // println!("r{}: {:?}", i, c);
         let c = pke_enc(ek, &n_s, &ri);
         cis.push(c);
     }

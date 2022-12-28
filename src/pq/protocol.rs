@@ -56,10 +56,7 @@ pub fn registration(config: &Config) -> (Server, Client) {
         server.add_key((vk.to_owned(), ek.to_owned()));
     }
 
-    println!("server keys: {:?}", server.get_clients_keys());
-
     let vks: Vec<PublicKey> = keys.iter().map(|x| x.0.to_owned()).collect();
-    println!("vks: {:?}", &vks);
     client.set_vks(vks);
 
     (server, client)
@@ -91,19 +88,9 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
         let (ek, _) = client_keys.get(i as usize).unwrap();
         let nonce = (i as u128).to_be_bytes();
         let ri = prf(&r, &nonce);
-        // println!("r{}: {:?}", i, c);
         let c = pke_enc(kemalg, ek, &n_s, &ri, &ri[0..12].to_vec());
-        println!("c-------------------------------");
-        println!("c{}: {:?}", i, c);
-        println!("pk{}: {:?}", i, ek);
-        println!("r{}: {:?}", i, ri);
-        println!("nonce{}: {:?}", i, ri[0..12].to_vec());
-        println!("ns{}: {:?}", i, n_s);
-        println!("end c-------------------------------");
         cis.push(c);
     }
-
-    println!("cis (r2): {:?}", cis);
 
     server.add_proofs_and_ciphertexts(&cis, &r);
 
@@ -139,7 +126,6 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
 pub fn round_3(client: &mut Client, config: &Config, verbose: bool) -> (Vec<u8>, u32) {
     let kemalg = config.get_kem_algorithm();
     let (cis, r, pk, signature2) = client.get_m2_info();
-    println!("cis (r3): {:?}", cis);
     let id = client.get_id();
     let pk_s: sig::PublicKey = client.get_pks();
     client.set_pk(pk.clone());
@@ -224,7 +210,6 @@ pub fn round_5(
     }
 
     let pk = client.get_pk();
-    println!("cis: {:?}", cis);
 
     for j in 0..users {
         let cj = cis.get(j as usize).unwrap();
@@ -233,13 +218,6 @@ pub fn round_5(
         let nonce = (j as u128).to_be_bytes();
         let rj = prf(&r, &nonce);
         let ci_check = pke_enc(kemalg, vkj, &ns, &rj, &rj[0..12].to_vec());
-        println!("to_check-------------------------------");
-        println!("c{}: {:?}", j, ci_check);
-        println!("pk{}: {:?}", j, vkj);
-        println!("r{}: {:?}", j, rj);
-        println!("nonce{}: {:?}", j, rj[0..12].to_vec());
-        println!("ns{}: {:?}", j, ns);
-        println!("end to_check-------------------------------");
 
         if check_ciphertext(&ci_check, cj) {
             if verbose {
