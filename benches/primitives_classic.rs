@@ -1,6 +1,12 @@
 use std::time::Duration;
 
-use anon_sym_ake::{common::utils::get_random_key32, classic::{ccapke::{ccapke_gen, ccapke_enc, ccapke_dec}, sig::{sig_gen, sig_sign, sig_vry}}};
+use anon_sym_ake::{
+    classic::{
+        ccapke::{ccapke_dec, ccapke_enc, ccapke_gen},
+        sig::{sig_gen, sig_sign, sig_vry},
+    },
+    common::utils::get_random_key32,
+};
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
 fn bench_1(c: &mut Criterion) {

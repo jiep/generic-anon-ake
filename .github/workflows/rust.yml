@@ -75,6 +75,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Install cargo-strip
+        run: cargo install --force cargo-strip
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -88,20 +91,13 @@ jobs:
         if: ${{ !contains(matrix.config.target, 'windows') }}
         run: |
           BIN=anon-sym-ake
-          BIN_NAME=$BIN
           TARGET=${{ matrix.config.target }}
-          if [[ ${TARGET} == *"windows"* ]]; then
-            BIN_NAME=${BIN}.exe
-          fi
-          if [[ ${TARGET} != *"darwin"* ]]; then
-            strip target/${TARGET}/release/${BIN_NAME}
-          fi
           if [[ ${TARGET} == *"darwin"* ]]; then
             brew install coreutils
           fi
           cd target/${TARGET}/release
           if [[ ${TARGET} != *"windows"* ]]; then
-            sha256sum ${BIN_NAME} > digest.sha256
+            sha256sum ${BIN_NAME}* > digest.sha256
           fi
           zip ../../../${BIN}-${TARGET}.zip ${BIN_NAME} digest.sha256
           cd -
@@ -113,7 +109,7 @@ jobs:
           BIN_NAME=${BIN}.exe
           TARGET=${{ matrix.config.target }}
           cd target/${TARGET}/release
-          sha256sum ${BIN_NAME} > digest.sha256
+          sha256sum ${BIN_NAME}* > digest.sha256
           tar.exe acvf ../../../${BIN}-${TARGET}.zip ${BIN_NAME} digest.sha256
           cd -
       - name: Add to Releases

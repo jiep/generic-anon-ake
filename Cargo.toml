@@ -2,7 +2,7 @@
 name = "anon-sym-ake"
 version = "0.2.3"
 edition = "2021"
-default-run = "anon-sym-ake-classic"
+default-run = "anon-sym-ake"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -38,6 +38,7 @@ opt-level = 0
 
 [profile.release]
 opt-level = 3
+strip = "debuginfo"
 
 [profile.release-lto]
 inherits = "release"
