@@ -56,8 +56,8 @@ dependencies = [
  "hex",
  "k256",
  "oqs",
+ "pke_ecies",
  "rand",
- "secp256kfun",
  "sha3",
 ]
 
@@ -1050,6 +1050,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "pke_ecies"
+version = "0.2.4"
+source = "git+https://github.com/jiep/ecies-rs#f2d3951e3e9e8a6ebc5de91c5f484ebb399edd8d"
+dependencies = [
+ "getrandom",
+ "hkdf",
+ "libsecp256k1",
+ "openssl",
+ "rand",
+ "sha2 0.10.6",
+]
+
+[[package]]
 name = "pkg-config"
 version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1277,37 +1290,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "secp256k1"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "550fc3b723a478be77bf74718947cdcdd75144d508aaa70f0a320036905df2a8"
-dependencies = [
- "secp256k1-sys",
-]
-
-[[package]]
-name = "secp256k1-sys"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8058e28ae464daf5ac14c5c0f78110b58616e796c4e4e28cfcca38fdb13d8f22"
-dependencies = [
- "cc",
-]
-
-[[package]]
-name = "secp256kfun"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec07e2d7ba56688989da0c032dd6b16fe2395dbbdab4f919e7ae009ccf8200bd"
-dependencies = [
- "digest 0.10.6",
- "rand_core",
- "secp256k1",
- "serde",
- "subtle-ng",
-]
-
-[[package]]
 name = "serde"
 version = "1.0.152"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1409,12 +1391,6 @@ name = "subtle"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
-
-[[package]]
-name = "subtle-ng"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "734676eb262c623cec13c3155096e08d1f8f29adce39ba17948b18dad1e54142"
 
 [[package]]
 name = "syn"

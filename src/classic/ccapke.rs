@@ -11,7 +11,7 @@ pub fn ccapke_enc(pk: &PublicKey, m: &[u8]) -> Vec<u8> {
     encrypt(pk, m).unwrap()
 }
 
-pub fn ccapke_dec(sk: &SecretKey, ct: &&[u8]) -> Vec<u8> {
+pub fn ccapke_dec(sk: &SecretKey, ct: &[u8]) -> Vec<u8> {
     let sk = &sk.serialize();
     decrypt(sk, ct).unwrap()
 }

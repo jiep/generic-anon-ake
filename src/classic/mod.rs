@@ -1,3 +1,3 @@
 pub mod ccapke;
-pub mod elgamal;
+pub mod pke;
 pub mod sig;

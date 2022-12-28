@@ -5,9 +5,9 @@ use k256::ecdsa::signature::Verifier;
 
 use rand_core::OsRng;
 
-pub fn sig_gen() -> (SigningKey, VerifyingKey) {
-    let pk = SigningKey::random(&mut OsRng);
-    let sk = VerifyingKey::from(&pk);
+pub fn sig_gen() -> (VerifyingKey, SigningKey) {
+    let sk = SigningKey::random(&mut OsRng);
+    let pk = VerifyingKey::from(&sk);
 
     (pk, sk)
 }
