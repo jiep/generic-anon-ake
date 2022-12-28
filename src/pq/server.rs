@@ -7,11 +7,9 @@ use oqs::{
 
 use sha3::{Digest, Sha3_256};
 
-use crate::{
-    pq::{
-        config::Config,
-        protocol::{CiphertextType, M2Message, TagType},
-    },
+use crate::pq::{
+    config::Config,
+    protocol::{CiphertextType, M2Message, TagType},
 };
 
 use super::client::Client;

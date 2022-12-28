@@ -21,7 +21,10 @@ use crate::{
 };
 
 use super::{
-    ccapake::{ccapke_dec, ccapke_enc}, server::Server, client::Client, config::Config,
+    ccapake::{ccapke_dec, ccapke_enc},
+    client::Client,
+    config::Config,
+    server::Server,
 };
 
 pub type CiphertextType = (oqs::kem::Ciphertext, Vec<u8>, TagType);

@@ -4,9 +4,7 @@ use oqs::{
 };
 use sha3::{Digest, Sha3_256};
 
-use crate::{
-    pq::protocol::{CiphertextType, M2Message},
-};
+use crate::pq::protocol::{CiphertextType, M2Message};
 
 use super::server::Server;
 
