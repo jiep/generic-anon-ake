@@ -13,8 +13,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      # - name: Install Rust
+      #   uses: dtolnay/rust-toolchain@stable
       
       - name: Check code
         run: cargo check
