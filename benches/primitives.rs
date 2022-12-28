@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use generic_anon_ake::{
     common::{prf::prf, utils::get_random_key32},
     pq::{
@@ -7,7 +8,6 @@ use generic_anon_ake::{
         supported_algs::{get_kem_algorithm, get_signature_algorithm},
     },
 };
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
 fn bench_1(c: &mut Criterion) {
     let mut group = c.benchmark_group("PKE_PQ");

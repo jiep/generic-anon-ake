@@ -1,10 +1,10 @@
 use std::time::Duration;
 
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use generic_anon_ake::classic::{
     config::Config,
     protocol::{registration, round_1, round_2, round_3, round_4, round_5, round_6},
 };
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
 const SAMPLES: usize = 100;
 const LOW_LIMIT: u32 = 6;

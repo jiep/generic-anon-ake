@@ -1,7 +1,7 @@
 use std::time::{Duration, Instant};
 
-use generic_anon_ake::common::utils::print_hex;
 use clap::Parser;
+use generic_anon_ake::common::utils::print_hex;
 
 use generic_anon_ake::classic::config::Config;
 use generic_anon_ake::classic::protocol::{
