@@ -2,7 +2,7 @@
 name = "generic-anon-ake"
 version = "0.3.0"
 edition = "2021"
-default-run = "generic_anon_ake"
+default-run = "generic-anon-ake"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -61,9 +61,9 @@ name = "generic_anon_ake"
 path = "src/lib.rs"
 
 [[bin]]
-name = "generic_anon_ake"
+name = "generic-anon-ake"
 path = "src/main.rs"
 
 [[bin]]
-name = "generic_anon_ake_classic"
+name = "generic-anon-ake-classic"
 path = "src/main_classic.rs"
