@@ -5,7 +5,7 @@ name: rust
 jobs:
   build_and_test:
     name: Build binary, test, and check format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check machine info
         run: lscpu
@@ -13,8 +13,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         
-      # - name: Install Rust
-      #   uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
       
       - name: Check code
         run: cargo check
