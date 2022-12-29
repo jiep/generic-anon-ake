@@ -25,16 +25,18 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - run: vcpkg install openssl:x64-windows-static-md
-        if: ${{ contains(matrix.config.target, 'windows') }}
         
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.config.target }}
+
+      - name: Check OPENSSL_DIR
+        shell: bash
+        run: echo $OPENSSL_DIR
       
       - name: Check code
+        shell: bash
         run: cargo check
 
       - name: Check tests
@@ -70,9 +72,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - run: vcpkg install openssl:x64-windows-static-md
-        if: ${{ contains(matrix.config.target, 'windows') }}
 
       - name: Install cargo-strip
         run: cargo install --force cargo-strip
