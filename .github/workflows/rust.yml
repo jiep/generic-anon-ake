@@ -31,7 +31,7 @@ jobs:
 
       - name: Install OpenSSL
         if: ${{ contains(matrix.config.target, 'windows') }}
-        run: vcpkg install openssl -v 1.1.1
+        run: vcpkg install openssl-windows
       
       - name: Check code
         shell: bash
