@@ -14,9 +14,9 @@ COLORS = {
     'Kyber512+Dilithium2': "#B79762",
     'Kyber768+Dilithium3': "#FF4A46",
     'Kyber1024+Dilithium5': "#0000A6",
-    CLASSIC_PKE_SIG: "#3A345A",
-    CLASSIC_PKE: "#AB2D23",
-    CLASSIC_SIG: "#12A23B",
+    CLASSIC_PKE_SIG: "#FF34FF",
+    CLASSIC_PKE: "#FF8A9A",
+    CLASSIC_SIG: "#FFF69F",
     'Kyber512': "#3B5DFF",
     'Kyber768': "#4FC601",
     'Kyber1024': "#FAD09F",
@@ -97,7 +97,7 @@ def load_data_protocol(pathfile):
             kind = "CLASSIC"
             clients = path.split("/")[-1]
             round = path.split("/")[-2]
-            print(path)
+            # print(path)
             data_path_base = "{}/{}/sample.json".format(path, "base")
             data_path_new = "{}/{}/sample.json".format(path, "new")
             samples_base = get_samples(data_path_base)
