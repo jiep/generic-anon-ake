@@ -16,7 +16,7 @@ jobs:
           #   }
           - {
               os: windows-2019,
-              target: "x86_64-pc-windows-gnu"
+              target: "x86_64-pc-windows-msvc"
             }
           # - {
           #     os: macos-11,
@@ -30,7 +30,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install OpenSSL
-        if: ${{ !contains(matrix.config.target, 'windows') }}
+        if: ${{ contains(matrix.config.target, 'windows') }}
         run: vcpkg install openssl -v 1.1.1
       
       - name: Check code
@@ -61,7 +61,7 @@ jobs:
             }
           - {
               os: windows-2019,
-              target: "x86_64-pc-windows-gnu"
+              target: "x86_64-pc-windows-msvc"
             }
           - {
               os: macos-11,
