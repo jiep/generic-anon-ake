@@ -94,15 +94,17 @@ jobs:
         if: ${{ !contains(matrix.config.target, 'windows') }}
         run: |
           BIN=generic-anon-ake
+          BIN_NAME=${BIN}
           TARGET=${{ matrix.config.target }}
           if [[ ${TARGET} == *"darwin"* ]]; then
             brew install coreutils
           fi
           cd target/${TARGET}/release
           if [[ ${TARGET} != *"windows"* ]]; then
-            sha256sum ${BIN_NAME}* > digest.sha256
+            rm -rf *.d
+            sha256sum ${BIN}* > digest.sha256
           fi
-          zip ../../../${BIN}-${TARGET}.zip ${BIN_NAME} digest.sha256
+          zip ../../../${BIN}-${TARGET}.zip ${BIN_NAME}* digest.sha256
           cd -
       - name: Package all targets for Windows
         if: ${{ contains(matrix.config.target, 'windows') }}
@@ -112,8 +114,9 @@ jobs:
           BIN_NAME=${BIN}.exe
           TARGET=${{ matrix.config.target }}
           cd target/${TARGET}/release
+          rm -rf *.d
           sha256sum ${BIN_NAME}* > digest.sha256
-          tar.exe acvf ../../../${BIN}-${TARGET}.zip ${BIN_NAME} digest.sha256
+          tar.exe acvf ../../../${BIN}-${TARGET}.zip ${BIN_NAME}* digest.sha256
           cd -
       - name: Add to Releases
         if: startsWith(github.ref, 'refs/tags/')
