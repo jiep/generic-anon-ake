@@ -265,10 +265,10 @@ def main():
     plot_rounds(df_protocol, OUTPUT)
     plot_registration(df_protocol, OUTPUT)
     
-    # save_to_csv_primitives([OUTPUT + "PKE", OUTPUT + "SIG"], OUTPUT, "data_primitives.csv")
-    # df_primitives = load_csv(OUTPUT, 'data_primitives.csv')
-    # plot_pke(df_primitives, OUTPUT)
-    # plot_sig(df_primitives, OUTPUT)
+    save_to_csv_primitives([OUTPUT + "PKE", OUTPUT + "SIG"], OUTPUT, "data_primitives.csv")
+    df_primitives = load_csv(OUTPUT, 'data_primitives.csv')
+    plot_pke(df_primitives, OUTPUT)
+    plot_sig(df_primitives, OUTPUT)
 
 if __name__ == '__main__':
     main()
