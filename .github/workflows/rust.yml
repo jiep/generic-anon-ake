@@ -15,7 +15,7 @@ jobs:
               target: "x86_64-unknown-linux-gnu"
             }
           - {
-              os: windows-2021,
+              os: windows-2019,
               target: "x86_64-pc-windows-msvc"
             }
           - {
@@ -57,7 +57,7 @@ jobs:
               target: "x86_64-unknown-linux-gnu"
             }
           - {
-              os: windows-2021,
+              os: windows-2019,
               target: "x86_64-pc-windows-msvc"
             }
           - {
