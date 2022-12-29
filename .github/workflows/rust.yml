@@ -25,6 +25,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
+      - run: vcpkg install openssl:x64-windows-static-md
+        if: ${{ contains(matrix.config.target, 'windows')
         
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -67,6 +70,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
+      - run: vcpkg install openssl:x64-windows-static-md
+        if: ${{ contains(matrix.config.target, 'windows')
 
       - name: Install cargo-strip
         run: cargo install --force cargo-strip
