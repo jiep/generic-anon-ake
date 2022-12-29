@@ -28,12 +28,6 @@ jobs:
         
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.config.target }}
-
-      - name: Check OPENSSL_DIR
-        shell: bash
-        run: echo $OPENSSL_DIR
       
       - name: Check code
         shell: bash
