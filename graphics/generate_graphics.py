@@ -38,6 +38,7 @@ def load_data_primitives(pathfiles):
     headers = ["Algorithm", "Type", "Operation", "Time", "Kind"]
     all_samples = np.array([headers])
     paths = list(itertools.chain(*list(map(lambda x: glob.glob(x + "*/*/*"), pathfiles))))
+    paths = list(filter(lambda x: "PQ" in x or x.endswith("base"), paths))
     for path in paths:
         type_kind = path.split("/")[-3]
         type_ = type_kind.split("_")[0]
@@ -53,7 +54,7 @@ def load_data_primitives(pathfiles):
             row = lambda time: [alg, type_, operation, time, kind] 
             rows = np.asarray(list(map(row, samples)))
             all_samples = np.append(all_samples, rows, axis=0)
-        else:
+        elif (kind == "CLASSIC"):
             operation = path.split("/")[-2]
             if type_ == "PKE":
                 alg = CLASSIC_PKE
@@ -69,6 +70,8 @@ def load_data_primitives(pathfiles):
             row = lambda time: [alg, type_, operation, time, kind] 
             rows = np.asarray(list(map(row, samples)))
             all_samples = np.append(all_samples, rows, axis=0)
+        else:
+            raise Exception("Error while reading file!")
     return  all_samples
 
 def load_data_protocol(pathfile):
@@ -256,6 +259,28 @@ def plot_sig(df, output_path):
     print("Saved file to {}".format(figname), flush=True)
 
 
+def get_statistics_primitives(df, output):
+    # print(df)
+    df2 = df[["Algorithm", "Type", "Operation", "Time"]]
+    result = df2.groupby(["Algorithm", "Type", "Operation"], as_index=False).agg(
+                      {'Time':['mean', 'std', 'count']})
+
+    result.round(3).to_csv(output, index=False)
+    result = pd.read_csv(output, names=["Algorithm", "Type", "Operation","Time_mean","Time_std","Samples"], skiprows=2)
+    result.round(3).to_csv(output, index=False)
+
+def get_statistics_protocol(df, output):
+    # print(df)
+    df2 = df[["Algorithm", "Clients", "Round", "Time"]]
+    # print(df2)
+    result = df2.groupby(["Algorithm", "Clients", "Round"], as_index=False).agg(
+                      {'Time':['mean', 'std', 'count']})
+
+    # print(result)
+    result.round(3).to_csv(output, index=False)
+    result = pd.read_csv(output, names=["Algorithm", "Clients", "Round","Time_mean","Time_std","Samples"], skiprows=2)
+    result.round(3).to_csv(output, index=False)
+
 def main(): 
     PATH = "./target/criterion/Protocol"
     OUTPUT = "./target/criterion/"
@@ -269,6 +294,9 @@ def main():
     df_primitives = load_csv(OUTPUT, 'data_primitives.csv')
     plot_pke(df_primitives, OUTPUT)
     plot_sig(df_primitives, OUTPUT)
+
+    get_statistics_primitives(df_primitives, OUTPUT + "statistics_primitives.csv")
+    get_statistics_protocol(df_protocol, OUTPUT + "statistics_protocol.csv")
 
 if __name__ == '__main__':
     main()
