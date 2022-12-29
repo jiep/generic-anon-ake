@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v3
 
       - run: vcpkg install openssl:x64-windows-static-md
-        if: ${{ contains(matrix.config.target, 'windows')
+        if: ${{ contains(matrix.config.target, 'windows') }}
         
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -72,7 +72,7 @@ jobs:
         uses: actions/checkout@v3
 
       - run: vcpkg install openssl:x64-windows-static-md
-        if: ${{ contains(matrix.config.target, 'windows')
+        if: ${{ contains(matrix.config.target, 'windows') }}
 
       - name: Install cargo-strip
         run: cargo install --force cargo-strip
