@@ -16,7 +16,7 @@ jobs:
             }
           - {
               os: windows-2019,
-              target: "x86_64-pc-windows-msvc"
+              target: "x86_64-pc-windows-gnu"
             }
           - {
               os: macos-11,
@@ -57,7 +57,7 @@ jobs:
             }
           - {
               os: windows-2019,
-              target: "x86_64-pc-windows-msvc"
+              target: "x86_64-pc-windows-gnu"
             }
           - {
               os: macos-11,
