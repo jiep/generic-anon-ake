@@ -1,27 +1,17 @@
-use std::process;
 use std::time::{Duration, Instant};
 
 use clap::Parser;
-
 use generic_anon_ake::common::utils::print_hex;
-use generic_anon_ake::pq::config::Config;
-use generic_anon_ake::pq::protocol::{
+
+use generic_anon_ake::classic::config::Config;
+use generic_anon_ake::classic::protocol::{
     get_m1_length, get_m2_length, get_m3_length, get_m4_length, get_m5_length, registration,
     round_1, round_2, round_3, round_4, round_5, round_6, show_diagram,
-};
-use generic_anon_ake::pq::supported_algs::{
-    get_kem_algorithm, get_signature_algorithm, print_supported_kems, print_supported_signatures,
 };
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[arg(short, long)]
-    kem: String,
-
-    #[arg(short, long)]
-    sig: String,
-
     #[arg(short, long)]
     #[arg(value_parser = clap::value_parser!(u32).range(1..))]
     clients: u32,
@@ -34,40 +24,12 @@ fn main() {
     let args = Args::parse();
     let verbose = args.verbose;
 
-    // Init
     let users: u32 = args.clients;
 
     let mut times: Vec<Duration> = Vec::new();
     let mut lengths: Vec<usize> = Vec::new();
 
-    // Init PQ signature scheme
-    println!("[!] Setting {} as signature scheme...", args.sig);
-    let sigalg = get_signature_algorithm(&args.sig);
-    if sigalg.is_none() {
-        println!(
-            "[!] Signature {} is invalid or is not supported!\n[!] Suppored signature schemes:",
-            args.sig
-        );
-        print_supported_signatures();
-        process::exit(1);
-    }
-    let sigalg = sigalg.unwrap();
-
-    // Init PQ KEM scheme
-    println!("[!] Setting {} as KEM...\n", args.kem);
-    let kemalg = get_kem_algorithm(&args.kem);
-    if kemalg.is_none() {
-        println!(
-            "[!] Kem {} is invalid or is not supported!\n[!] Suppored KEMS:",
-            args.kem
-        );
-        print_supported_kems();
-        process::exit(1);
-    }
-
-    let kemalg = kemalg.unwrap();
-
-    let config: Config = Config::new(users, kemalg, sigalg);
+    let config: Config = Config::new(users);
 
     if verbose {
         println!("[!] Creating {} clients...", users);
@@ -124,7 +86,7 @@ fn main() {
         println!("[C] Running Round 3...");
     }
     let start = Instant::now();
-    let m3 = round_3(&mut client, &config, verbose);
+    let m3 = round_3(&mut client, verbose);
     lengths.push(get_m3_length(&m3));
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 3 is {:?}", duration);
@@ -138,7 +100,7 @@ fn main() {
         println!("[S] Running Round 4...");
     }
     let start = Instant::now();
-    let m4 = round_4(&mut server, &config);
+    let m4 = round_4(&mut server);
     lengths.push(get_m4_length(&m4));
     let duration = start.elapsed();
     println!("[!] Time elapsed in Round 4 is {:?}", duration);
@@ -166,7 +128,7 @@ fn main() {
         println!("[S] Running Round 6...");
     }
     let start = Instant::now();
-    round_6(&mut server, &config, client.get_id(), verbose);
+    round_6(&mut server, client.get_id(), verbose);
     let duration = start.elapsed();
     times.push(duration);
     println!("[!] Time elapsed in Round 6 is {:?}\n", duration);

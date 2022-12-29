@@ -1,53 +1,41 @@
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
-use lb_vrf::{lbvrf::Proof, poly256::Poly256};
-use oqs::{
-    kem::{self, Ciphertext},
-    sig::{self, Signature},
-};
-
-use sha3::{Digest, Sha3_256};
-
-use crate::protocol::client::Client;
-
-use super::{
-    config::Config,
-    protocol::{CiphertextType, M2Message, TagType},
-};
+use super::{client::Client, protocol::M2Message, sig::sig_gen};
 
 #[derive(Debug)]
 pub struct Server {
-    clients_keys: Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)>,
-    kem_keys: HashMap<u32, (kem::PublicKey, kem::SecretKey)>,
+    clients_keys: Vec<(ecies::PublicKey, ecies::SecretKey)>,
+    ecies_keys: HashMap<u32, (ecies::PublicKey, ecies::SecretKey)>,
     comms: HashMap<u32, Vec<u8>>,
     comms_server: HashMap<u32, Vec<u8>>,
     opens_server: HashMap<u32, (Vec<u8>, Vec<u8>)>,
     cis: Vec<Vec<u8>>,
-    yis: Vec<Vec<u8>>,
-    proofs: Vec<Proof>,
+    r: Vec<u8>,
     ns: HashMap<u32, Vec<u8>>,
     k: HashMap<u32, Vec<u8>>,
-    ctxis: HashMap<u32, CiphertextType>,
-    signature_keys: (sig::PublicKey, sig::SecretKey),
+    ctxis: HashMap<u32, Vec<u8>>,
+    signature_keys: (k256::PublicKey, k256::SecretKey),
+    sid: HashMap<u32, Vec<u8>>,
 }
 
 impl Server {
-    pub fn new(config: &Config) -> Self {
-        let (pk_sig, sk_sig) = config.get_signature_algorithm().keypair().unwrap();
+    pub fn new() -> Self {
+        let (pk_sig, sk_sig) = sig_gen();
 
         Server {
             clients_keys: Vec::new(),
-            kem_keys: HashMap::new(),
+            ecies_keys: HashMap::new(),
             comms: HashMap::new(),
             comms_server: HashMap::new(),
             opens_server: HashMap::new(),
             cis: Vec::new(),
-            yis: Vec::new(),
-            proofs: Vec::new(),
+            r: Vec::new(),
             ns: HashMap::new(),
             k: HashMap::new(),
             ctxis: HashMap::new(),
-            signature_keys: (pk_sig, sk_sig),
+            signature_keys: (pk_sig.into(), sk_sig.into()),
+            sid: HashMap::new(),
         }
     }
 
@@ -65,29 +53,27 @@ impl Server {
         self.comms_server.insert(id, comm);
     }
 
-    fn add_open_server(&mut self, open: (Vec<u8>, Vec<u8>), id: u32) {
+    pub fn add_open_server(&mut self, open: (Vec<u8>, Vec<u8>), id: u32) {
         self.opens_server.insert(id, open);
     }
 
-    pub fn get_kem_keypair(&self, index: u32) -> (kem::PublicKey, kem::SecretKey) {
-        self.kem_keys.get(&index).unwrap().clone()
+    pub fn get_kem_keypair(&self, index: u32) -> (ecies::PublicKey, ecies::SecretKey) {
+        *self.ecies_keys.get(&index).unwrap()
     }
 
-    pub fn set_kem_keypair(&mut self, keys: (kem::PublicKey, kem::SecretKey), index: u32) {
-        self.kem_keys.insert(index, keys);
+    pub fn set_ecies_keypair(&mut self, keys: (ecies::PublicKey, ecies::SecretKey), index: u32) {
+        self.ecies_keys.insert(index, keys);
     }
 
-    pub fn add_key(&mut self, key: (lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)) {
+    pub fn add_key(&mut self, key: (ecies::PublicKey, ecies::SecretKey)) {
         self.clients_keys.push(key);
     }
 
-    pub fn get_clients_keys(
-        &self,
-    ) -> Vec<(lb_vrf::keypair::PublicKey, lb_vrf::keypair::SecretKey)> {
+    pub fn get_clients_keys(&self) -> Vec<(ecies::PublicKey, ecies::SecretKey)> {
         self.clients_keys.clone()
     }
 
-    pub fn get_ctxis(&self) -> HashMap<u32, (Ciphertext, Vec<u8>, TagType)> {
+    pub fn get_ctxis(&self) -> HashMap<u32, Vec<u8>> {
         self.ctxis.clone()
     }
 
@@ -107,46 +93,51 @@ impl Server {
         self.ns.insert(index, ns);
     }
 
-    fn set_ctxi(&mut self, ctxi: CiphertextType, id: u32) {
+    fn set_ctxi(&mut self, ctxi: Vec<u8>, id: u32) {
         self.ctxis.insert(id, ctxi);
     }
 
     pub fn set_k(&mut self, key: Vec<u8>, index: u32) {
-        let mut hasher = Sha3_256::new();
+        let mut hasher = Sha256::new();
         hasher.update(key);
         let hashed_k: Vec<u8> = hasher.finalize().to_vec();
         self.k.insert(index, hashed_k);
+    }
+
+    pub fn set_sid(&mut self, key: Vec<u8>, index: u32) {
+        let mut hasher = Sha256::new();
+        hasher.update(key);
+        let hashed_sid: Vec<u8> = hasher.finalize().to_vec();
+        self.sid.insert(index, hashed_sid);
     }
 
     pub fn get_key(&mut self, index: u32) -> Vec<u8> {
         self.k.get(&index).unwrap().to_vec()
     }
 
+    pub fn get_sid(&mut self, index: u32) -> Vec<u8> {
+        self.sid.get(&index).unwrap().to_vec()
+    }
+
     pub fn get_ns(&self, index: u32) -> Vec<u8> {
         self.ns.get(&index).unwrap().clone()
     }
 
-    pub fn get_sig_keypair(&self) -> (sig::PublicKey, sig::SecretKey) {
+    pub fn get_sig_keypair(&self) -> (k256::PublicKey, k256::SecretKey) {
         self.signature_keys.clone()
     }
 
-    pub fn get_sig_pk(&self) -> sig::PublicKey {
-        self.signature_keys.0.clone()
+    pub fn get_sig_pk(&self) -> k256::PublicKey {
+        self.signature_keys.0
     }
 
-    pub fn add_proofs_and_ciphertexts(
-        &mut self,
-        cis: &[Vec<u8>],
-        yis: &[Vec<u8>],
-        proofs: &Vec<Proof>,
-    ) {
+    pub fn add_proofs_and_ciphertexts(&mut self, cis: &Vec<Vec<u8>>, r: &Vec<u8>) {
         self.cis = cis.to_owned();
-        self.yis = yis.to_owned();
-        self.proofs = proofs.to_owned();
+        self.r = r.to_owned();
     }
 
-    pub fn get_proofs(&self) -> Vec<Proof> {
-        self.proofs.clone()
+    pub fn get_r(&self) -> Vec<u8> {
+        self.r.clone()
     }
 
     pub fn get_cis(&self) -> Vec<Vec<u8>> {
@@ -162,13 +153,19 @@ impl Server {
         self.add_commitment_server(comm_s, id);
     }
 
-    pub fn send_m4(&self, m4: (Vec<([Poly256; 9], Poly256)>, Signature), client: &mut Client) {
+    pub fn send_m4(&self, m4: (Vec<u8>, k256::ecdsa::Signature), client: &mut Client) {
         client.receive_m4(m4);
     }
 
-    pub fn receive_m5(&mut self, m5: (CiphertextType, (Vec<u8>, Vec<u8>), u32)) {
+    pub fn receive_m5(&mut self, m5: (Vec<u8>, (Vec<u8>, Vec<u8>), u32)) {
         let (ctxi, open_s, id) = m5;
         self.add_open_server(open_s, id);
         self.set_ctxi(ctxi, id);
+    }
+}
+
+impl Default for Server {
+    fn default() -> Self {
+        Self::new()
     }
 }

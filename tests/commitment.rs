@@ -1,4 +1,4 @@
-use anon_sym_ake::protocol::commitment::{comm, comm_vfy};
+use generic_anon_ake::pq::commitment::{comm, comm_vfy};
 
 #[test]
 fn commitment_works() {

@@ -1,35 +1,26 @@
-use lb_vrf::{
-    keypair::{PublicKey, SecretKey},
-    poly256::Poly256,
-};
-use oqs::{
-    kem,
-    sig::{self, Signature},
-};
-use sha3::{Digest, Sha3_256};
+use sha2::{Digest, Sha256};
 
-use crate::protocol::server::Server;
-
-use super::protocol::{CiphertextType, M2Message};
+use super::{protocol::M2Message, server::Server};
 
 #[derive(Debug)]
 pub struct Client {
     id: u32,
-    ek: Option<SecretKey>,
+    ek: Option<ecies::SecretKey>,
     ni: Vec<u8>,
-    vks: Vec<PublicKey>,
+    vks: Vec<ecies::PublicKey>,
     //commitment and open
     commitment: (Vec<u8>, (Vec<u8>, Vec<u8>)),
     commitment_server: (Vec<u8>, (Vec<u8>, Vec<u8>)),
     cis: Vec<Vec<u8>>,
-    proofs: Vec<([Poly256; 9], Poly256)>,
+    ri: Vec<u8>,
     r: Vec<u8>,
-    pk: Option<kem::PublicKey>,
+    pk: Option<ecies::PublicKey>,
     k: Vec<u8>,
     ns: Vec<u8>,
-    signature2: Option<sig::Signature>,
-    signature4: Option<sig::Signature>,
-    pk_s: Option<sig::PublicKey>,
+    signature2: Option<k256::ecdsa::Signature>,
+    signature4: Option<k256::ecdsa::Signature>,
+    pk_s: Option<k256::PublicKey>,
+    sid: Vec<u8>,
 }
 
 impl Client {
@@ -42,7 +33,7 @@ impl Client {
             commitment: (Vec::new(), (Vec::new(), Vec::new())),
             commitment_server: (Vec::new(), (Vec::new(), Vec::new())),
             cis: Vec::new(),
-            proofs: Vec::new(),
+            ri: Vec::new(),
             r: Vec::new(),
             pk: None,
             k: Vec::new(),
@@ -50,14 +41,15 @@ impl Client {
             signature2: None,
             signature4: None,
             pk_s: None,
+            sid: Vec::new(),
         }
     }
 
-    pub fn set_ek(&mut self, ek: lb_vrf::keypair::SecretKey) {
+    pub fn set_ek(&mut self, ek: ecies::SecretKey) {
         self.ek = Some(ek);
     }
 
-    pub fn set_vks(&mut self, vks: Vec<lb_vrf::keypair::PublicKey>) {
+    pub fn set_vks(&mut self, vks: Vec<ecies::PublicKey>) {
         self.vks = vks;
     }
 
@@ -78,38 +70,49 @@ impl Client {
     }
 
     pub fn set_k(&mut self, k: Vec<u8>) {
-        let mut hasher = Sha3_256::new();
+        let mut hasher = Sha256::new();
         hasher.update(k);
         let hashed_k: Vec<u8> = hasher.finalize().to_vec();
         self.k = hashed_k;
     }
 
-    pub fn get_ek(&self) -> SecretKey {
+    pub fn set_sid(&mut self, k: Vec<u8>) {
+        let mut hasher = Sha256::new();
+        hasher.update(k);
+        let hashed_sid: Vec<u8> = hasher.finalize().to_vec();
+        self.sid = hashed_sid;
+    }
+
+    pub fn get_ek(&self) -> ecies::SecretKey {
         self.ek.unwrap()
     }
 
-    pub fn get_signature4(&self) -> Signature {
-        self.signature4.as_ref().unwrap().clone()
+    pub fn get_sid(&self) -> Vec<u8> {
+        self.sid.clone()
+    }
+
+    pub fn get_signature4(&self) -> k256::ecdsa::Signature {
+        self.signature4.unwrap()
     }
 
     pub fn get_key(&self) -> Vec<u8> {
         self.k.clone()
     }
 
-    pub fn get_pk(&self) -> kem::PublicKey {
-        self.pk.as_ref().unwrap().clone()
+    pub fn get_pk(&self) -> ecies::PublicKey {
+        self.pk.unwrap()
     }
 
-    pub fn set_pk(&mut self, pk: kem::PublicKey) {
+    pub fn set_pk(&mut self, pk: ecies::PublicKey) {
         self.pk = Some(pk);
     }
 
-    pub fn set_pks(&mut self, pk_s: sig::PublicKey) {
+    pub fn set_pks(&mut self, pk_s: k256::PublicKey) {
         self.pk_s = Some(pk_s);
     }
 
-    pub fn get_pks(&self) -> sig::PublicKey {
-        self.pk_s.as_ref().unwrap().clone()
+    pub fn get_pks(&self) -> k256::PublicKey {
+        self.pk_s.unwrap()
     }
 
     pub fn get_ni(&self) -> Vec<u8> {
@@ -128,8 +131,8 @@ impl Client {
         self.cis.clone()
     }
 
-    pub fn get_proofs(&self) -> Vec<([Poly256; 9], Poly256)> {
-        self.proofs.clone()
+    pub fn get_ri(&self) -> Vec<u8> {
+        self.ri.clone()
     }
 
     pub fn get_commitment(&self) -> (Vec<u8>, (Vec<u8>, Vec<u8>)) {
@@ -140,7 +143,7 @@ impl Client {
         self.commitment_server.clone()
     }
 
-    pub fn get_vks(&self) -> Vec<PublicKey> {
+    pub fn get_vks(&self) -> Vec<ecies::PublicKey> {
         self.vks.clone()
     }
 
@@ -158,7 +161,7 @@ impl Client {
         server.receive_m3((comm_s, self.get_id()));
     }
 
-    pub fn send_m5(&self, m5: (CiphertextType, (Vec<u8>, Vec<u8>)), server: &mut Server) {
+    pub fn send_m5(&self, m5: (Vec<u8>, (Vec<u8>, Vec<u8>)), server: &mut Server) {
         let (ctxi, open_s) = m5;
 
         server.receive_m5((ctxi, open_s, self.get_id()));
@@ -172,18 +175,25 @@ impl Client {
         self.signature2 = Some(signature2);
     }
 
-    pub fn get_m2_info(&self) -> (Vec<Vec<u8>>, Vec<u8>, oqs::kem::PublicKey, Signature) {
+    pub fn get_m2_info(
+        &self,
+    ) -> (
+        Vec<Vec<u8>>,
+        Vec<u8>,
+        ecies::PublicKey,
+        k256::ecdsa::Signature,
+    ) {
         (
             self.cis.clone(),
             self.r.clone(),
-            self.pk.as_ref().unwrap().clone(),
-            self.signature2.as_ref().unwrap().clone(),
+            self.pk.unwrap(),
+            self.signature2.unwrap(),
         )
     }
 
-    pub fn receive_m4(&mut self, m4: (Vec<([Poly256; 9], Poly256)>, Signature)) {
-        let (proofs, signature4) = m4;
-        self.proofs = proofs;
+    pub fn receive_m4(&mut self, m4: (Vec<u8>, k256::ecdsa::Signature)) {
+        let (r, signature4) = m4;
+        self.r = r;
         self.signature4 = Some(signature4);
     }
 }
@@ -198,14 +208,15 @@ impl Clone for Client {
             commitment: self.commitment.clone(),
             commitment_server: self.commitment_server.clone(),
             cis: self.cis.clone(),
-            proofs: self.proofs.clone(),
+            ri: self.ri.clone(),
             r: self.r.clone(),
-            pk: self.pk.clone(),
+            pk: self.pk,
             k: self.k.clone(),
             ns: self.ni.clone(),
-            signature2: self.signature2.clone(),
-            signature4: self.signature4.clone(),
-            pk_s: self.pk_s.clone(),
+            signature2: self.signature2,
+            signature4: self.signature4,
+            pk_s: self.pk_s,
+            sid: self.sid.clone(),
         }
     }
 }

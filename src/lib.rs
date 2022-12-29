@@ -1,2 +1,3 @@
-#[allow(clippy::module_inception)]
-pub mod protocol;
+pub mod classic;
+pub mod common;
+pub mod pq;

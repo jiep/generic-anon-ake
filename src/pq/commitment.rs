@@ -1,4 +1,4 @@
-use crate::protocol::utils::get_random_key32;
+use crate::common::utils::get_random_key32;
 use sha3::{Digest, Sha3_256};
 
 // Output: commitment := H(r || x) and open := (x, r)
