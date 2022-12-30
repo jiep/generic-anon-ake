@@ -38,7 +38,6 @@ jobs:
         run: echo "OPENSSL_ROOT_DIR=C:/Program Files/OpenSSL-Win64" >> $env:GITHUB_ENV
       
       - name: Check code
-        shell: bash
         run: cargo check
 
       - name: Check tests
