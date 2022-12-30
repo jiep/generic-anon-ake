@@ -1,7 +1,7 @@
 use aes::cipher::{KeyIvInit, StreamCipher};
 use ctr;
 
-type Aes256Ctr64LE = ctr::Ctr64LE<aes::Aes256>;
+type Aes256Ctr64BE = ctr::Ctr64BE<aes::Aes256>;
 
 pub fn prf(key: &[u8], nonce: &[u8]) -> Vec<u8> {
     let plaintext = vec![0; 16];
@@ -11,7 +11,7 @@ pub fn prf(key: &[u8], nonce: &[u8]) -> Vec<u8> {
     k.copy_from_slice(key);
 
     let mut buf = plaintext.to_vec();
-    let mut cipher = Aes256Ctr64LE::new(&k.into(), nonce.into());
+    let mut cipher = Aes256Ctr64BE::new(&k.into(), nonce.into());
     cipher.apply_keystream(&mut buf);
 
     buf

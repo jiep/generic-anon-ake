@@ -35,7 +35,7 @@ pub fn pke_enc(
     let mut hasher = Sha3_256::new();
     hasher.update(r);
     let nonce = hasher.finalize().to_vec();
-    let (ct, k) = kem.encapsulate(pk, r).unwrap();
+    let (ct, k) = kem.encapsulate(pk, &nonce).unwrap();
     let cipher = Aes256Gcm::new_from_slice(k.into_vec().as_slice()).unwrap();
     let iv = Nonce::from_slice(&nonce[0..12]);
     let ciphertext = cipher.encrypt(iv, m.as_slice()).unwrap();
