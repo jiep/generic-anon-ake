@@ -26,6 +26,8 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - uses: Swatinem/rust-cache@v2
+
       - name: Install OpenSSL
         if: startsWith(matrix.config.os, 'windows')
         run: choco install openssl --limit-output
@@ -90,6 +92,8 @@ jobs:
         with:
           targets: ${{ matrix.config.target }}
 
+      - uses: Swatinem/rust-cache@v2
+
       - name: Build target
         run: |
           cargo build --release --target ${{ matrix.config.target }}
@@ -147,6 +151,8 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
 
       - name: Run benchmark
         run: cargo bench
