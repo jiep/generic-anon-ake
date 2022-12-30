@@ -85,11 +85,10 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
         let (ek, _) = client_keys.get(i as usize).unwrap();
         let nonce = (i as u128).to_be_bytes();
         let ri = prf(&r, &nonce);
-        let c = pke_enc(kemalg, ek, &n_s, &ri, &ri[0..12].to_vec());
+        let c = pke_enc(kemalg, ek, &n_s, &ri);
         cis.push(c);
     }
-
-    server.add_proofs_and_ciphertexts(&cis, &r);
+    server.add_ciphertexts(&cis, &r);
 
     let to_sign: Vec<u8> = [
         cis.clone()
@@ -157,10 +156,10 @@ pub fn round_3(client: &mut Client, config: &Config, verbose: bool) -> (Vec<u8>,
         println!("[C] Signature verification -> KO");
     }
 
-    let (ct, ciphertext, tag) = cis.get(id as usize).unwrap();
+    let (ct, ciphertext, iv) = cis.get(id as usize).unwrap();
     let eki: kem::SecretKey = client.get_ek();
 
-    let ns = pke_dec(kemalg, eki, ct, ciphertext, tag);
+    let ns = pke_dec(kemalg, eki, ct, ciphertext, iv);
 
     client.set_ns(&ns);
 
@@ -203,20 +202,20 @@ pub fn round_5(
             println!("[C] Signature verification -> OK");
         }
     } else if verbose {
-        println!("[C] Signature verification -> FAIL");
+        println!("[C] Signature verification -> KO");
     }
 
     let pk = client.get_pk();
 
     for j in 0..users {
-        let cj = cis.get(j as usize).unwrap();
         let vkj = vks.get(j as usize).unwrap();
-
         let nonce = (j as u128).to_be_bytes();
         let rj = prf(&r, &nonce);
-        let ci_check = pke_enc(kemalg, vkj, &ns, &rj, &rj[0..12].to_vec());
+        let cj = cis.get(j as usize).unwrap();
 
-        if check_ciphertext(&ci_check, cj) {
+        let cj_check = pke_enc(kemalg, vkj, &ns, &rj);
+
+        if check_ciphertext(&cj_check, cj) {
             if verbose {
                 println!("[C] Ciphertext verification for j={} -> OK", j);
             }
@@ -271,7 +270,7 @@ pub fn round_6(server: &mut Server, config: &Config, i: u32, verbose: bool) {
             println!("[S] Commitment verification -> OK");
         }
     } else if verbose {
-        println!("[S] Commitment verification -> FAIL");
+        println!("[S] Commitment verification -> KO");
     }
 
     server.set_k(k, i);

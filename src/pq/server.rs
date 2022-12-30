@@ -142,7 +142,7 @@ impl Server {
         self.signature_keys.0.clone()
     }
 
-    pub fn add_proofs_and_ciphertexts(&mut self, cis: &Vec<CiphertextType>, r: &Vec<u8>) {
+    pub fn add_ciphertexts(&mut self, cis: &Vec<CiphertextType>, r: &Vec<u8>) {
         self.cis = cis.to_owned();
         self.r = r.to_owned();
     }
