@@ -123,7 +123,7 @@ jobs:
           TARGET=${{ matrix.config.target }}
           cd target/${TARGET}/release
           rm -rf *.d
-          sha256sum ${BIN_NAME}* > digest.sha256
+          sha256sum ${BIN}* > digest.sha256
           tar.exe acvf ../../../${BIN}-${TARGET}.zip ${BIN_NAME}* digest.sha256
           cd -
       - name: Add to Releases
