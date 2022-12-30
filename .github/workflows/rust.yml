@@ -105,7 +105,7 @@ jobs:
           if [[ ${TARGET} == *"darwin"* ]]; then
             brew install coreutils
           fi
-          cd target/release
+          cd target/${TARGET}/release
           if [[ ${TARGET} != *"windows"* ]]; then
             rm -rf *.d
             sha256sum ${BIN}* > digest.sha256
