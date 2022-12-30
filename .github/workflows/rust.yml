@@ -12,15 +12,12 @@ jobs:
         config:
           - {
               os: ubuntu-20.04,
-              target: "x86_64-unknown-linux-gnu"
             }
-          # - {
-          #     os: windows-2019,
-          #     target: "x86_64-pc-windows-msvc"
-          #   }
+          - {
+              os: windows-2022,
+            }
           - {
               os: macos-11,
-              target: "x86_64-apple-darwin"
             }
     steps:
       - name: Checkout repo
@@ -29,17 +26,15 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      # - name: Install OpenSSL
-      #   if: ${{ contains(matrix.config.target, 'windows') }}
-      #   shell: powershell
-      #   run: | 
-      #     vcpkg.exe install openssl-windows:x64-windows
-      #     vcpkg.exe install openssl:x64-windows-static
-      #     vcpkg.exe integrate install
-      #     vcpkg list
+      - name: Install OpenSSL
+        if: startsWith(matrix.config.os, 'windows')
+        run: choco install openssl --limit-output
+
+      - name: Set OPENSSL_DIR
+        if: startsWith(matrix.config.os, 'windows')
+        run: echo "OPENSSL_DIR=C:/Program Files/OpenSSL-Win64" >> $env:GITHUB_ENV
       
       - name: Check code
-        shell: bash
         run: cargo check
 
       - name: Check tests
@@ -64,17 +59,28 @@ jobs:
               os: ubuntu-20.04,
               target: "x86_64-unknown-linux-gnu"
             }
-          # - {
-          #     os: windows-2019,
-          #     target: "x86_64-pc-windows-msvc"
-          #   }
+          - {
+              os: windows-2022,
+              target: "x86_64-pc-windows-msvc"
+            }
           - {
               os: macos-11,
               target: "x86_64-apple-darwin"
             }
     steps:
+      - name: Check machine info
+        run: lscpu
+
       - name: Checkout repo
         uses: actions/checkout@v3
+
+      - name: Install OpenSSL
+        if: startsWith(matrix.config.os, 'windows')
+        run: choco install openssl --limit-output
+
+      - name: Set OPENSSL_ROOT_DIR
+        if: startsWith(matrix.config.os, 'windows')
+        run: echo "OPENSSL_ROOT_DIR=C:/Program Files/OpenSSL-Win64" >> $env:GITHUB_ENV
 
       - name: Install cargo-strip
         run: cargo install --force cargo-strip
