@@ -952,9 +952,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.16.0"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86f0b0d4bf799edbc74508c1e8bf170ff5f41238e5f8225603ca7caaae2b7860"
+checksum = "6f61fba1741ea2b3d6a1e3178721804bb716a68a6aeba1149b5d52e3d464ea66"
 
 [[package]]
 name = "oorandom"
@@ -1010,7 +1010,7 @@ dependencies = [
 [[package]]
 name = "oqs"
 version = "0.7.2"
-source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#f2445275a0d718482236e294985acdb553b381db"
+source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#f0b3e074878f616777632efdda9468b59db83bbf"
 dependencies = [
  "cstr_core",
  "libc",
@@ -1020,7 +1020,7 @@ dependencies = [
 [[package]]
 name = "oqs-sys"
 version = "0.7.2"
-source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#f2445275a0d718482236e294985acdb553b381db"
+source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#f0b3e074878f616777632efdda9468b59db83bbf"
 dependencies = [
  "bindgen",
  "build-deps",
