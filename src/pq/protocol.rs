@@ -12,7 +12,7 @@ use oqs::{
 use sha3::{Digest, Sha3_256};
 
 use crate::{
-    common::{prf::prf, utils::{get_random_key32}},
+    common::{prf::prf, utils::get_random_key32},
     pq::pke::{check_ciphertext, pke_dec, pke_enc},
 };
 
@@ -80,7 +80,7 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
     let client_keys: Vec<(kem::PublicKey, kem::SecretKey)> = server.get_clients_keys();
 
     let mut cis: Vec<CiphertextType> = Vec::new();
-    
+
     for i in 0..users {
         let (ek, _) = client_keys.get(i as usize).unwrap();
         let nonce = (i as u128).to_be_bytes();
@@ -214,7 +214,7 @@ pub fn round_5(
         let cj = cis.get(j as usize).unwrap();
 
         let cj_check = pke_enc(kemalg, vkj, &ns, &rj);
-        
+
         if check_ciphertext(&cj_check, cj) {
             if verbose {
                 println!("[C] Ciphertext verification for j={} -> OK", j);

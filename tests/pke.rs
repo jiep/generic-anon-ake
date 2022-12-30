@@ -1,5 +1,6 @@
 use generic_anon_ake::{
-    pq::pke::{pke_dec, pke_enc, check_ciphertext}, common::utils::get_random_key32,
+    common::utils::get_random_key32,
+    pq::pke::{check_ciphertext, pke_dec, pke_enc},
 };
 use oqs::kem;
 
@@ -30,7 +31,7 @@ fn pke_works() {
 #[test]
 fn pke_is_deterministic() {
     let kemalg = kem::Kem::new(kem::Algorithm::Kyber1024).unwrap();
-    
+
     let (pk, sk) = kemalg.keypair().unwrap();
 
     let r = get_random_key32();

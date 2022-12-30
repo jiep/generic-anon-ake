@@ -4,7 +4,7 @@ use aes_gcm::{
 };
 
 use oqs::kem::{self, Ciphertext};
-use sha3::{Sha3_256, Digest};
+use sha3::{Digest, Sha3_256};
 
 use super::protocol::TagType;
 

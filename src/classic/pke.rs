@@ -1,6 +1,6 @@
 use ecies::{utils::generate_keypair, PublicKey, SecretKey};
 use pke_ecies::{decrypt, encrypt};
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 pub fn pke_gen() -> (PublicKey, SecretKey) {
     let (sk, pk) = generate_keypair();
