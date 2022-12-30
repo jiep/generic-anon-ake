@@ -1,8 +1,11 @@
 use generic_anon_ake::{
     common::utils::get_random_key32,
-    pq::{pke::{check_ciphertext, pke_dec, pke_enc}, protocol::TagType},
+    pq::{
+        pke::{check_ciphertext, pke_dec, pke_enc},
+        protocol::TagType,
+    },
 };
-use oqs::kem::{self, PublicKey, Ciphertext};
+use oqs::kem::{self, Ciphertext, PublicKey};
 
 #[test]
 fn pke_works() {
@@ -78,5 +81,4 @@ fn pke_is_deterministic_2() {
 
         assert_eq!(ci, &c_check);
     }
-
 }
