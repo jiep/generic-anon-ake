@@ -33,6 +33,9 @@ jobs:
       - name: Set OPENSSL_ROOT_DIR
         if: startsWith(matrix.config.os, 'windows')
         run: echo "OPENSSL_ROOT_DIR=C:/Program Files/OpenSSL-Win64" >> $env:GITHUB_ENV
+
+      - name: Print $env:GITHUB_ENV
+        run: echo $env:GITHUB_ENV
       
       - name: Check code
         run: cargo check
