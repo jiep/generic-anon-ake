@@ -32,10 +32,12 @@ jobs:
 
       - name: Set OPENSSL_ROOT_DIR
         if: startsWith(matrix.config.os, 'windows')
-        run: echo "OPENSSL_ROOT_DIR=C:/Program Files/OpenSSL-Win64" >> $env:GITHUB_ENV
+        run: |
+         echo "OPENSSL_ROOT_DIR=C:/Program Files/OpenSSL-Win64" >> $env:GITHUB_ENV
+         echo "OPENSSL_DIR=C:/Program Files/OpenSSL-Win64" >> $env:GITHUB_ENV
 
       - name: Print $OPENSSL_ROOT_DIR
-        run: echo $OPENSSL_ROOT_DIR
+        run: dir $OPENSSL_DIR
       
       - name: Check code
         run: cargo check
