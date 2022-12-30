@@ -1,8 +1,8 @@
 use generic_anon_ake::{
     common::utils::get_random_key32,
-    pq::pke::{check_ciphertext, pke_dec, pke_enc},
+    pq::{pke::{check_ciphertext, pke_dec, pke_enc}, protocol::TagType},
 };
-use oqs::kem;
+use oqs::kem::{self, PublicKey, Ciphertext};
 
 #[test]
 fn pke_works() {
@@ -43,4 +43,40 @@ fn pke_is_deterministic() {
 
     assert_eq!(ct, ct2);
     assert_eq!(m, m2);
+}
+
+#[test]
+fn pke_is_deterministic_2() {
+    let kemalg = kem::Kem::new(kem::Algorithm::Kyber1024).unwrap();
+
+    const CLIENTS: u16 = 10000;
+
+    let mut pks: Vec<PublicKey> = Vec::new();
+    let mut rs: Vec<Vec<u8>> = Vec::new();
+    let mut ns: Vec<Vec<u8>> = Vec::new();
+    let mut cs: Vec<(Ciphertext, Vec<u8>, TagType)> = Vec::new();
+
+    for _ in 0..CLIENTS {
+        let (pk, _) = kemalg.keypair().unwrap();
+        let r = get_random_key32();
+        let n = get_random_key32();
+        let c = pke_enc(&kemalg, &pk, &n, &r);
+
+        pks.push(pk);
+        rs.push(r);
+        ns.push(n);
+        cs.push(c);
+    }
+
+    for i in 0..CLIENTS {
+        let ci = cs.get(i as usize).unwrap();
+        let pki = pks.get(i as usize).unwrap();
+        let ri = rs.get(i as usize).unwrap();
+        let ni = ns.get(i as usize).unwrap();
+
+        let c_check = pke_enc(&kemalg, pki, ni, ri);
+
+        assert_eq!(ci, &c_check);
+    }
+
 }
