@@ -1,4 +1,4 @@
-use generic_anon_ake::common::utils::{get_nonce, get_random_key32, get_random_key88, to_hex, xor};
+use generic_anon_ake::common::utils::{get_nonce, get_random_key32, to_hex, xor};
 
 #[test]
 fn get_random_key32_works() {
@@ -6,14 +6,6 @@ fn get_random_key32_works() {
 
     assert_eq!(key.len(), 32);
     assert_ne!(key, vec![0u8, 32]);
-}
-
-#[test]
-fn get_random_key88_works() {
-    let key = get_random_key88();
-
-    assert_eq!(key.len(), 88);
-    assert_ne!(key, vec![0u8, 88]);
 }
 
 #[test]
