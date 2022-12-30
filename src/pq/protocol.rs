@@ -203,7 +203,7 @@ pub fn round_5(
             println!("[C] Signature verification -> OK");
         }
     } else if verbose {
-        println!("[C] Signature verification -> FAIL");
+        println!("[C] Signature verification -> KO");
     }
 
     let pk = client.get_pk();
@@ -271,7 +271,7 @@ pub fn round_6(server: &mut Server, config: &Config, i: u32, verbose: bool) {
             println!("[S] Commitment verification -> OK");
         }
     } else if verbose {
-        println!("[S] Commitment verification -> FAIL");
+        println!("[S] Commitment verification -> KO");
     }
 
     server.set_k(k, i);
