@@ -70,9 +70,7 @@ jobs:
               target: "x86_64-apple-darwin"
             }
     steps:
-      - name: Check machine info
-        run: lscpu
-
+      
       - name: Checkout repo
         uses: actions/checkout@v3
 
