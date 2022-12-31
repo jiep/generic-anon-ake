@@ -54,9 +54,9 @@ jobs:
         run: cargo clippy -- -D warnings
 
       - name: Build target
+        if: ${{ contains(matrix.config.target, 'windows') }}
         run: |
           cargo build --release --target ${{ matrix.config.target }}
-          cargo strip
 
       - name: Package all targets for Windows
         if: ${{ contains(matrix.config.target, 'windows') }}
