@@ -1,4 +1,4 @@
-use ecies::{utils::generate_keypair, PublicKey, SecretKey};
+use pke_ecies::{utils::generate_keypair, PublicKey, SecretKey};
 use pke_ecies::{decrypt, encrypt};
 use sha2::{Digest, Sha256};
 

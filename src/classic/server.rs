@@ -5,8 +5,8 @@ use super::{client::Client, protocol::M2Message, sig::sig_gen};
 
 #[derive(Debug)]
 pub struct Server {
-    clients_keys: Vec<(ecies::PublicKey, ecies::SecretKey)>,
-    ecies_keys: HashMap<u32, (ecies::PublicKey, ecies::SecretKey)>,
+    clients_keys: Vec<(pke_ecies::PublicKey, pke_ecies::SecretKey)>,
+    ecies_keys: HashMap<u32, (pke_ecies::PublicKey, pke_ecies::SecretKey)>,
     comms: HashMap<u32, Vec<u8>>,
     comms_server: HashMap<u32, Vec<u8>>,
     opens_server: HashMap<u32, (Vec<u8>, Vec<u8>)>,
@@ -57,19 +57,19 @@ impl Server {
         self.opens_server.insert(id, open);
     }
 
-    pub fn get_kem_keypair(&self, index: u32) -> (ecies::PublicKey, ecies::SecretKey) {
+    pub fn get_ecies_keypair(&self, index: u32) -> (pke_ecies::PublicKey, pke_ecies::SecretKey) {
         *self.ecies_keys.get(&index).unwrap()
     }
 
-    pub fn set_ecies_keypair(&mut self, keys: (ecies::PublicKey, ecies::SecretKey), index: u32) {
+    pub fn set_ecies_keypair(&mut self, keys: (pke_ecies::PublicKey, pke_ecies::SecretKey), index: u32) {
         self.ecies_keys.insert(index, keys);
     }
 
-    pub fn add_key(&mut self, key: (ecies::PublicKey, ecies::SecretKey)) {
+    pub fn add_key(&mut self, key: (pke_ecies::PublicKey, pke_ecies::SecretKey)) {
         self.clients_keys.push(key);
     }
 
-    pub fn get_clients_keys(&self) -> Vec<(ecies::PublicKey, ecies::SecretKey)> {
+    pub fn get_clients_keys(&self) -> Vec<(pke_ecies::PublicKey, pke_ecies::SecretKey)> {
         self.clients_keys.clone()
     }
 
