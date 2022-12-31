@@ -12,6 +12,7 @@ jobs:
         config:
           - {
               os: ubuntu-22.04,
+              target: "x86_64-unknown-linux-gnu"
             }
           - {
               os: windows-2022,
@@ -19,6 +20,7 @@ jobs:
             }
           - {
               os: macos-11,
+              target: "x86_64-apple-darwin"
             }
     steps:
       - name: Checkout repo
@@ -26,6 +28,8 @@ jobs:
         
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.config.target }}
 
       - uses: Swatinem/rust-cache@v2
 
@@ -48,6 +52,11 @@ jobs:
 
       - name: Check Clippy
         run: cargo clippy -- -D warnings
+
+      - name: Build target
+        run: |
+          cargo build --release --target ${{ matrix.config.target }}
+          cargo strip
 
       - name: Package all targets for Windows
         if: ${{ contains(matrix.config.target, 'windows') }}
