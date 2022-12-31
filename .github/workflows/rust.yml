@@ -15,6 +15,7 @@ jobs:
             }
           - {
               os: windows-2022,
+              target: "x86_64-pc-windows-msvc"
             }
           - {
               os: macos-11,
@@ -49,7 +50,7 @@ jobs:
         run: cargo clippy -- -D warnings
 
       - name: Package all targets for Windows
-        if: ${{ contains(matrix.config.os, 'windows') }}
+        if: ${{ contains(matrix.config.target, 'windows') }}
         shell: bash
         run: |
           BIN=generic-anon-ake
