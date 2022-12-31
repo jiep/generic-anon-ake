@@ -12,15 +12,12 @@ jobs:
         config:
           - {
               os: ubuntu-22.04,
-              target: "x86_64-unknown-linux-gnu"
             }
           - {
               os: windows-2022,
-              target: "x86_64-pc-windows-msvc"
             }
           - {
               os: macos-11,
-              target: "x86_64-apple-darwin"
             }
     steps:
       - name: Checkout repo
@@ -28,8 +25,6 @@ jobs:
         
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.config.target }}
 
       - uses: Swatinem/rust-cache@v2
 
@@ -52,32 +47,6 @@ jobs:
 
       - name: Check Clippy
         run: cargo clippy -- -D warnings
-
-      - name: Build target
-        run: |
-          cargo build --release --target ${{ matrix.config.target }}
-
-      - name: Package all targets for Windows
-        if: ${{ contains(matrix.config.target, 'windows') }}
-        shell: bash
-        run: |
-          BIN=generic-anon-ake
-          BIN_NAME=${BIN}.exe
-          TARGET=${{ matrix.config.target }}
-          cd target/${TARGET}/release
-          rm -rf *.d
-          ls -lah .
-          sha256sum ${BIN}* > digest.sha256
-          tar.exe acvf ../../../${BIN}-${TARGET}.zip ${BIN}* digest.sha256
-          cd -
-
-      - name: Archive results
-        if: ${{ contains(matrix.config.target, 'windows') }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: artifact
-          path: ./*.zip
-          retention-days: 7
 
   deploy:
     name: Create binaries ${{ matrix.config.target }}
@@ -145,6 +114,7 @@ jobs:
           fi
           zip ../../../${BIN}-${TARGET}.zip ${BIN_NAME}* digest.sha256
           cd -
+      
       - name: Package all targets for Windows
         if: ${{ contains(matrix.config.target, 'windows') }}
         shell: bash
@@ -158,6 +128,7 @@ jobs:
           sha256sum ${BIN}* > digest.sha256
           tar.exe acvf ../../../${BIN}-${TARGET}.zip ${BIN}* digest.sha256
           cd -
+      
       - name: Add to Releases
         if: startsWith(github.ref, 'refs/tags/')
         uses: ncipollo/release-action@v1
