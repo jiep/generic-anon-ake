@@ -61,7 +61,11 @@ impl Server {
         *self.ecies_keys.get(&index).unwrap()
     }
 
-    pub fn set_ecies_keypair(&mut self, keys: (pke_ecies::PublicKey, pke_ecies::SecretKey), index: u32) {
+    pub fn set_ecies_keypair(
+        &mut self,
+        keys: (pke_ecies::PublicKey, pke_ecies::SecretKey),
+        index: u32,
+    ) {
         self.ecies_keys.insert(index, keys);
     }
 
