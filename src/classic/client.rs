@@ -5,16 +5,16 @@ use super::{protocol::M2Message, server::Server};
 #[derive(Debug)]
 pub struct Client {
     id: u32,
-    ek: Option<ecies::SecretKey>,
+    ek: Option<pke_ecies::SecretKey>,
     ni: Vec<u8>,
-    vks: Vec<ecies::PublicKey>,
+    vks: Vec<pke_ecies::PublicKey>,
     //commitment and open
     commitment: (Vec<u8>, (Vec<u8>, Vec<u8>)),
     commitment_server: (Vec<u8>, (Vec<u8>, Vec<u8>)),
     cis: Vec<Vec<u8>>,
     ri: Vec<u8>,
     r: Vec<u8>,
-    pk: Option<ecies::PublicKey>,
+    pk: Option<pke_ecies::PublicKey>,
     k: Vec<u8>,
     ns: Vec<u8>,
     signature2: Option<k256::ecdsa::Signature>,
@@ -45,11 +45,11 @@ impl Client {
         }
     }
 
-    pub fn set_ek(&mut self, ek: ecies::SecretKey) {
+    pub fn set_ek(&mut self, ek: pke_ecies::SecretKey) {
         self.ek = Some(ek);
     }
 
-    pub fn set_vks(&mut self, vks: Vec<ecies::PublicKey>) {
+    pub fn set_vks(&mut self, vks: Vec<pke_ecies::PublicKey>) {
         self.vks = vks;
     }
 
@@ -83,7 +83,7 @@ impl Client {
         self.sid = hashed_sid;
     }
 
-    pub fn get_ek(&self) -> ecies::SecretKey {
+    pub fn get_ek(&self) -> pke_ecies::SecretKey {
         self.ek.unwrap()
     }
 
@@ -99,11 +99,11 @@ impl Client {
         self.k.clone()
     }
 
-    pub fn get_pk(&self) -> ecies::PublicKey {
+    pub fn get_pk(&self) -> pke_ecies::PublicKey {
         self.pk.unwrap()
     }
 
-    pub fn set_pk(&mut self, pk: ecies::PublicKey) {
+    pub fn set_pk(&mut self, pk: pke_ecies::PublicKey) {
         self.pk = Some(pk);
     }
 
@@ -143,7 +143,7 @@ impl Client {
         self.commitment_server.clone()
     }
 
-    pub fn get_vks(&self) -> Vec<ecies::PublicKey> {
+    pub fn get_vks(&self) -> Vec<pke_ecies::PublicKey> {
         self.vks.clone()
     }
 
@@ -180,7 +180,7 @@ impl Client {
     ) -> (
         Vec<Vec<u8>>,
         Vec<u8>,
-        ecies::PublicKey,
+        pke_ecies::PublicKey,
         k256::ecdsa::Signature,
     ) {
         (

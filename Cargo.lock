@@ -488,20 +488,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ecies"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "374125c18bfe63716aae1b6b4ee0243e6264f1766056b5efdd4f257732aa3543"
-dependencies = [
- "getrandom",
- "hkdf",
- "libsecp256k1",
- "openssl",
- "rand",
- "sha2 0.10.6",
-]
-
-[[package]]
 name = "either"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -582,7 +568,6 @@ dependencies = [
  "clap 4.0.32",
  "criterion",
  "ctr",
- "ecies",
  "hex",
  "k256",
  "oqs",
@@ -1055,12 +1040,14 @@ name = "pke_ecies"
 version = "0.2.4"
 source = "git+https://github.com/jiep/ecies-rs#f2d3951e3e9e8a6ebc5de91c5f484ebb399edd8d"
 dependencies = [
+ "aes-gcm",
  "getrandom",
  "hkdf",
  "libsecp256k1",
  "openssl",
  "rand",
  "sha2 0.10.6",
+ "typenum",
 ]
 
 [[package]]

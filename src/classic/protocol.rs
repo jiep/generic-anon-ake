@@ -21,12 +21,12 @@ use super::{
 };
 
 pub type M2Message = (
-    (Vec<Vec<u8>>, Vec<u8>, ecies::PublicKey),
+    (Vec<Vec<u8>>, Vec<u8>, pke_ecies::PublicKey),
     k256::ecdsa::Signature,
 );
 
 pub fn registration(config: &Config) -> (Server, Client) {
-    let mut keys: Vec<(ecies::PublicKey, ecies::SecretKey)> = Vec::new();
+    let mut keys: Vec<(pke_ecies::PublicKey, pke_ecies::SecretKey)> = Vec::new();
     let clients = config.get_users_number();
     let mut server: Server = Server::new();
     let mut client: Client = Client::new(0);
@@ -46,7 +46,7 @@ pub fn registration(config: &Config) -> (Server, Client) {
         server.add_key((vk.to_owned(), ek.to_owned()));
     }
 
-    let vks: Vec<ecies::PublicKey> = keys.iter().map(|x| x.0.to_owned()).collect();
+    let vks: Vec<pke_ecies::PublicKey> = keys.iter().map(|x| x.0.to_owned()).collect();
     client.set_vks(vks);
 
     (server, client)
@@ -69,7 +69,7 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
     server.set_ns(id, n_s.clone());
     let (_, sk_s) = server.get_sig_keypair();
     let r: Vec<u8> = get_random_key32();
-    let client_keys: Vec<(ecies::PublicKey, ecies::SecretKey)> = server.get_clients_keys();
+    let client_keys: Vec<(pke_ecies::PublicKey, pke_ecies::SecretKey)> = server.get_clients_keys();
 
     let mut cis: Vec<Vec<u8>> = Vec::new();
 
@@ -121,7 +121,7 @@ pub fn round_3(client: &mut Client, verbose: bool) -> (Vec<u8>, u32) {
     }
 
     let ct = cis.get(id as usize).unwrap();
-    let eki: ecies::SecretKey = client.get_ek();
+    let eki: pke_ecies::SecretKey = client.get_ek();
 
     let ns = pke_dec(&eki, ct);
 
@@ -149,7 +149,7 @@ pub fn round_5(
 ) -> (Vec<u8>, (Vec<u8>, Vec<u8>)) {
     let users = config.get_users_number();
     let cis = client.get_cis();
-    let vks: Vec<ecies::PublicKey> = client.get_vks();
+    let vks: Vec<pke_ecies::PublicKey> = client.get_vks();
     let r: Vec<u8> = client.get_r();
     let ni: Vec<u8> = client.get_ni();
     let ns: Vec<u8> = client.get_ns();
@@ -205,7 +205,7 @@ pub fn round_6(server: &mut Server, i: u32, verbose: bool) {
     let comms_server = server.get_comms_server();
     let opens_server = server.get_opens_server();
     let ctxis = server.get_ctxis();
-    let (_, sk) = server.get_kem_keypair(i);
+    let (_, sk) = server.get_ecies_keypair(i);
     let ct = ctxis.get(&i).unwrap();
 
     let open_i_concat: Vec<u8> = ccapke_dec(&sk, ct);
