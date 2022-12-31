@@ -49,7 +49,7 @@ jobs:
         run: cargo clippy -- -D warnings
 
       - name: Package all targets for Windows
-        if: ${{ contains(matrix.config.target, 'windows') }}
+        if: ${{ contains(matrix.config.os, 'windows') }}
         shell: bash
         run: |
           BIN=generic-anon-ake
