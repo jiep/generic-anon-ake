@@ -72,6 +72,14 @@ jobs:
           tar.exe acvf ../../../${BIN}-${TARGET}.zip ${BIN}* digest.sha256
           cd -
 
+      - name: Archive results
+        if: ${{ contains(matrix.config.target, 'windows') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifact
+          path: ./*.zip
+          retention-days: 7
+
   deploy:
     name: Create binaries ${{ matrix.config.target }}
     needs: build_and_test
