@@ -1,11 +1,8 @@
 use generic_anon_ake::{
-    common::{prf::prf, utils::get_random_key32},
-    pq::{
-        pke::{check_ciphertext, pke_dec, pke_enc},
-        protocol::TagType,
-    },
+    common::utils::get_random_key32,
+    pq::pke::{check_ciphertext, pke_dec, pke_enc},
 };
-use oqs::kem::{self, Ciphertext, PublicKey};
+use oqs::kem::{self};
 
 #[test]
 fn pke_works() {
