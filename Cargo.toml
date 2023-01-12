@@ -28,7 +28,7 @@ git = "https://github.com/jiep/liboqs-rust"
 branch = "protocol"
 # version = "0.7.2"
 default-features = false
-features = ["dilithium", "kyber"]
+features = ["dilithium", "kyber", "classic_mceliece"]
 
 [dev-dependencies]
 criterion = "0.4.0"

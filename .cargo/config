@@ -1,0 +1,2 @@
+[target.'cfg(feature = "classic_mceliece")']
+rustflags = ["link-args=-Wl", "-zstack-size=20971520"]
