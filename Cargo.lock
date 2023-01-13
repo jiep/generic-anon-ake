@@ -995,7 +995,7 @@ dependencies = [
 [[package]]
 name = "oqs"
 version = "0.7.2"
-source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#f0b3e074878f616777632efdda9468b59db83bbf"
+source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#30059d8604fae5433e1f8007cde23076c7df722d"
 dependencies = [
  "cstr_core",
  "libc",
@@ -1005,7 +1005,7 @@ dependencies = [
 [[package]]
 name = "oqs-sys"
 version = "0.7.2"
-source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#f0b3e074878f616777632efdda9468b59db83bbf"
+source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#30059d8604fae5433e1f8007cde23076c7df722d"
 dependencies = [
  "bindgen",
  "build-deps",
