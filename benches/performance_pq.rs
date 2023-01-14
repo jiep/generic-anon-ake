@@ -1,12 +1,17 @@
-use std::{time::Duration, fs};
+use std::{fs, time::Duration};
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
 use generic_anon_ake::{
     pq::config::Config,
-    pq::protocol::{registration, round_1, round_2, round_3, round_4, round_5, round_6, get_m5_length},
-    pq::{supported_algs::get_kem_algorithm, protocol::{get_m1_length, get_m2_length, get_m3_length, get_m4_length}},
+    pq::protocol::{
+        get_m5_length, registration, round_1, round_2, round_3, round_4, round_5, round_6,
+    },
     pq::supported_algs::get_signature_algorithm,
+    pq::{
+        protocol::{get_m1_length, get_m2_length, get_m3_length, get_m4_length},
+        supported_algs::get_kem_algorithm,
+    },
 };
 
 const SAMPLES: usize = 10;
@@ -64,7 +69,11 @@ fn bench_1(c: &mut Criterion) {
 
             round_6(&mut server, &config, client.get_id(), false);
 
-            let data = lengths.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(",");
+            let data = lengths
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .join(",");
             let filename = format!("pq-{}-{}-{}.csv", kemalg_str, sigalg_str, users);
             fs::write(filename, data).expect("Unable to write file");
 

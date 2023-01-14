@@ -1,9 +1,12 @@
-use std::{time::Duration, fs};
+use std::{fs, time::Duration};
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use generic_anon_ake::classic::{
     config::Config,
-    protocol::{registration, round_1, round_2, round_3, round_4, round_5, round_6, get_m5_length, get_m4_length, get_m3_length, get_m2_length, get_m1_length},
+    protocol::{
+        get_m1_length, get_m2_length, get_m3_length, get_m4_length, get_m5_length, registration,
+        round_1, round_2, round_3, round_4, round_5, round_6,
+    },
 };
 
 const SAMPLES: usize = 10;
@@ -49,7 +52,11 @@ fn bench_1(c: &mut Criterion) {
 
         round_6(&mut server, client.get_id(), false);
 
-        let data = lengths.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(",");
+        let data = lengths
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>()
+            .join(",");
         let filename = format!("classic-{}-{}-{}.csv", "ECIES", "ECDSA", users);
         fs::write(filename, data).expect("Unable to write file");
 
