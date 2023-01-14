@@ -189,7 +189,7 @@ def plot_scalability(df, df_bandwidth, output_path):
 
     df3 = pd.merge(df2, df_bandwidth,  how='left', left_on=['Algorithm', 'Clients'], right_on = ['Algorithm', 'Clients'])
 
-    sns.pointplot(ax=ax1, x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS)
+    sns.pointplot(ax=ax1, x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS, dodge=True)
     ax2 = ax1.twinx()
     sns.barplot(ax=ax2, x="Clients", y="Bandwidth", data=df3, hue="Algorithm", alpha=0.3)
 
@@ -201,7 +201,7 @@ def plot_scalability(df, df_bandwidth, output_path):
     # h, l = ax1.get_legend_handles_labels()
     # l, h = zip(*sorted(zip(l, h)))
     # ax1.legend(h, l)
-    # reorderLegend(ax1, ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
+    reorderLegend(ax1, ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
 
     figname = "{}scalability.png".format(output_path)
     fig.savefig(figname, bbox_inches="tight")
