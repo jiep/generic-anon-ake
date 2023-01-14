@@ -31,6 +31,28 @@ COLORS = {
     'ClassicMcEliece348864f': '#1CE6FF',
 }
 
+def get_length_data(path):
+    headers = ["Kind", "Algorithm", "Clients", "Bandwidth"]
+    files = glob.glob(path + "*-*.csv")
+    data = np.array([headers])
+    for file in files:
+        file_s = file.split("-")
+        kind = file_s[0].split("/")[-1].upper()
+        pke = file_s[1]
+        sig = file_s[2]
+        clients = int(file_s[3].replace(".csv", ""))
+        df = pd.read_csv(file, header=None)
+        d = [kind, pke + "+" + sig, clients, int(np.sum(df, axis = 1))]
+        data = np.vstack([data, d])
+    return data
+
+def save_to_csv_bandwidth(input_path, output_path, filename):
+    data = get_length_data(input_path)
+    columns = data[0]
+    data = np.delete(data, 0, 0)
+    df = pd.DataFrame(data, columns = columns)
+    df.to_csv(output_path + filename, index=False)
+
 def get_samples(path):
     f = open(path)
     data = json.load(f)
@@ -155,24 +177,31 @@ def unique_everseen(seq, key=None):
     seen_add = seen.add
     return [x for x,k in zip(seq,key) if not (k in seen or seen_add(k))]
 
-def plot_scalability(df, output_path):
+def plot_scalability(df, df_bandwidth, output_path):
     # print(df)
-    fig, axes = plt.subplots(1, figsize=(18,9), dpi=300, sharey=False)
-    fig.subplots_adjust(hspace=0.0, wspace=0.0)
+    fig, ax1 = plt.subplots(figsize=(18,9), dpi=300)
+    
     df2 = df[df['Round'] != 'Registration']
 
     df2 = df2.groupby(['Algorithm', 'Clients', 'Round'])['Time'].mean().reset_index()
     df2 = df2.groupby(['Algorithm', 'Clients'])['Time'].sum().reset_index()
     df2['Time'] = df2['Time'] / 1000000
-    
-    p = sns.lineplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, linewidth=4, style="Algorithm", markers=True, dashes=False)
-    axes.set_xlabel('Number of clients', fontsize="x-large")
-    axes.set_ylabel('Time (milliseconds)', fontsize="x-large")
 
-    h, l = p.get_legend_handles_labels()
-    l, h = zip(*sorted(zip(l, h)))
-    p.legend(h, l)
-    reorderLegend(p, ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
+    df3 = pd.merge(df2, df_bandwidth,  how='left', left_on=['Algorithm', 'Clients'], right_on = ['Algorithm', 'Clients'])
+
+    sns.pointplot(ax=ax1, x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS)
+    ax2 = ax1.twinx()
+    sns.barplot(ax=ax2, x="Clients", y="Bandwidth", data=df3, hue="Algorithm", alpha=0.3)
+
+    ax1.set_xlabel('Number of clients', fontsize="x-large")
+    ax1.set_ylabel('Time (milliseconds)', fontsize="x-large")
+    ax2.set_ylabel('Bandwidth (bytes)', fontsize="x-large")
+    ax2.get_legend().remove()
+
+    # h, l = ax1.get_legend_handles_labels()
+    # l, h = zip(*sorted(zip(l, h)))
+    # ax1.legend(h, l)
+    # reorderLegend(ax1, ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
 
     figname = "{}scalability.png".format(output_path)
     fig.savefig(figname, bbox_inches="tight")
@@ -290,9 +319,14 @@ def get_statistics_protocol(df, output):
 def main(): 
     PATH = "./target/criterion/Protocol"
     OUTPUT = "./target/criterion/"
+
     save_to_csv_protocol(PATH, OUTPUT, 'data.csv')
     df_protocol = load_csv(OUTPUT, 'data.csv')
-    plot_scalability(df_protocol, OUTPUT)
+
+    save_to_csv_bandwidth(OUTPUT, OUTPUT, 'data_bandwidth.csv')
+    df_bandwidth = load_csv(OUTPUT, 'data_bandwidth.csv')
+
+    plot_scalability(df_protocol, df_bandwidth, OUTPUT)
     plot_rounds(df_protocol, OUTPUT)
     plot_registration(df_protocol, OUTPUT)
     

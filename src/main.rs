@@ -1,5 +1,5 @@
 use std::time::{Duration, Instant};
-use std::{fs, process};
+use std::process;
 
 use clap::Parser;
 

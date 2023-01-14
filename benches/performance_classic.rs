@@ -57,7 +57,7 @@ fn bench_1(c: &mut Criterion) {
             .map(|x| x.to_string())
             .collect::<Vec<String>>()
             .join(",");
-        let filename = format!("classic-{}-{}-{}.csv", "ECIES", "ECDSA", users);
+        let filename = format!("target/criterion/classic-{}-{}-{}.csv", "ECIES", "ECDSA", users);
         fs::write(filename, data).expect("Unable to write file");
 
         let parameter_string = format!("{}", users);
