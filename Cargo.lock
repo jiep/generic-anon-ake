@@ -995,17 +995,18 @@ dependencies = [
 [[package]]
 name = "oqs"
 version = "0.7.2"
-source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#f0b3e074878f616777632efdda9468b59db83bbf"
+source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#9bc45cf44bc04ca5c9a2c342bcf54f25fcd5bf7f"
 dependencies = [
  "cstr_core",
  "libc",
  "oqs-sys",
+ "rand",
 ]
 
 [[package]]
 name = "oqs-sys"
 version = "0.7.2"
-source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#f0b3e074878f616777632efdda9468b59db83bbf"
+source = "git+https://github.com/jiep/liboqs-rust?branch=protocol#9bc45cf44bc04ca5c9a2c342bcf54f25fcd5bf7f"
 dependencies = [
  "bindgen",
  "build-deps",
