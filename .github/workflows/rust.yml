@@ -158,6 +158,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
+      - name: Create directory
+        run: mkdir -p target/criterion
+
       - name: Run benchmark
         run: cargo bench
 
