@@ -4,7 +4,7 @@ use aes_gcm::{
 };
 
 use oqs::kem::{self, Ciphertext};
-use sha3::{Digest, Sha3_256};
+// use sha3::{Digest, Sha3_256};
 
 use super::protocol::TagType;
 
@@ -32,12 +32,12 @@ pub fn pke_enc(
     m: &Vec<u8>,
     r: &Vec<u8>,
 ) -> (Ciphertext, Vec<u8>, TagType) {
-    let mut hasher = Sha3_256::new();
-    hasher.update(r);
-    let nonce = hasher.finalize().to_vec();
-    let (ct, k) = kem.encapsulate(pk, &nonce).unwrap();
+    // let mut hasher = Sha3_256::new();
+    // hasher.update(r);
+    // let nonce = hasher.finalize().to_vec();
+    let (ct, k) = kem.encapsulate(pk, r).unwrap();
     let cipher = Aes256Gcm::new_from_slice(k.into_vec().as_slice()).unwrap();
-    let iv = Nonce::from_slice(&nonce[0..12]);
+    let iv = Nonce::from_slice(&r[0..12]);
     let ciphertext = cipher.encrypt(iv, m.as_slice()).unwrap();
 
     (ct, ciphertext, *iv)

@@ -5,7 +5,7 @@ use aes_gcm::{
 
 use oqs::kem::{self, Ciphertext};
 
-use crate::common::utils::{get_nonce, get_random_key32};
+use crate::common::utils::get_nonce;
 
 use super::protocol::TagType;
 
@@ -14,7 +14,7 @@ pub fn ccapke_enc(
     pk: &kem::PublicKey,
     m: &Vec<u8>,
 ) -> (Ciphertext, Vec<u8>, TagType) {
-    let r = get_random_key32();
+    let r = kem.get_randomness().unwrap();
     let (ct, k) = kem.encapsulate(pk, &r).unwrap();
     let cipher = Aes256Gcm::new_from_slice(k.into_vec().as_slice()).unwrap();
     let nonce = get_nonce();

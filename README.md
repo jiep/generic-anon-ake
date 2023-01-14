@@ -45,6 +45,9 @@ Note right of Server: Round 6<br />m'' <- CCAPKE.Dec(sk*, ctxi_i)<br/>Assert Com
     * Kyber512
     * Kyber768
     * Kyber1024
+    * ClassicMcEliece348864f
+    * ClassicMcEliece460896f
+    * ClassicMcEliece6960119f
 
 </details>
 

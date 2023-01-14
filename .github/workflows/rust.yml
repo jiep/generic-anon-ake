@@ -2,6 +2,9 @@ on: [push]
 
 name: rust
 
+env:
+  RUST_MIN_STACK: 524288000
+
 jobs:
   build_and_test:
     name: Build binary, test, and check format
