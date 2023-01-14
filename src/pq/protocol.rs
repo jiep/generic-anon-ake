@@ -76,16 +76,15 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
     let n_s: Vec<u8> = get_random_key32();
     server.set_ns(id, n_s.clone());
     let (_, sk_s) = server.get_sig_keypair();
-    let r: Vec<u8> = get_random_key32();
+    let r: Vec<u8> = kemalg.get_randomness().unwrap();
     let client_keys: Vec<(kem::PublicKey, kem::SecretKey)> = server.get_clients_keys();
-
     let mut cis: Vec<CiphertextType> = Vec::new();
 
     for i in 0..users {
         let (ek, _) = client_keys.get(i as usize).unwrap();
         let nonce = (i as u128).to_be_bytes();
-        let ri = prf(&r, &nonce);
-        let c = pke_enc(kemalg, ek, &n_s, &ri);
+        let _ri = prf(&r, &nonce);
+        let c = pke_enc(kemalg, ek, &n_s, &r);
         cis.push(c);
     }
     server.add_ciphertexts(&cis, &r);
@@ -210,10 +209,10 @@ pub fn round_5(
     for j in 0..users {
         let vkj = vks.get(j as usize).unwrap();
         let nonce = (j as u128).to_be_bytes();
-        let rj = prf(&r, &nonce);
+        let _rj = prf(&r, &nonce);
         let cj = cis.get(j as usize).unwrap();
 
-        let cj_check = pke_enc(kemalg, vkj, &ns, &rj);
+        let cj_check = pke_enc(kemalg, vkj, &ns, &r);
 
         if check_ciphertext(&cj_check, cj) {
             if verbose {

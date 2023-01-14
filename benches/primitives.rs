@@ -13,9 +13,16 @@ fn bench_1(c: &mut Criterion) {
     let mut group = c.benchmark_group("PKE_PQ");
 
     group.measurement_time(Duration::from_secs(1));
-    group.sample_size(1000);
+    group.sample_size(100);
 
-    for kemalg_str in ["Kyber1024", "Kyber768", "Kyber512"] {
+    for kemalg_str in [
+        "Kyber1024",
+        "Kyber768",
+        "Kyber512",
+        "ClassicMcEliece6960119f",
+        "ClassicMcEliece460896f",
+        "ClassicMcEliece348864f",
+    ] {
         let kemalg = get_kem_algorithm(kemalg_str).unwrap();
         let (pk, sk) = kemalg.keypair().unwrap();
         let m: Vec<u8> = get_random_key32();

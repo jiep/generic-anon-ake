@@ -14,6 +14,9 @@ COLORS = {
     'Kyber512+Dilithium2': "#B79762",
     'Kyber768+Dilithium3': "#FF4A46",
     'Kyber1024+Dilithium5': "#0000A6",
+    'ClassicMcEliece6960119f+Dilithium5': '#BA0900',
+    'ClassicMcEliece460896f+Dilithium3': '#7B23FF',
+    'ClassicMcEliece348864f+Dilithium2': '#6B002C',
     CLASSIC_PKE_SIG: "#FF34FF",
     CLASSIC_PKE: "#FF8A9A",
     CLASSIC_SIG: "#FFF69F",
@@ -23,6 +26,9 @@ COLORS = {
     'Dilithium2': "#006FA6",
     'Dilithium3': "#A30059",
     'Dilithium5': "#008941",
+    'ClassicMcEliece6960119f': '#6F0062',
+    'ClassicMcEliece460896f': '#B3F8F0',
+    'ClassicMcEliece348864f': '#1CE6FF',
 }
 
 def get_samples(path):
@@ -166,7 +172,7 @@ def plot_scalability(df, output_path):
     h, l = p.get_legend_handles_labels()
     l, h = zip(*sorted(zip(l, h)))
     p.legend(h, l)
-    reorderLegend(p, ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5"])
+    reorderLegend(p, ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
 
     figname = "{}scalability.png".format(output_path)
     fig.savefig(figname, bbox_inches="tight")
@@ -186,7 +192,7 @@ def plot_rounds(df, output_path):
 
         row = i // 3
         col = i % 3
-        p = sns.barplot(ax=axes[row, col], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", CLASSIC_PKE_SIG])
+        p = sns.barplot(ax=axes[row, col], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
 
         axes[row, col].set_xlabel('Number of clients', fontsize="x-large")
         axes[row, col].set_ylabel('Time (milliseconds)', fontsize="x-large")
@@ -197,7 +203,7 @@ def plot_rounds(df, output_path):
     l, h = zip(*sorted(zip(l, h)))
     p.legend(h, l)
 
-    reorderLegend(axes[0, 2], ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", CLASSIC_PKE_SIG])
+    reorderLegend(axes[0, 2], ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
     # axes[0, 2].legend(h, l, bbox_to_anchor=(1.05, 1.05))
     axes[1, 2].get_legend().remove()
     figname = "{}rounds.png".format(output_path)
@@ -213,7 +219,7 @@ def plot_registration(df, output_path):
     # print("------------")
     # print(df2)
 
-    p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", CLASSIC_PKE_SIG])
+    p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
     axes.set_xlabel('Number of clients', fontsize="x-large")
     axes.set_ylabel('Time (milliseconds)', fontsize="x-large")
 
@@ -234,7 +240,7 @@ def plot_pke(df, output_path):
     df2 = df[df['Type'] == 'PKE']
     df2['Time'] = df2['Time'] / 1000
 
-    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024", CLASSIC_PKE], order=["KEYGEN", "ENC", "DEC"])
+    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024", 'ClassicMcEliece6960119f', 'ClassicMcEliece460896f', 'ClassicMcEliece348864f', CLASSIC_PKE], order=["KEYGEN", "ENC", "DEC"])
     axes.set_xlabel('Operation', fontsize="x-large")
     axes.set_ylabel('Time (microseconds)', fontsize="x-large")
 

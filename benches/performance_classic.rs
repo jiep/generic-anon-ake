@@ -1,14 +1,14 @@
-use std::time::Duration;
+use std::{time::Duration, fs};
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use generic_anon_ake::classic::{
     config::Config,
-    protocol::{registration, round_1, round_2, round_3, round_4, round_5, round_6},
+    protocol::{registration, round_1, round_2, round_3, round_4, round_5, round_6, get_m5_length, get_m4_length, get_m3_length, get_m2_length, get_m1_length},
 };
 
-const SAMPLES: usize = 100;
+const SAMPLES: usize = 10;
 const LOW_LIMIT: u32 = 6;
-const UPP_LIMIT: u32 = 17; // Fix: Change to 17
+const UPP_LIMIT: u32 = 8; // Fix: Change to 17
 const WARMUP: u64 = 1;
 
 fn bench_1(c: &mut Criterion) {
@@ -23,26 +23,35 @@ fn bench_1(c: &mut Criterion) {
         .collect::<Vec<u32>>()
     {
         let config: Config = Config::new(users);
+        let mut lengths = vec![];
 
         let (mut server, mut client) = registration(&config);
 
         let m1 = round_1(&mut client);
+        lengths.push(get_m1_length(&m1));
         client.send_m1(m1, &mut server);
 
         let m2 = round_2(&mut server, &config, client.get_id());
+        lengths.push(get_m2_length(&m2));
         server.send_m2(m2, &mut client);
 
         let m3 = round_3(&mut client, false);
+        lengths.push(get_m3_length(&m3));
         client.send_m3(m3, &mut server);
 
         let m4 = round_4(&mut server);
-
+        lengths.push(get_m4_length(&m4));
         server.send_m4(m4, &mut client);
 
         let m5 = round_5(&mut client, &config, false);
+        lengths.push(get_m5_length(&m5));
         client.send_m5(m5, &mut server);
 
         round_6(&mut server, client.get_id(), false);
+
+        let data = lengths.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(",");
+        let filename = format!("classic-{}-{}-{}.csv", "ECIES", "ECDSA", users);
+        fs::write(filename, data).expect("Unable to write file");
 
         let parameter_string = format!("{}", users);
 

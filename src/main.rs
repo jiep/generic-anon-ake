@@ -1,4 +1,4 @@
-use std::process;
+use std::{process, fs};
 use std::time::{Duration, Instant};
 
 use clap::Parser;
