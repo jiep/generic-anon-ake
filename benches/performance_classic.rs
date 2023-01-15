@@ -11,7 +11,7 @@ use generic_anon_ake::classic::{
 
 const SAMPLES: usize = 10;
 const LOW_LIMIT: u32 = 6;
-const UPP_LIMIT: u32 = 11; // Fix: Change to 17
+const UPP_LIMIT: u32 = 10; // Fix: Change to 17
 const WARMUP: u64 = 1;
 
 fn bench_1(c: &mut Criterion) {
