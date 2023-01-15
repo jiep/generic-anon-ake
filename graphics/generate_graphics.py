@@ -269,9 +269,10 @@ def plot_pke(df, output_path):
     df2 = df[df['Type'] == 'PKE']
     df2['Time'] = df2['Time'] / 1000
 
-    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024", 'ClassicMcEliece6960119f', 'ClassicMcEliece460896f', 'ClassicMcEliece348864f', CLASSIC_PKE], order=["KEYGEN", "ENC", "DEC"])
+    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024", 'ClassicMcEliece348864f', 'ClassicMcEliece460896f', 'ClassicMcEliece6960119f', CLASSIC_PKE], order=["KEYGEN", "ENC", "DEC"])
     axes.set_xlabel('Operation', fontsize="x-large")
     axes.set_ylabel('Time (microseconds)', fontsize="x-large")
+    axes.set(yscale="symlog")
 
     figname = "{}pke.png".format(output_path)
     plt.savefig(figname, bbox_inches="tight")
