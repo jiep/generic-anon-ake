@@ -40,9 +40,13 @@ def get_length_data(path):
         kind = file_s[0].split("/")[-1].upper()
         pke = file_s[1]
         sig = file_s[2]
+        if kind == "PQ":
+            alg = pke + "+" + sig
+        else:
+            alg = CLASSIC_PKE_SIG
         clients = int(file_s[3].replace(".csv", ""))
         df = pd.read_csv(file, header=None)
-        d = [kind, pke + "+" + sig, clients, int(np.sum(df, axis = 1))]
+        d = [kind, alg, clients, int(np.sum(df, axis = 1))]
         data = np.vstack([data, d])
     return data
 
