@@ -193,9 +193,11 @@ def plot_scalability(df, df_bandwidth, output_path):
 
     df3 = pd.merge(df2, df_bandwidth,  how='left', left_on=['Algorithm', 'Clients'], right_on = ['Algorithm', 'Clients'])
 
-    sns.pointplot(ax=ax1, x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS, dodge=True)
+    hue_order = ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG]
+
+    sns.pointplot(ax=ax1, x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS, dodge=True, hue_order=hue_order)
     ax2 = ax1.twinx()
-    sns.barplot(ax=ax2, x="Clients", y="Bandwidth", data=df3, hue="Algorithm", alpha=0.3)
+    sns.barplot(ax=ax2, x="Clients", y="Bandwidth", hue="Algorithm", data=df3, palette=COLORS, alpha=0.5, hue_order=hue_order)
 
     ax1.set_xlabel('Number of clients', fontsize="x-large")
     ax1.set_ylabel('Time (milliseconds)', fontsize="x-large")
@@ -205,7 +207,7 @@ def plot_scalability(df, df_bandwidth, output_path):
     # h, l = ax1.get_legend_handles_labels()
     # l, h = zip(*sorted(zip(l, h)))
     # ax1.legend(h, l)
-    reorderLegend(ax1, ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
+    reorderLegend(ax1, hue_order)
 
     figname = "{}scalability.png".format(output_path)
     fig.savefig(figname, bbox_inches="tight")
@@ -333,7 +335,7 @@ def main():
 
     plot_scalability(df_protocol, df_bandwidth, OUTPUT)
     plot_rounds(df_protocol, OUTPUT)
-    plot_registration(df_protocol, OUTPUT)
+    #plot_registration(df_protocol, OUTPUT)
     
     save_to_csv_primitives([OUTPUT + "PKE", OUTPUT + "SIG"], OUTPUT, "data_primitives.csv")
     df_primitives = load_csv(OUTPUT, 'data_primitives.csv')

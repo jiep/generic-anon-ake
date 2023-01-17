@@ -16,7 +16,7 @@ use generic_anon_ake::{
 
 const SAMPLES: usize = 10;
 const LOW_LIMIT: u32 = 6;
-const UPP_LIMIT: u32 = 10; // Fix: Change to 17
+const UPP_LIMIT: u32 = 11; // Fix: Change to 17
 const WARMUP: u64 = 1;
 const ALGS: [(&'static str, &'static str); 6] = [
     ("Kyber1024", "Dilithium5"),
@@ -82,12 +82,12 @@ fn bench_1(c: &mut Criterion) {
 
             let parameter_string = format!("{}-{}-{}", kemalg_str, sigalg_str, users);
 
-            let _x0 = (0, 0);
-            group.bench_with_input(
-                BenchmarkId::new("Registration", parameter_string.clone()),
-                &_x0,
-                |b, _| b.iter(|| registration(&config)),
-            );
+            // let _x0 = (0, 0);
+            // group.bench_with_input(
+            //     BenchmarkId::new("Registration", parameter_string.clone()),
+            //     &_x0,
+            //     |b, _| b.iter(|| registration(&config)),
+            // );
 
             let _x1 = (0, 0);
             group.bench_with_input(
