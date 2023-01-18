@@ -282,7 +282,7 @@ pub fn get_m1_length(m1: &(Vec<u8>, u32)) -> usize {
 }
 
 pub fn get_m2_length(m2: &M2Message) -> usize {
-    m2.0 .0.len() * m2.0 .0[0].0.len() + m2.0 .1.len() + m2.1.len()
+    m2.0 .0.len() * m2.0 .0[0].0.len() + m2.0 .1.len() + m2.0.2.len() + m2.1.len()
 }
 
 pub fn get_m3_length(m3: &(Vec<u8>, u32)) -> usize {

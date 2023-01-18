@@ -14,9 +14,9 @@ COLORS = {
     'Kyber512+Dilithium2': "#B79762",
     'Kyber768+Dilithium3': "#FF4A46",
     'Kyber1024+Dilithium5': "#0000A6",
-    'ClassicMcEliece6960119f+Dilithium5': '#BA0900',
-    'ClassicMcEliece460896f+Dilithium3': '#7B23FF',
-    'ClassicMcEliece348864f+Dilithium2': '#6B002C',
+    'ClassicMcEliece6960119f+Dilithium5': '#FDE74C',
+    'ClassicMcEliece460896f+Dilithium3': '#F49C28',
+    'ClassicMcEliece348864f+Dilithium2': '#00FF00',
     CLASSIC_PKE_SIG: "#FF34FF",
     CLASSIC_PKE: "#FF8A9A",
     CLASSIC_SIG: "#FFF69F",
@@ -30,6 +30,9 @@ COLORS = {
     'ClassicMcEliece460896f': '#B3F8F0',
     'ClassicMcEliece348864f': '#1CE6FF',
 }
+
+HUE_ORDER = ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece348864f+Dilithium2', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece6960119f+Dilithium5', CLASSIC_PKE_SIG]
+
 
 def get_length_data(path):
     headers = ["Kind", "Algorithm", "Clients", "Bandwidth"]
@@ -192,22 +195,25 @@ def plot_scalability(df, df_bandwidth, output_path):
     df2['Time'] = df2['Time'] / 1000000
 
     df3 = pd.merge(df2, df_bandwidth,  how='left', left_on=['Algorithm', 'Clients'], right_on = ['Algorithm', 'Clients'])
+    df3['Bandwidth'] = df3['Bandwidth'] / 1000000
 
-    hue_order = ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG]
+    rc = {'lines.linewidth': 2}                  
+    sns.set_context("paper", rc = rc) 
 
-    sns.pointplot(ax=ax1, x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS, dodge=True, hue_order=hue_order)
+    sns.barplot(ax=ax1, x="Clients", y="Bandwidth", hue="Algorithm", data=df3, palette=COLORS, alpha=0.7, hue_order=HUE_ORDER)
     ax2 = ax1.twinx()
-    sns.barplot(ax=ax2, x="Clients", y="Bandwidth", hue="Algorithm", data=df3, palette=COLORS, alpha=0.5, hue_order=hue_order)
+    sns.pointplot(ax=ax2, x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS, dodge=True, hue_order=HUE_ORDER)
 
-    ax1.set_xlabel('Number of clients', fontsize="x-large")
-    ax1.set_ylabel('Time (milliseconds)', fontsize="x-large")
-    ax2.set_ylabel('Bandwidth (bytes)', fontsize="x-large")
+    ax2.set_xlabel('Number of clients', fontsize="x-large")
+    ax2.set_ylabel('Time (milliseconds)', fontsize="x-large")
+    ax1.set_ylabel('Bandwidth (MB)', fontsize="x-large")
     ax2.get_legend().remove()
 
     # h, l = ax1.get_legend_handles_labels()
     # l, h = zip(*sorted(zip(l, h)))
     # ax1.legend(h, l)
-    reorderLegend(ax1, hue_order)
+    reorderLegend(ax1, HUE_ORDER)
+    plt.setp(ax1.get_legend().get_texts(), fontsize='10')
 
     figname = "{}scalability.png".format(output_path)
     fig.savefig(figname, bbox_inches="tight")
@@ -227,7 +233,7 @@ def plot_rounds(df, output_path):
 
         row = i // 3
         col = i % 3
-        p = sns.barplot(ax=axes[row, col], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
+        p = sns.barplot(ax=axes[row, col], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=HUE_ORDER)
 
         axes[row, col].set_xlabel('Number of clients', fontsize="x-large")
         axes[row, col].set_ylabel('Time (milliseconds)', fontsize="x-large")
@@ -238,7 +244,7 @@ def plot_rounds(df, output_path):
     l, h = zip(*sorted(zip(l, h)))
     p.legend(h, l)
 
-    reorderLegend(axes[0, 2], ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
+    reorderLegend(axes[0, 2], HUE_ORDER)
     # axes[0, 2].legend(h, l, bbox_to_anchor=(1.05, 1.05))
     axes[1, 2].get_legend().remove()
     figname = "{}rounds.png".format(output_path)
@@ -254,7 +260,7 @@ def plot_registration(df, output_path):
     # print("------------")
     # print(df2)
 
-    p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece6960119f+Dilithium5', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece348864f+Dilithium2', CLASSIC_PKE_SIG])
+    p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=HUE_ORDER)
     axes.set_xlabel('Number of clients', fontsize="x-large")
     axes.set_ylabel('Time (milliseconds)', fontsize="x-large")
 
