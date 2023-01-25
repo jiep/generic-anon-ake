@@ -186,7 +186,7 @@ def unique_everseen(seq, key=None):
 
 def plot_scalability(df, df_bandwidth, output_path):
     # print(df)
-    fig, ax1 = plt.subplots(figsize=(18,9), dpi=300)
+    fig, axes = plt.subplots(2, figsize=(18,9), dpi=300)
     
     df2 = df[df['Round'] != 'Registration']
 
@@ -200,20 +200,22 @@ def plot_scalability(df, df_bandwidth, output_path):
     rc = {'lines.linewidth': 2}                  
     sns.set_context("paper", rc = rc) 
 
-    sns.barplot(ax=ax1, x="Clients", y="Bandwidth", hue="Algorithm", data=df3, palette=COLORS, alpha=0.7, hue_order=HUE_ORDER)
-    ax2 = ax1.twinx()
-    sns.pointplot(ax=ax2, x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS, dodge=True, hue_order=HUE_ORDER)
+    sns.barplot(ax=axes[0], x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS, hue_order=HUE_ORDER)
+    sns.barplot(ax=axes[1], x="Clients", y="Bandwidth", hue="Algorithm", data=df3, palette=COLORS, hue_order=HUE_ORDER)
 
-    ax2.set_xlabel('Number of clients', fontsize="x-large")
-    ax2.set_ylabel('Time (milliseconds)', fontsize="x-large")
-    ax1.set_ylabel('Bandwidth (MB)', fontsize="x-large")
-    ax2.get_legend().remove()
+    axes[0].xaxis.tick_top()
+    axes[0].set_xlabel('Number of clients', fontsize="x-large")
+    axes[0].set_ylabel('Time (milliseconds)', fontsize="x-large")
+    axes[1].set_ylabel('Bandwidth (MB)', fontsize="x-large")
+    axes[1].get_legend().remove()
+
+    fig.subplots_adjust(hspace=0)
 
     # h, l = ax1.get_legend_handles_labels()
     # l, h = zip(*sorted(zip(l, h)))
     # ax1.legend(h, l)
-    reorderLegend(ax1, HUE_ORDER)
-    plt.setp(ax1.get_legend().get_texts(), fontsize='10')
+    reorderLegend(axes[0], HUE_ORDER)
+    plt.setp(axes[0].get_legend().get_texts(), fontsize='10')
 
     figname = "{}scalability.png".format(output_path)
     fig.savefig(figname, bbox_inches="tight")
