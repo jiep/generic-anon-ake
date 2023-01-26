@@ -178,10 +178,10 @@ pub fn round_5(
 
         if check_ciphertext(&ci_check, cj) {
             if verbose {
-                println!("[C] Ciphertext verification for j={} -> OK", j);
+                println!("[C] Ciphertext verification for j={j} -> OK");
             }
         } else if verbose {
-            println!("[C] Ciphertext verification for j={} -> KO", j);
+            println!("[C] Ciphertext verification for j={j} -> KO");
         }
     }
 
@@ -313,5 +313,5 @@ Round 5        ---> |                            |
         m4 = lengths[3],
         m5 = lengths[4]
     );
-    println!("{}", diagram);
+    println!("{diagram}");
 }
