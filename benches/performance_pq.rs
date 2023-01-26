@@ -16,7 +16,7 @@ use generic_anon_ake::{
 
 const SAMPLES: usize = 10;
 const LOW_LIMIT: u32 = 6;
-const UPP_LIMIT: u32 = 11; // Fix: Change to 17
+const UPP_LIMIT: u32 = 15; // Fix: Change to 17
 const WARMUP: u64 = 1;
 const ALGS: [(&'static str, &'static str); 6] = [
     ("Kyber1024", "Dilithium5"),

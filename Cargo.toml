@@ -1,6 +1,6 @@
 [package]
 name = "generic-anon-ake"
-version = "0.3.2-test6"
+version = "0.3.2-test7"
 edition = "2021"
 default-run = "generic-anon-ake"
 
