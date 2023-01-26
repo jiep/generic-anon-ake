@@ -32,7 +32,7 @@ fn main() {
     let config: Config = Config::new(users);
 
     if verbose {
-        println!("[!] Creating {} clients...", users);
+        println!("[!] Creating {users} clients...");
     }
 
     if verbose {
@@ -40,15 +40,12 @@ fn main() {
     }
 
     if verbose {
-        println!("[R] Creating (ek, vk) for {} clients...\n", users);
+        println!("[R] Creating (ek, vk) for {users} clients...\n");
     }
     let start = Instant::now();
     let (mut server, mut client) = registration(&config);
     let duration = start.elapsed();
-    println!(
-        "[!] Time elapsed in registration of {} clients is {:?}\n",
-        users, duration
-    );
+    println!("[!] Time elapsed in registration of {users} clients is {duration:?}\n");
     times.push(duration);
 
     if verbose {
@@ -59,7 +56,7 @@ fn main() {
     let m1 = round_1(&mut client);
     lengths.push(get_m1_length(&m1));
     let duration = start.elapsed();
-    println!("[!] Time elapsed in Round 1 is {:?}", duration);
+    println!("[!] Time elapsed in Round 1 is {duration:?}");
     times.push(duration);
 
     if verbose {
@@ -74,7 +71,7 @@ fn main() {
     let m2 = round_2(&mut server, &config, client.get_id());
     lengths.push(get_m2_length(&m2));
     let duration = start.elapsed();
-    println!("[!] Time elapsed in Round 2 is {:?}", duration);
+    println!("[!] Time elapsed in Round 2 is {duration:?}");
     times.push(duration);
 
     if verbose {
@@ -89,7 +86,7 @@ fn main() {
     let m3 = round_3(&mut client, verbose);
     lengths.push(get_m3_length(&m3));
     let duration = start.elapsed();
-    println!("[!] Time elapsed in Round 3 is {:?}", duration);
+    println!("[!] Time elapsed in Round 3 is {duration:?}");
     times.push(duration);
     if verbose {
         println!("[C -> S] Sending m3 to server...\n");
@@ -103,7 +100,7 @@ fn main() {
     let m4 = round_4(&mut server);
     lengths.push(get_m4_length(&m4));
     let duration = start.elapsed();
-    println!("[!] Time elapsed in Round 4 is {:?}", duration);
+    println!("[!] Time elapsed in Round 4 is {duration:?}");
     times.push(duration);
     if verbose {
         println!("[C <- S] Sending m4 to client...\n");
@@ -118,7 +115,7 @@ fn main() {
     lengths.push(get_m5_length(&m5));
     let duration = start.elapsed();
     times.push(duration);
-    println!("[!] Time elapsed in Round 5 is {:?}", duration);
+    println!("[!] Time elapsed in Round 5 is {duration:?}");
     if verbose {
         println!("[C -> S] Sending m5 to server...\n");
     }
@@ -131,7 +128,7 @@ fn main() {
     round_6(&mut server, client.get_id(), verbose);
     let duration = start.elapsed();
     times.push(duration);
-    println!("[!] Time elapsed in Round 6 is {:?}\n", duration);
+    println!("[!] Time elapsed in Round 6 is {duration:?}\n");
 
     println!("[!] Printing session keys...");
     let key_server = server.get_key(0);

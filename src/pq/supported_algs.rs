@@ -13,7 +13,7 @@ pub static SUPPORTED_SIGS: &[&str] = &["Dilithium2", "Dilithium3", "Dilithium5"]
 
 fn print_static_array(arr: &'static [&str]) {
     for elem in arr {
-        println!("[!] * {}", elem);
+        println!("[!] * {elem}");
     }
 }
 
