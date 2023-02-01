@@ -31,8 +31,14 @@ COLORS = {
     'ClassicMcEliece348864f': '#1CE6FF',
 }
 
-HUE_ORDER = ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece348864f+Dilithium2', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece6960119f+Dilithium5', CLASSIC_PKE_SIG]
+SPEEDS = {
+    '2G': 5000, # 5 kB/s
+    '3G': 1000000, # 1 MB/s
+    '4G': 6000000, # 6 MB/s
+    '5G': 125000000 # 125 MB/s
+}
 
+HUE_ORDER = ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece348864f+Dilithium2', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece6960119f+Dilithium5', CLASSIC_PKE_SIG]
 
 def get_length_data(path):
     headers = ["Kind", "Algorithm", "Clients", "Bandwidth"]
@@ -110,7 +116,7 @@ def load_data_primitives(pathfiles):
     return  all_samples
 
 def load_data_protocol(pathfile):
-    headers = ["Algorithm", "Clients", "Round", "Time", "Kind"]
+    headers = ["Id", "Algorithm", "Clients", "Round", "Time", "Kind"]
     all_samples = np.array([headers])
     for path in glob.glob(pathfile + "*/*/**"):
         check = len(path.split("/")[-1].split("-"))
@@ -128,8 +134,8 @@ def load_data_protocol(pathfile):
             samples_new = get_samples(data_path_new)
             samples = np.concatenate((samples_base, samples_new))
             # print(samples)
-            row = lambda time: [alg, clients, round, time, kind] 
-            rows = np.asarray(list(map(row, samples)))
+            row = lambda x: [x[0], alg, clients, round, x[1], kind] 
+            rows = np.asarray(list(map(row, enumerate(samples))))
             all_samples = np.append(all_samples, rows, axis=0)
         else:
             kind = "CLASSIC"
@@ -143,8 +149,8 @@ def load_data_protocol(pathfile):
             samples = np.concatenate((samples_base, samples_new))
             # print(samples)
             alg = CLASSIC_PKE_SIG
-            row = lambda time: [alg, clients, round, time, kind] 
-            rows = np.asarray(list(map(row, samples)))
+            row = lambda x: [x[0], alg, clients, round, x[1], kind] 
+            rows = np.asarray(list(map(row, enumerate(samples))))
             all_samples = np.append(all_samples, rows, axis=0)
 
     return  all_samples
@@ -184,14 +190,46 @@ def unique_everseen(seq, key=None):
     seen_add = seen.add
     return [x for x,k in zip(seq,key) if not (k in seen or seen_add(k))]
 
+
+def plot_speed(df_bandwidth, output_path, speeds):
+    rows = int(len(speeds.keys())/2)
+    fig, axes = plt.subplots(rows, rows, figsize=(18,9), dpi=300)
+
+    df2 = df_bandwidth[['Algorithm', 'Clients', 'Bandwidth']]
+
+    for i, key in enumerate(speeds.keys()):
+        row = i // rows
+        col = i % rows
+        df3 = df2[['Algorithm', 'Clients', 'Bandwidth']]
+        df3.insert(2, "Bandwidth", 0, True)
+        df3.insert(3, "Connection", "", True)
+        df3["Speed"] = df2["Bandwidth"]/speeds[key]
+        df3["Connection"] = key
+
+        sns.barplot(ax=axes[row, col], x="Clients", y="Speed", hue="Algorithm", data=df3, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
+
+        axes[row, col].set_title(key, fontsize="x-large")
+        axes[row, col].set_xlabel('Number of clients', fontsize="x-large")
+        axes[row, col].set_ylabel('Time (seconds)', fontsize="x-large")
+
+        if row != 0 or col != 0:
+            axes[row, col].get_legend().remove()    
+    
+    fig.subplots_adjust(hspace=0.35)
+
+    figname = "{}speed.png".format(output_path)
+    fig.savefig(figname, bbox_inches="tight")
+    print("Saved file to {}".format(figname), flush=True)
+
 def plot_scalability(df, df_bandwidth, output_path):
     # print(df)
     fig, axes = plt.subplots(2, figsize=(18,9), dpi=300)
     
     df2 = df[df['Round'] != 'Registration']
 
-    df2 = df2.groupby(['Algorithm', 'Clients', 'Round'])['Time'].mean().reset_index()
-    df2 = df2.groupby(['Algorithm', 'Clients'])['Time'].sum().reset_index()
+    # df2 = df2.groupby(['Algorithm', 'Clients', 'Round'])['Time'].mean().reset_index()
+    print(df2)
+    df2 = df2.groupby(['Id', 'Algorithm', 'Clients'])['Time'].sum().reset_index()
     df2['Time'] = df2['Time'] / 1000000
 
     df3 = pd.merge(df2, df_bandwidth,  how='left', left_on=['Algorithm', 'Clients'], right_on = ['Algorithm', 'Clients'])
@@ -200,8 +238,8 @@ def plot_scalability(df, df_bandwidth, output_path):
     rc = {'lines.linewidth': 2}                  
     sns.set_context("paper", rc = rc) 
 
-    sns.barplot(ax=axes[0], x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS, hue_order=HUE_ORDER)
-    sns.barplot(ax=axes[1], x="Clients", y="Bandwidth", hue="Algorithm", data=df3, palette=COLORS, hue_order=HUE_ORDER)
+    sns.barplot(ax=axes[0], x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
+    sns.barplot(ax=axes[1], x="Clients", y="Bandwidth", hue="Algorithm", data=df3, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
 
     axes[0].xaxis.tick_top()
     axes[0].set_xlabel('Number of clients', fontsize="x-large")
@@ -235,7 +273,7 @@ def plot_rounds(df, output_path):
 
         row = i // 3
         col = i % 3
-        p = sns.barplot(ax=axes[row, col], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=HUE_ORDER)
+        p = sns.barplot(ax=axes[row, col], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
 
         axes[row, col].set_xlabel('Number of clients', fontsize="x-large")
         axes[row, col].set_ylabel('Time (milliseconds)', fontsize="x-large")
@@ -262,7 +300,7 @@ def plot_registration(df, output_path):
     # print("------------")
     # print(df2)
 
-    p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=HUE_ORDER)
+    p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
     axes.set_xlabel('Number of clients', fontsize="x-large")
     axes.set_ylabel('Time (milliseconds)', fontsize="x-large")
 
@@ -283,7 +321,7 @@ def plot_pke(df, output_path):
     df2 = df[df['Type'] == 'PKE']
     df2['Time'] = df2['Time'] / 1000
 
-    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024", 'ClassicMcEliece348864f', 'ClassicMcEliece460896f', 'ClassicMcEliece6960119f', CLASSIC_PKE], order=["KEYGEN", "ENC", "DEC"])
+    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024", 'ClassicMcEliece348864f', 'ClassicMcEliece460896f', 'ClassicMcEliece6960119f', CLASSIC_PKE], order=["KEYGEN", "ENC", "DEC"], errorbar="sd")
     axes.set_xlabel('Operation', fontsize="x-large")
     axes.set_ylabel('Time (microseconds)', fontsize="x-large")
     axes.set(yscale="symlog")
@@ -300,7 +338,7 @@ def plot_sig(df, output_path):
     df2 = df[df['Type'] == 'SIG']
     df2['Time'] = df2['Time'] / 1000
 
-    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, order=["KEYGEN", "SIG", "VRY"], hue_order=["Dilithium2", "Dilithium3", "Dilithium5", CLASSIC_SIG])
+    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, order=["KEYGEN", "SIG", "VRY"], hue_order=["Dilithium2", "Dilithium3", "Dilithium5", CLASSIC_SIG], errorbar="sd")
     axes.set_xlabel('Operation', fontsize="x-large")
     axes.set_ylabel('Time (microseconds)', fontsize="x-large")
 
@@ -342,6 +380,7 @@ def main():
     df_bandwidth = load_csv(OUTPUT, 'data_bandwidth.csv')
 
     plot_scalability(df_protocol, df_bandwidth, OUTPUT)
+    plot_speed(df_bandwidth, OUTPUT, SPEEDS)
     plot_rounds(df_protocol, OUTPUT)
     #plot_registration(df_protocol, OUTPUT)
     
