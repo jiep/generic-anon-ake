@@ -216,7 +216,13 @@ def plot_speed(df_bandwidth, output_path, speeds):
         
 
         if row != 0 or col != 0:
-            axes[row, col].get_legend().remove()    
+            axes[row, col].get_legend().remove()
+
+    h, l = reorderLegend(axes[0,0], HUE_ORDER)
+    fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.05),
+          fancybox=True, ncol=len(axes[0, 0].lines))
+
+    axes[0,0].get_legend().remove()    
     
     fig.subplots_adjust(hspace=0.35)
 
