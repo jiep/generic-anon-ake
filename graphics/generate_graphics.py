@@ -413,7 +413,7 @@ def main():
     PATH = "./target/criterion/Protocol"
     OUTPUT = "./target/criterion/"
     CLIENTS = [
-        512
+        512,
         1024, 
         #16384
     ]
