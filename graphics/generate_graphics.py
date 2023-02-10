@@ -183,6 +183,7 @@ def reorderLegend(ax=None,order=None,unique=False):
         labels, handles = zip(*sorted(zip(labels, handles), key=lambda t,keys=keys: keys.get(t[0],np.inf)))
     if unique:  labels, handles= zip(*unique_everseen(zip(labels,handles), key = labels)) # Keep only the first of each handle
     ax.legend(handles, labels)
+          
     return(handles, labels)
 
 def unique_everseen(seq, key=None):
@@ -211,6 +212,8 @@ def plot_speed(df_bandwidth, output_path, speeds):
         axes[row, col].set_title(key, fontsize="x-large")
         axes[row, col].set_xlabel('Number of clients', fontsize="x-large")
         axes[row, col].set_ylabel('Time (seconds)', fontsize="x-large")
+        axes[row, col].set_yscale('log')
+        
 
         if row != 0 or col != 0:
             axes[row, col].get_legend().remove()    
@@ -244,16 +247,22 @@ def plot_scalability(df, df_bandwidth, output_path):
     axes[0].xaxis.tick_top()
     axes[0].set_xlabel('Number of clients', fontsize="x-large")
     axes[0].set_ylabel('Time (milliseconds)', fontsize="x-large")
+    axes[0].set_yscale('log')
     axes[1].set_ylabel('Bandwidth (MB)', fontsize="x-large")
-    axes[1].get_legend().remove()
+    axes[1].set_yscale('log')
 
     fig.subplots_adjust(hspace=0)
 
     # h, l = ax1.get_legend_handles_labels()
     # l, h = zip(*sorted(zip(l, h)))
     # ax1.legend(h, l)
-    reorderLegend(axes[0], HUE_ORDER)
-    plt.setp(axes[0].get_legend().get_texts(), fontsize='10')
+
+    # Put a legend below current axis
+    h, l = reorderLegend(axes[1], HUE_ORDER)
+    fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.05),
+          fancybox=True, ncol=len(axes[1].lines))
+    axes[0].get_legend().remove()
+    axes[1].get_legend().remove()
 
     figname = "{}scalability.png".format(output_path)
     fig.savefig(figname, bbox_inches="tight")
@@ -279,15 +288,43 @@ def plot_rounds(df, output_path):
         axes[row, col].set_ylabel('Time (milliseconds)', fontsize="x-large")
         axes[row, col].set_title(round, fontsize="x-large")
         axes[row, col].get_legend().remove()
+        axes[row, col].set_yscale('log')
 
-    h, l = p.get_legend_handles_labels()
-    l, h = zip(*sorted(zip(l, h)))
-    p.legend(h, l)
+    h, l = reorderLegend(axes[1,1], HUE_ORDER)
+    fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.05),
+          fancybox=True, ncol=len(axes[1,1].lines))
 
-    reorderLegend(axes[0, 2], HUE_ORDER)
     # axes[0, 2].legend(h, l, bbox_to_anchor=(1.05, 1.05))
-    axes[1, 2].get_legend().remove()
+    axes[1, 1].get_legend().remove()
     figname = "{}rounds.png".format(output_path)
+    plt.savefig(figname, bbox_inches="tight")
+    print("Saved file to {}".format(figname), flush=True)
+
+def plot_rounds_fixed_clients(df, output_path, clients):
+    fig, axes = plt.subplots(len(clients), figsize=(30,9), dpi=300, sharey=False)
+    fig.subplots_adjust(hspace=0.4, wspace=0.2)
+    df2 = df[df['Round'] != 'Registration']
+
+    order = ["Round 1", "Round 2", "Round 3", "Round 4", "Round 5", "Round 6"]
+
+    for (i, clients_number) in enumerate(clients):
+        df2 = df[df['Clients'] == clients_number]
+        df2['Time'] = df2['Time'] / 1000000
+
+        p = sns.barplot(ax = axes[i], x="Round", y="Time", hue="Algorithm", data=df2, order=order, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
+
+        axes[i].set_xlabel('Round', fontsize="x-large")
+        axes[i].set_ylabel('Time (milliseconds)', fontsize="x-large")
+        axes[i].set_title('{} clients'.format(clients_number), fontsize="x-large")
+        axes[i].get_legend().remove()
+        axes[i].set_yscale('log')
+
+    h, l = reorderLegend(axes[i], HUE_ORDER)
+    fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.05),
+          fancybox=True, ncol=len(axes[i].lines))
+
+    axes[i].get_legend().remove()
+    figname = "{}rounds_fixed_clients.png".format(output_path)
     plt.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
 
@@ -303,6 +340,7 @@ def plot_registration(df, output_path):
     p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
     axes.set_xlabel('Number of clients', fontsize="x-large")
     axes.set_ylabel('Time (milliseconds)', fontsize="x-large")
+    axes.set_yscale('log')
 
     h, l = p.get_legend_handles_labels()
     l, h = zip(*sorted(zip(l, h)))
@@ -324,7 +362,7 @@ def plot_pke(df, output_path):
     p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024", 'ClassicMcEliece348864f', 'ClassicMcEliece460896f', 'ClassicMcEliece6960119f', CLASSIC_PKE], order=["KEYGEN", "ENC", "DEC"], errorbar="sd")
     axes.set_xlabel('Operation', fontsize="x-large")
     axes.set_ylabel('Time (microseconds)', fontsize="x-large")
-    axes.set(yscale="symlog")
+    axes.set_yscale('log')
 
     figname = "{}pke.png".format(output_path)
     plt.savefig(figname, bbox_inches="tight")
@@ -341,6 +379,8 @@ def plot_sig(df, output_path):
     p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, order=["KEYGEN", "SIG", "VRY"], hue_order=["Dilithium2", "Dilithium3", "Dilithium5", CLASSIC_SIG], errorbar="sd")
     axes.set_xlabel('Operation', fontsize="x-large")
     axes.set_ylabel('Time (microseconds)', fontsize="x-large")
+    axes.set_yscale('log')
+
 
     figname = "{}sig.png".format(output_path)
     plt.savefig(figname, bbox_inches="tight")
@@ -372,6 +412,11 @@ def get_statistics_protocol(df, output):
 def main(): 
     PATH = "./target/criterion/Protocol"
     OUTPUT = "./target/criterion/"
+    CLIENTS = [
+        512
+        1024, 
+        #16384
+    ]
 
     save_to_csv_protocol(PATH, OUTPUT, 'data.csv')
     df_protocol = load_csv(OUTPUT, 'data.csv')
@@ -382,6 +427,7 @@ def main():
     plot_scalability(df_protocol, df_bandwidth, OUTPUT)
     plot_speed(df_bandwidth, OUTPUT, SPEEDS)
     plot_rounds(df_protocol, OUTPUT)
+    plot_rounds_fixed_clients(df_protocol, OUTPUT, CLIENTS)
     #plot_registration(df_protocol, OUTPUT)
     
     save_to_csv_primitives([OUTPUT + "PKE", OUTPUT + "SIG"], OUTPUT, "data_primitives.csv")
