@@ -368,6 +368,25 @@ def plot_pke(df, output_path):
     plt.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
 
+def plot_pke_keygen(df, output_path):
+
+    fig, axes = plt.subplots(1, figsize=(18,9), dpi=300, sharey=False)
+    fig.subplots_adjust(hspace=0, wspace=0)
+
+    df2 = df[df['Type'] == 'PKE']
+    df2 = df2[df2['Operation'] == 'KEYGEN']
+    print(df2)
+    df2['Time'] = df2['Time'] / 1000
+
+    p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024", 'ClassicMcEliece348864f', 'ClassicMcEliece460896f', 'ClassicMcEliece6960119f', CLASSIC_PKE], errorbar="sd")
+    axes.set_xlabel('Operation', fontsize="x-large")
+    axes.set_ylabel('Time (microseconds)', fontsize="x-large")
+    axes.set_yscale('log')
+
+    figname = "{}keygen.png".format(output_path)
+    plt.savefig(figname, bbox_inches="tight")
+    print("Saved file to {}".format(figname), flush=True)
+
 def plot_sig(df, output_path):
 
     fig, axes = plt.subplots(1, figsize=(18,9), dpi=300, sharey=False)
@@ -433,6 +452,7 @@ def main():
     save_to_csv_primitives([OUTPUT + "PKE", OUTPUT + "SIG"], OUTPUT, "data_primitives.csv")
     df_primitives = load_csv(OUTPUT, 'data_primitives.csv')
     plot_pke(df_primitives, OUTPUT)
+    plot_pke_keygen(df_primitives, OUTPUT)
     plot_sig(df_primitives, OUTPUT)
 
     get_statistics_primitives(df_primitives, OUTPUT + "statistics_primitives.csv")
