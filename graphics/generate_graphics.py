@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import math
 
 CLASSIC_SIG = "ECDSA(seckp256k1)"
 CLASSIC_PKE = "ECIES(seckp256k1)"
@@ -230,6 +231,38 @@ def plot_speed(df_bandwidth, output_path, speeds):
     fig.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
 
+
+def plot_broadcast_encryption(output_path):
+
+    f = lambda x: -x + 16000
+    g = lambda x: -1/7500*x**2+32/15*x
+
+    fig, axes = plt.subplots(1, figsize=(18,9), dpi=300)
+    start = 0
+    end = 20000
+    step = 0.01
+    points = math.ceil((end - start)/step)
+    x1 = np.linspace(start, end, points, endpoint=True)
+    x2 = np.linspace(start, end, points, endpoint=True)
+    y1 = np.array([f(xi) for xi in x1])
+    y2 = np.array([g(xi) for xi in x2])
+    type1 = np.array(["Type1" for _ in range(points)])
+    type2 = np.array(["Type2" for _ in range(points)])
+    df1 = pd.DataFrame(list(zip(x1, y1, type1)), columns = ['x', 'y', 'type'])
+    df2 = pd.DataFrame(list(zip(x2, y2, type2)), columns = ['x', 'y', 'type'])
+    df = pd.concat([df1, df2])
+    print(df)
+    sns.lineplot(ax=axes, x="x", y="y", hue="type", data=df)
+
+    axes.set_xlabel('Number of clients', fontsize="x-large")
+    axes.set_ylabel('Time', fontsize="x-large")
+    # axes.set_yscale('log')
+
+    figname = "{}broadcast_encryption.png".format(output_path)
+    fig.savefig(figname, bbox_inches="tight")
+    print("Saved file to {}".format(figname), flush=True)
+
+
 def plot_scalability(df, df_bandwidth, output_path):
     # print(df)
     fig, axes = plt.subplots(2, figsize=(18,9), dpi=300)
@@ -423,6 +456,8 @@ def main():
         1024, 
         #16384
     ]
+
+    plot_broadcast_encryption(OUTPUT)
 
     save_to_csv_protocol(PATH, OUTPUT, 'data.csv')
     df_protocol = load_csv(OUTPUT, 'data.csv')
