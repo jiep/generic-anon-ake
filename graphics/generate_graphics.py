@@ -18,17 +18,17 @@ COLORS = {
     'ClassicMcEliece460896f+Dilithium3': '#F49C28',
     'ClassicMcEliece348864f+Dilithium2': '#00FF00',
     CLASSIC_PKE_SIG: "#FF34FF",
-    CLASSIC_PKE: "#FF8A9A",
+    CLASSIC_PKE: "#FF34FF",
     CLASSIC_SIG: "#FFF69F",
-    'Kyber512': "#3B5DFF",
-    'Kyber768': "#4FC601",
-    'Kyber1024': "#FAD09F",
+    'Kyber512': "#B79762",
+    'Kyber768': "#FF4A46",
+    'Kyber1024': "#0000A6",
     'Dilithium2': "#006FA6",
     'Dilithium3': "#A30059",
     'Dilithium5': "#008941",
-    'ClassicMcEliece6960119f': '#6F0062',
-    'ClassicMcEliece460896f': '#B3F8F0',
-    'ClassicMcEliece348864f': '#1CE6FF',
+    'ClassicMcEliece6960119f': '#FDE74C',
+    'ClassicMcEliece460896f': '#F49C28',
+    'ClassicMcEliece348864f': '#00FF00',
 }
 
 SPEEDS = {
@@ -39,6 +39,13 @@ SPEEDS = {
 }
 
 HUE_ORDER = ["Kyber512+Dilithium2", "Kyber768+Dilithium3", "Kyber1024+Dilithium5", 'ClassicMcEliece348864f+Dilithium2', 'ClassicMcEliece460896f+Dilithium3', 'ClassicMcEliece6960119f+Dilithium5', CLASSIC_PKE_SIG]
+
+FONTSIZE = 20
+LABELSIZE = 15
+LEGENDSIZE = 15
+
+rc = {'lines.linewidth': 2}                  
+sns.set_context("paper", rc = rc) 
 
 def get_length_data(path):
     headers = ["Kind", "Algorithm", "Clients", "Bandwidth"]
@@ -209,10 +216,12 @@ def plot_speed(df_bandwidth, output_path, speeds):
 
         sns.barplot(ax=axes[row, col], x="Clients", y="Speed", hue="Algorithm", data=df3, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
 
-        axes[row, col].set_title(key, fontsize="x-large")
-        axes[row, col].set_xlabel('Number of clients', fontsize="x-large")
-        axes[row, col].set_ylabel('Time (seconds)', fontsize="x-large")
+        axes[row, col].set_title(key, fontsize=FONTSIZE)
+        axes[row, col].set_xlabel('Number of clients', fontsize=FONTSIZE)
+        axes[row, col].set_ylabel('Time (seconds)', fontsize=FONTSIZE)
         axes[row, col].set_yscale('log')
+        axes[row, col].tick_params(labelsize=LABELSIZE)
+        axes[row, col].tick_params(axis='both', labelsize=LABELSIZE)
         
 
         if row != 0 or col != 0:
@@ -220,7 +229,7 @@ def plot_speed(df_bandwidth, output_path, speeds):
 
     h, l = reorderLegend(axes[0,0], HUE_ORDER)
     fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.05),
-          fancybox=True, ncol=len(axes[0, 0].lines))
+          fancybox=True, ncol=3, fontsize=LEGENDSIZE)
 
     axes[0,0].get_legend().remove()    
     
@@ -230,9 +239,9 @@ def plot_speed(df_bandwidth, output_path, speeds):
     fig.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
 
-def plot_scalability(df, df_bandwidth, output_path):
+def plot_scalability_time(df, output_path):
     # print(df)
-    fig, axes = plt.subplots(2, figsize=(18,9), dpi=300)
+    fig, axes = plt.subplots(1, figsize=(18,9), dpi=300)
     
     df2 = df[df['Round'] != 'Registration']
 
@@ -241,21 +250,15 @@ def plot_scalability(df, df_bandwidth, output_path):
     df2 = df2.groupby(['Id', 'Algorithm', 'Clients'])['Time'].sum().reset_index()
     df2['Time'] = df2['Time'] / 1000000
 
-    df3 = pd.merge(df2, df_bandwidth,  how='left', left_on=['Algorithm', 'Clients'], right_on = ['Algorithm', 'Clients'])
-    df3['Bandwidth'] = df3['Bandwidth'] / 1000000
-
     rc = {'lines.linewidth': 2}                  
     sns.set_context("paper", rc = rc) 
 
-    sns.barplot(ax=axes[0], x="Clients", y="Time", hue="Algorithm", data=df3, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
-    sns.barplot(ax=axes[1], x="Clients", y="Bandwidth", hue="Algorithm", data=df3, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
+    sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
 
-    axes[0].xaxis.tick_top()
-    axes[0].set_xlabel('Number of clients', fontsize="x-large")
-    axes[0].set_ylabel('Time (milliseconds)', fontsize="x-large")
-    axes[0].set_yscale('log')
-    axes[1].set_ylabel('Bandwidth (MB)', fontsize="x-large")
-    axes[1].set_yscale('log')
+    axes.set_xlabel('Number of clients', fontsize=FONTSIZE)
+    axes.set_ylabel('Time (milliseconds)', fontsize=FONTSIZE)
+    axes.set_yscale('log')
+    axes.tick_params(axis='both', labelsize=LABELSIZE)
 
     fig.subplots_adjust(hspace=0)
 
@@ -264,15 +267,47 @@ def plot_scalability(df, df_bandwidth, output_path):
     # ax1.legend(h, l)
 
     # Put a legend below current axis
-    h, l = reorderLegend(axes[1], HUE_ORDER)
-    fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.05),
-          fancybox=True, ncol=len(axes[1].lines))
-    axes[0].get_legend().remove()
-    axes[1].get_legend().remove()
+    h, l = reorderLegend(axes, HUE_ORDER)
+    fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.03),
+          fancybox=True, ncol=3, fontsize=LEGENDSIZE)
+    axes.get_legend().remove()
 
-    figname = "{}scalability.png".format(output_path)
+    figname = "{}scalability_time.png".format(output_path)
     fig.savefig(figname, bbox_inches="tight")
     print("Saved file to {}".format(figname), flush=True)
+
+def plot_scalability_bandwidth(df_bandwidth, output_path):
+    # print(df)
+    fig, axes = plt.subplots(1, figsize=(18,9), dpi=300)
+
+    df_bandwidth['Bandwidth'] = df_bandwidth['Bandwidth'] / 1000000
+
+    rc = {'lines.linewidth': 2}                  
+    sns.set_context("paper", rc = rc) 
+
+    sns.barplot(ax=axes, x="Clients", y="Bandwidth", hue="Algorithm", data=df_bandwidth, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
+
+    axes.set_xlabel('Number of clients', fontsize=FONTSIZE)
+    axes.set_yscale('log')
+    axes.set_ylabel('Bandwidth (MB)', fontsize=FONTSIZE)
+    axes.tick_params(axis='both', labelsize=LABELSIZE)
+
+    fig.subplots_adjust(hspace=0)
+
+    # h, l = ax1.get_legend_handles_labels()
+    # l, h = zip(*sorted(zip(l, h)))
+    # ax1.legend(h, l)
+
+    # Put a legend below current axis
+    h, l = reorderLegend(axes, HUE_ORDER)
+    fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.03),
+          fancybox=True, ncol=3, fontsize=LEGENDSIZE)
+    axes.get_legend().remove()
+
+    figname = "{}scalability_bandwidth.png".format(output_path)
+    fig.savefig(figname, bbox_inches="tight")
+    print("Saved file to {}".format(figname), flush=True)
+
 
 def plot_rounds(df, output_path):
     fig, axes = plt.subplots(2, 3, figsize=(30,9), dpi=300, sharey=False)
@@ -290,15 +325,17 @@ def plot_rounds(df, output_path):
         col = i % 3
         p = sns.barplot(ax=axes[row, col], x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
 
-        axes[row, col].set_xlabel('Number of clients', fontsize="x-large")
-        axes[row, col].set_ylabel('Time (milliseconds)', fontsize="x-large")
-        axes[row, col].set_title(round, fontsize="x-large")
+        axes[row, col].set_xlabel('Number of clients', fontsize=FONTSIZE)
+        axes[row, col].set_ylabel('Time (milliseconds)', fontsize=FONTSIZE)
+        axes[row, col].set_title(round, fontsize=FONTSIZE)
         axes[row, col].get_legend().remove()
         axes[row, col].set_yscale('log')
+        axes[row, col].tick_params(axis='x', labelsize=LABELSIZE)
 
     h, l = reorderLegend(axes[1,1], HUE_ORDER)
-    fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.05),
-          fancybox=True, ncol=len(axes[1,1].lines))
+    fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.03),
+          fancybox=True, ncol=3, fontsize=LEGENDSIZE)
+
 
     # axes[0, 2].legend(h, l, bbox_to_anchor=(1.05, 1.05))
     axes[1, 1].get_legend().remove()
@@ -319,15 +356,17 @@ def plot_rounds_fixed_clients(df, output_path, clients):
 
         p = sns.barplot(ax = axes[i], x="Round", y="Time", hue="Algorithm", data=df2, order=order, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
 
-        axes[i].set_xlabel('Round', fontsize="x-large")
-        axes[i].set_ylabel('Time (milliseconds)', fontsize="x-large")
-        axes[i].set_title('{} clients'.format(clients_number), fontsize="x-large")
+        axes[i].set_xlabel('Round', fontsize=FONTSIZE)
+        axes[i].set_ylabel('Time (milliseconds)', fontsize=FONTSIZE)
+        axes[i].set_title('{} clients'.format(clients_number), fontsize=FONTSIZE)
         axes[i].get_legend().remove()
         axes[i].set_yscale('log')
+        axes[i].tick_params(axis='x', labelsize=LABELSIZE)
+
 
     h, l = reorderLegend(axes[i], HUE_ORDER)
-    fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.05),
-          fancybox=True, ncol=len(axes[i].lines))
+    fig.legend(h, l, loc='upper center', bbox_to_anchor=(0.5, 0.03),
+          fancybox=True, ncol=3, fontsize=LEGENDSIZE)
 
     axes[i].get_legend().remove()
     figname = "{}rounds_fixed_clients.png".format(output_path)
@@ -344,8 +383,8 @@ def plot_registration(df, output_path):
     # print(df2)
 
     p = sns.barplot(ax=axes, x="Clients", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=HUE_ORDER, errorbar="sd")
-    axes.set_xlabel('Number of clients', fontsize="x-large")
-    axes.set_ylabel('Time (milliseconds)', fontsize="x-large")
+    axes.set_xlabel('Number of clients', fontsize=FONTSIZE)
+    axes.set_ylabel('Time (milliseconds)', fontsize=FONTSIZE)
     axes.set_yscale('log')
 
     h, l = p.get_legend_handles_labels()
@@ -366,9 +405,11 @@ def plot_pke(df, output_path):
     df2['Time'] = df2['Time'] / 1000
 
     p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, hue_order=["Kyber512", "Kyber768", "Kyber1024", 'ClassicMcEliece348864f', 'ClassicMcEliece460896f', 'ClassicMcEliece6960119f', CLASSIC_PKE], order=["KEYGEN", "ENC", "DEC"], errorbar="sd")
-    axes.set_xlabel('Operation', fontsize="x-large")
-    axes.set_ylabel('Time (microseconds)', fontsize="x-large")
+    axes.set_xlabel('Operation', fontsize=FONTSIZE)
+    axes.set_ylabel('Time (microseconds)', fontsize=FONTSIZE)
     axes.set_yscale('log')
+    axes.tick_params(axis='both', labelsize=LABELSIZE)
+    axes.legend(fontsize=LEGENDSIZE)
 
     figname = "{}pke.png".format(output_path)
     plt.savefig(figname, bbox_inches="tight")
@@ -383,9 +424,10 @@ def plot_sig(df, output_path):
     df2['Time'] = df2['Time'] / 1000
 
     p = sns.barplot(ax=axes, x="Operation", y="Time", hue="Algorithm", data=df2, palette=COLORS, order=["KEYGEN", "SIG", "VRY"], hue_order=["Dilithium2", "Dilithium3", "Dilithium5", CLASSIC_SIG], errorbar="sd")
-    axes.set_xlabel('Operation', fontsize="x-large")
-    axes.set_ylabel('Time (microseconds)', fontsize="x-large")
+    axes.set_xlabel('Operation', fontsize=FONTSIZE)
+    axes.set_ylabel('Time (microseconds)', fontsize=FONTSIZE)
     axes.set_yscale('log')
+    axes.tick_params(axis='both', labelsize=LABELSIZE)
 
 
     figname = "{}sig.png".format(output_path)
@@ -419,9 +461,9 @@ def main():
     PATH = "./target/criterion/Protocol"
     OUTPUT = "./target/criterion/"
     CLIENTS = [
-        512,
+        #512,
         1024, 
-        #16384
+        16384
     ]
 
     save_to_csv_protocol(PATH, OUTPUT, 'data.csv')
@@ -430,7 +472,8 @@ def main():
     save_to_csv_bandwidth(OUTPUT, OUTPUT, 'data_bandwidth.csv')
     df_bandwidth = load_csv(OUTPUT, 'data_bandwidth.csv')
 
-    plot_scalability(df_protocol, df_bandwidth, OUTPUT)
+    plot_scalability_time(df_protocol, OUTPUT)
+    plot_scalability_bandwidth(df_bandwidth, OUTPUT)
     plot_speed(df_bandwidth, OUTPUT, SPEEDS)
     plot_rounds(df_protocol, OUTPUT)
     plot_rounds_fixed_clients(df_protocol, OUTPUT, CLIENTS)
