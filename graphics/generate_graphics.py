@@ -236,23 +236,43 @@ def plot_broadcast_encryption(output_path):
 
     f = lambda x: -x + 16000
     g = lambda x: -1/7500*x**2+32/15*x
+    h = lambda x: 5*x + 10000
+    i = lambda x: 1/750*x**2+4*x
 
     fig, axes = plt.subplots(1, figsize=(18,9), dpi=300)
     start = 0
     end = 20000
     step = 0.01
     points = math.ceil((end - start)/step)
+
     x1 = np.linspace(start, end, points, endpoint=True)
     x2 = np.linspace(start, end, points, endpoint=True)
+    x3 = np.linspace(start, end, points, endpoint=True)
+    x4 = np.linspace(start, end, points, endpoint=True)
+
     y1 = np.array([f(xi) for xi in x1])
     y2 = np.array([g(xi) for xi in x2])
-    type1 = np.array(["Type1" for _ in range(points)])
-    type2 = np.array(["Type2" for _ in range(points)])
-    df1 = pd.DataFrame(list(zip(x1, y1, type1)), columns = ['x', 'y', 'type'])
-    df2 = pd.DataFrame(list(zip(x2, y2, type2)), columns = ['x', 'y', 'type'])
-    df = pd.concat([df1, df2])
+    y3 = np.array([h(xi) for xi in x3])
+    y4 = np.array([i(xi) for xi in x4])
+
+    type1 = np.array(["Protocol A" for _ in range(points)])
+    type2 = np.array(["Protocol B" for _ in range(points)])
+    type3 = np.array(["Protocol A" for _ in range(points)])
+    type4 = np.array(["Protocol B" for _ in range(points)])
+
+    clients1 = np.array(["1k" for _ in range(points)])
+    clients2 = np.array(["1k" for _ in range(points)])
+    clients3 = np.array(["16k" for _ in range(points)])
+    clients4 = np.array(["16k" for _ in range(points)])
+
+    df1 = pd.DataFrame(list(zip(x1, y1, type1, clients1)), columns = ['x', 'y', 'Protocol', 'Clients'])
+    df2 = pd.DataFrame(list(zip(x2, y2, type2, clients2)), columns = ['x', 'y', 'Protocol', 'Clients'])
+    df3 = pd.DataFrame(list(zip(x3, y3, type3, clients3)), columns = ['x', 'y', 'Protocol', 'Clients'])
+    df4 = pd.DataFrame(list(zip(x4, y4, type4, clients4)), columns = ['x', 'y', 'Protocol', 'Clients'])
+
+    df = pd.concat([df1, df2, df3, df4])
     print(df)
-    sns.lineplot(ax=axes, x="x", y="y", hue="type", data=df)
+    sns.lineplot(ax=axes, x="x", y="y", hue="Protocol", style="Clients", data=df, errorbar=None)
 
     axes.set_xlabel('Number of clients', fontsize="x-large")
     axes.set_ylabel('Time', fontsize="x-large")
