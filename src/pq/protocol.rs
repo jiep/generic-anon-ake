@@ -92,7 +92,7 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
     let to_sign: Vec<u8> = [
         cis.clone()
             .iter()
-            .map(|x| {
+            .flat_map(|x| {
                 [
                     x.0.to_owned().into_vec(),
                     x.1.to_owned().to_vec(),
@@ -100,8 +100,6 @@ pub fn round_2(server: &mut Server, config: &Config, id: u32) -> M2Message {
                 ]
                 .concat()
             })
-            .into_iter()
-            .flatten()
             .collect(),
         r.clone(),
         pk.clone().into_vec(),
@@ -127,7 +125,7 @@ pub fn round_3(client: &mut Client, config: &Config, verbose: bool) -> (Vec<u8>,
 
     let to_verify: Vec<u8> = [
         cis.iter()
-            .map(|x| {
+            .flat_map(|x| {
                 [
                     x.0.to_owned().into_vec(),
                     x.1.to_owned().to_vec(),
@@ -135,8 +133,6 @@ pub fn round_3(client: &mut Client, config: &Config, verbose: bool) -> (Vec<u8>,
                 ]
                 .concat()
             })
-            .into_iter()
-            .flatten()
             .collect(),
         r,
         pk.into_vec(),
