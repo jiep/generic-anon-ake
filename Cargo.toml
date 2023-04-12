@@ -9,7 +9,7 @@ default-run = "generic-anon-ake"
 [dependencies]
 rand = "0.8.5"
 hex = "0.4.3"
-sha3 = "0.10.6"
+sha3 = "0.10.7"
 sha2 = "0.10.6"
 aes-gcm = "0.10.1"
 clap = { version = "4.1.13", features = ["derive"] }
