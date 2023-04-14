@@ -12,7 +12,7 @@ hex = "0.4.3"
 sha3 = "0.10.6"
 sha2 = "0.10.6"
 aes-gcm = "0.10.1"
-clap = { version = "4.1.13", features = ["derive"] }
+clap = { version = "4.2.2", features = ["derive"] }
 ctr = "0.9.2"
 aes = "0.8.2"
 k256 = "0.13.0" #ecdsa
