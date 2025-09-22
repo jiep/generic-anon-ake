@@ -15,7 +15,7 @@ aes-gcm = "0.10.1"
 clap = { version = "4.1.13", features = ["derive"] }
 ctr = "0.9.2"
 aes = "0.8.2"
-k256 = "0.13.0" #ecdsa
+k256 = "0.13.1" #ecdsa
 
 [target.'cfg(windows)'.dependencies]
 pke_ecies = { git = "https://github.com/jiep/ecies-rs", default-features = false, features = ["pure"] }
